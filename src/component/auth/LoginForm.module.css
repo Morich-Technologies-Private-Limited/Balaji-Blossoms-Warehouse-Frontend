@@ -1,0 +1,89 @@
+.brandingSide {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  position: relative;
+}
+
+.brandingSide::before {
+  content: '';
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 50%;
+  top: -200px;
+  right: -200px;
+}
+
+.brandingSide::after {
+  content: '';
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 50%;
+  bottom: -100px;
+  left: -100px;
+}
+
+.textEmerald {
+  color: #10b981 !important;
+}
+
+.btnEmerald {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.btnEmerald:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+  color: white;
+  filter: brightness(1.1);
+}
+
+.btnEmerald:active {
+  transform: translateY(0);
+}
+
+.customInputGroup :global(.form-control:focus) {
+  background-color: #fff !important;
+  border-color: #10b981;
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+}
+
+.customInputGroup :global(.input-group-text),
+.customInputGroup :global(.btn) {
+  border-color: transparent;
+}
+
+.customInputGroup :global(.form-control) {
+  border: 1.5px solid #e9ecef;
+  border-radius: 8px;
+}
+
+.customInputGroup {
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1.5px solid #e9ecef;
+}
+
+.animateFloat {
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+.cursorPointer {
+  cursor: pointer;
+}
+
+.socialBtn:hover {
+  background-color: #f8f9fa !important;
+  border-color: #10b981 !important;
+}

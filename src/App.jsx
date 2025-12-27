@@ -4,24 +4,15 @@ import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap/dist/js/bootstrap.bundle.min.js'
 
 import About from "./component/About"
+import LoginForm from "./component/auth/LoginForm"
 
 function App() {
   return (
     <>
-      {/* Simple Navbar */}
-      <nav className="navbar navbar-expand navbar-dark bg-dark">
-        <div className="container">
-          <Link className="navbar-brand" to="/">ViteApp</Link>
-          <div className="navbar-nav">
-            <Link className="nav-link" to="/about">Home</Link>
-            <Link className="nav-link" to="/about">About</Link>
-          </div>
-        </div>
-      </nav>
-
-      {/* Routes */}
+     
       <Routes>
-        <Route path="/about" element={<About />} />
+        <Route path="/" element={<LoginForm />} />
+        <Route path="/login" element={<LoginForm />} />
         
       </Routes>
     </>

@@ -70,7 +70,7 @@ const LoginForm = () => {
                   </span>
                   <input
                     type="email"
-                    className="form-control bg-light border-start-0 ps-0 py-3"
+                    className="form-control bg-light border-start-0 ps-0 py-3 ps-2"
                     placeholder="your.email@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -87,7 +87,7 @@ const LoginForm = () => {
                   </span>
                   <input
                     type={showPassword ? "text" : "password"}
-                    className="form-control bg-light border-start-0 ps-0 py-3"
+                    className="form-control bg-light border-start-0 ps-0 py-3 ps-2"
                     placeholder="Enter your password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}

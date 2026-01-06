@@ -1,14 +1,37 @@
 // DynamicSidebar.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import styles from './DynamicSidebar.module.css';
 
 const DynamicSidebar = ({ role }) => {
   const [isOpen, setIsOpen] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
   const location = useLocation();
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+      if (window.innerWidth <= 768) {
+        setIsOpen(false); // Auto-close on mobile
+      } else {
+        setIsOpen(true); // Auto-open on desktop
+      }
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
+  };
+
+  const closeSidebarOnMobile = () => {
+    if (isMobile) {
+      setIsOpen(false);
+    }
   };
 
   // Define sidebar configurations for each role
@@ -57,12 +80,31 @@ const DynamicSidebar = ({ role }) => {
 
   return (
     <>
+      {/* Overlay for mobile */}
+      {isMobile && isOpen && (
+        <div 
+          className={styles.overlay}
+          onClick={closeSidebarOnMobile}
+        />
+      )}
+
+      {/* Sidebar */}
       <div className={`${styles.sidebar} ${isOpen ? styles.open : styles.closed}`}>
         <div className={styles.sidebarHeader}>
           <div className={styles.logo}>
             <i className="bi bi-building"></i>
             <span className={styles.logoText}>{config.logo}</span>
           </div>
+          {/* Close button for mobile */}
+          {isMobile && isOpen && (
+            <button 
+              className={styles.closeBtn}
+              onClick={closeSidebarOnMobile}
+              aria-label="Close sidebar"
+            >
+              <i className="bi bi-x-lg"></i>
+            </button>
+          )}
         </div>
 
         <nav className={styles.sidebarNav}>
@@ -72,6 +114,7 @@ const DynamicSidebar = ({ role }) => {
               to={item.link} 
               className={`${styles.navItem} ${location.pathname === item.link ? styles.active : ''}`}
               title={!isOpen ? item.text : ''}
+              onClick={closeSidebarOnMobile}
             >
               <i className={item.icon}></i>
               <span className={styles.navText}>{item.text}</span>
@@ -85,12 +128,14 @@ const DynamicSidebar = ({ role }) => {
         </div>
       </div>
 
+      {/* Toggle button */}
       <button 
         className={`${styles.toggleBtn} ${!isOpen ? styles.toggleBtnClosed : ''}`}
         onClick={toggleSidebar}
         title={isOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+        aria-label={isOpen ? 'Collapse sidebar' : 'Expand sidebar'}
       >
-        <i className={`bi ${isOpen ? 'bi-chevron-left' : 'bi-chevron-right'}`}></i>
+        <i className={`bi ${isOpen ? 'bi-chevron-left' : 'bi-list'}`}></i>
       </button>
     </>
   );

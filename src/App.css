@@ -1,0 +1,204 @@
+/* Global.css - Responsive adjustments for main content with sidebar */
+
+/* Main content responsive margins based on sidebar state */
+:root {
+  --sidebar-width-open: 250px;
+  --sidebar-width-closed: 70px;
+}
+
+/* Default desktop layout */
+.main-content {
+  margin-left: var(--sidebar-width-open);
+  transition: margin-left 0.3s ease;
+  min-height: 100vh;
+  width: calc(100% - var(--sidebar-width-open));
+}
+
+.main-content.sidebar-closed {
+  margin-left: var(--sidebar-width-closed);
+  width: calc(100% - var(--sidebar-width-closed));
+}
+
+/* Tablet adjustments (768px to 991px) */
+@media (min-width: 768px) and (max-width: 991.98px) {
+  :root {
+    --sidebar-width-open: 220px;
+    --sidebar-width-closed: 65px;
+  }
+}
+
+/* Mobile landscape and small tablets (576px to 767px) */
+@media (min-width: 576px) and (max-width: 767.98px) {
+  .main-content {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+  
+  .main-content.sidebar-closed {
+    margin-left: 0 !important;
+  }
+  
+  /* Add padding top for toggle button */
+  .main-content > .container-fluid {
+    padding-top: 70px;
+  }
+}
+
+/* Mobile portrait (less than 576px) */
+@media (max-width: 575.98px) {
+  .main-content {
+    margin-left: 0 !important;
+    width: 100% !important;
+    padding: 0.75rem !important;
+  }
+  
+  .main-content.sidebar-closed {
+    margin-left: 0 !important;
+  }
+  
+  /* Add padding top for toggle button on mobile */
+  .main-content > .container-fluid {
+    padding-top: 70px;
+  }
+  
+  /* Adjust Bootstrap container padding on mobile */
+  .container-fluid {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+  
+  /* Adjust card spacing on mobile */
+  .card {
+    margin-bottom: 1rem;
+  }
+  
+  /* Reduce heading sizes on mobile */
+  h1, .h1 {
+    font-size: 1.75rem;
+  }
+  
+  h2, .h2 {
+    font-size: 1.5rem;
+  }
+  
+  h3, .h3 {
+    font-size: 1.25rem;
+  }
+}
+
+/* Very small devices (less than 360px) */
+@media (max-width: 359.98px) {
+  .main-content {
+    padding: 0.5rem !important;
+  }
+  
+  .main-content > .container-fluid {
+    padding-top: 65px;
+  }
+  
+  .container-fluid {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+  
+  /* Further reduce heading sizes */
+  h1, .h1 {
+    font-size: 1.5rem;
+  }
+  
+  h2, .h2 {
+    font-size: 1.35rem;
+  }
+  
+  h3, .h3 {
+    font-size: 1.15rem;
+  }
+}
+
+/* Landscape orientation on mobile devices */
+@media (max-height: 500px) and (orientation: landscape) and (max-width: 767.98px) {
+  .main-content > .container-fluid {
+    padding-top: 60px;
+  }
+}
+
+/* Bootstrap utility overrides for better mobile experience */
+@media (max-width: 575.98px) {
+  /* Adjust gutter spacing on mobile */
+  .row.g-3 {
+    --bs-gutter-x: 0.75rem;
+    --bs-gutter-y: 0.75rem;
+  }
+  
+  /* Full width buttons on mobile */
+  .btn {
+    width: 100%;
+  }
+  
+  .btn-group .btn {
+    width: auto;
+  }
+  
+  /* Adjust table font size on mobile */
+  .table {
+    font-size: 0.875rem;
+  }
+  
+  /* Stack form elements on mobile */
+  .form-inline {
+    display: block;
+  }
+  
+  .form-inline .form-control {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+}
+
+/* Prevent horizontal scroll on mobile */
+body {
+  overflow-x: hidden;
+}
+
+/* Smooth scrolling for better UX */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Accessibility: Respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  
+  .main-content {
+    transition: none;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .card {
+    border-width: 2px;
+  }
+  
+  .btn {
+    border-width: 2px;
+  }
+}
+
+/* Print styles */
+@media print {
+  .main-content {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+  
+  .main-content > .container-fluid {
+    padding-top: 0 !important;
+  }
+  
+  .btn, .form-control {
+    border: 1px solid #000;
+  }
+}

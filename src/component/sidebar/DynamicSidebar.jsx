@@ -1,9 +1,9 @@
-// DynamicSidebar.jsx
+// Updated DynamicSidebar.jsx
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import styles from './DynamicSidebar.module.css';
 
-const DynamicSidebar = ({ role }) => {
+const DynamicSidebar = ({ role, onSidebarChange }) => {
   const [isOpen, setIsOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const location = useLocation();
@@ -11,11 +11,12 @@ const DynamicSidebar = ({ role }) => {
   // Detect mobile screen size
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth <= 768);
-      if (window.innerWidth <= 768) {
-        setIsOpen(false); // Auto-close on mobile
+      const mobile = window.innerWidth <= 768;
+      setIsMobile(mobile);
+      if (mobile) {
+        setIsOpen(false);
       } else {
-        setIsOpen(true); // Auto-open on desktop
+        setIsOpen(true);
       }
     };
 
@@ -23,6 +24,13 @@ const DynamicSidebar = ({ role }) => {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  // Notify parent component whenever sidebar state changes
+  useEffect(() => {
+    if (onSidebarChange) {
+      onSidebarChange(isOpen);
+    }
+  }, [isOpen, onSidebarChange]);
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen);

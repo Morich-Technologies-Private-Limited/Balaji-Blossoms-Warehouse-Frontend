@@ -1,25 +1,24 @@
-/* Global.css - Responsive adjustments for main content with sidebar */
+/* Global.css - Updated with proper sidebar synchronization */
 
-/* Main content responsive margins based on sidebar state */
+/* CSS Variables for sidebar widths */
 :root {
   --sidebar-width-open: 250px;
   --sidebar-width-closed: 70px;
 }
 
-/* Default desktop layout */
+/* Main content wrapper - syncs with sidebar state */
 .main-content {
   margin-left: var(--sidebar-width-open);
   transition: margin-left 0.3s ease;
   min-height: 100vh;
-  width: calc(100% - var(--sidebar-width-open));
+  padding: 20px;
 }
 
 .main-content.sidebar-closed {
   margin-left: var(--sidebar-width-closed);
-  width: calc(100% - var(--sidebar-width-closed));
 }
 
-/* Tablet adjustments (768px to 991px) */
+/* Medium devices (tablets, 768px to 991px) */
 @media (min-width: 768px) and (max-width: 991.98px) {
   :root {
     --sidebar-width-open: 220px;
@@ -27,38 +26,23 @@
   }
 }
 
-/* Mobile landscape and small tablets (576px to 767px) */
-@media (min-width: 576px) and (max-width: 767.98px) {
+/* Small devices and below (less than 768px) - No margin on mobile */
+@media (max-width: 767.98px) {
   .main-content {
     margin-left: 0 !important;
-    width: 100% !important;
+    padding-top: 70px;
   }
   
   .main-content.sidebar-closed {
     margin-left: 0 !important;
-  }
-  
-  /* Add padding top for toggle button */
-  .main-content > .container-fluid {
-    padding-top: 70px;
   }
 }
 
-/* Mobile portrait (less than 576px) */
+/* Extra small devices (less than 576px) */
 @media (max-width: 575.98px) {
   .main-content {
-    margin-left: 0 !important;
-    width: 100% !important;
     padding: 0.75rem !important;
-  }
-  
-  .main-content.sidebar-closed {
-    margin-left: 0 !important;
-  }
-  
-  /* Add padding top for toggle button on mobile */
-  .main-content > .container-fluid {
-    padding-top: 70px;
+    padding-top: 70px !important;
   }
   
   /* Adjust Bootstrap container padding on mobile */
@@ -84,16 +68,33 @@
   h3, .h3 {
     font-size: 1.25rem;
   }
+  
+  /* Adjust gutter spacing on mobile */
+  .row.g-3 {
+    --bs-gutter-x: 0.75rem;
+    --bs-gutter-y: 0.75rem;
+  }
+  
+  /* Full width buttons on mobile */
+  .btn {
+    width: 100%;
+  }
+  
+  .btn-group .btn {
+    width: auto;
+  }
+  
+  /* Adjust table font size on mobile */
+  .table {
+    font-size: 0.875rem;
+  }
 }
 
 /* Very small devices (less than 360px) */
 @media (max-width: 359.98px) {
   .main-content {
     padding: 0.5rem !important;
-  }
-  
-  .main-content > .container-fluid {
-    padding-top: 65px;
+    padding-top: 65px !important;
   }
   
   .container-fluid {
@@ -117,47 +118,16 @@
 
 /* Landscape orientation on mobile devices */
 @media (max-height: 500px) and (orientation: landscape) and (max-width: 767.98px) {
-  .main-content > .container-fluid {
-    padding-top: 60px;
+  .main-content {
+    padding-top: 60px !important;
   }
 }
 
-/* Bootstrap utility overrides for better mobile experience */
-@media (max-width: 575.98px) {
-  /* Adjust gutter spacing on mobile */
-  .row.g-3 {
-    --bs-gutter-x: 0.75rem;
-    --bs-gutter-y: 0.75rem;
-  }
-  
-  /* Full width buttons on mobile */
-  .btn {
-    width: 100%;
-  }
-  
-  .btn-group .btn {
-    width: auto;
-  }
-  
-  /* Adjust table font size on mobile */
-  .table {
-    font-size: 0.875rem;
-  }
-  
-  /* Stack form elements on mobile */
-  .form-inline {
-    display: block;
-  }
-  
-  .form-inline .form-control {
-    width: 100%;
-    margin-bottom: 0.5rem;
-  }
-}
-
-/* Prevent horizontal scroll on mobile */
+/* Prevent horizontal scroll */
 body {
   overflow-x: hidden;
+  margin: 0;
+  padding: 0;
 }
 
 /* Smooth scrolling for better UX */
@@ -191,10 +161,6 @@ html {
 @media print {
   .main-content {
     margin-left: 0 !important;
-    width: 100% !important;
-  }
-  
-  .main-content > .container-fluid {
     padding-top: 0 !important;
   }
   

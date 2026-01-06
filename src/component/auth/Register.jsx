@@ -320,11 +320,7 @@ const Register = () => {
                           </button>
                         </div>
 
-                        <div className="col-12 text-center mt-3">
-                          <p className={styles.signInText}>
-                            Already have an account? <a href="#" className={styles.signInLink}>Sign In</a>
-                          </p>
-                        </div>
+                    
                       </div>
                     </form>
                   </div>

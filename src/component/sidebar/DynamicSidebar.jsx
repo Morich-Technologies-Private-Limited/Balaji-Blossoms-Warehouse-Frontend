@@ -1,11 +1,12 @@
 // Updated DynamicSidebar.jsx
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import styles from './DynamicSidebar.module.css';
 
 const DynamicSidebar = ({ role, onSidebarChange }) => {
   const [isOpen, setIsOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
+  const navigate = useNavigate();
   const location = useLocation();
 
   // Detect mobile screen size
@@ -42,14 +43,19 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
     }
   };
 
+  const handleNavigation = (link) => {
+    navigate(link);
+    closeSidebarOnMobile();
+  };
+
   // Define sidebar configurations for each role
   const sidebarConfig = {
     mainstore: {
-      logo: 'Balaji Petals',
+      logo: 'Balaji Blossoms',
       title: 'Main Store',
       navItems: [
         { icon: 'bi-house-door-fill', text: 'Home', link: '/mainstore' },
-        { icon: 'bi-speedometer2', text: 'Dashboard 1', link: '/mainstore/dashboard1' },
+        { icon: 'bi-speedometer2', text: 'Register', link: '/mainstore/register' },
         { icon: 'bi-graph-up-arrow', text: 'Dashboard 2', link: '/mainstore/dashboard2' },
         { icon: 'bi-bar-chart-fill', text: 'Dashboard 3', link: '/mainstore/dashboard3' },
         { icon: 'bi-box-seam-fill', text: 'Inventory', link: '/mainstore/inventory' },
@@ -117,16 +123,22 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
 
         <nav className={styles.sidebarNav}>
           {config.navItems.map((item, index) => (
-            <Link 
+            <div 
               key={index}
-              to={item.link} 
+              onClick={() => handleNavigation(item.link)}
               className={`${styles.navItem} ${location.pathname === item.link ? styles.active : ''}`}
               title={!isOpen ? item.text : ''}
-              onClick={closeSidebarOnMobile}
+              role="button"
+              tabIndex={0}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  handleNavigation(item.link);
+                }
+              }}
             >
               <i className={item.icon}></i>
               <span className={styles.navText}>{item.text}</span>
-            </Link>
+            </div>
           ))}
         </nav>
 

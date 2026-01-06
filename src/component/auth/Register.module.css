@@ -1,0 +1,468 @@
+/* Register Component Styles - Blue Theme */
+
+/* Container and Layout */
+.registerContainer {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  background: white;
+}
+
+/* Card Styles */
+.registerCard {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  border: 1px solid #e0e0e0;
+  background-color: #ffffff;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Form Section */
+.formSection {
+  padding: 2.5rem 2rem;
+  background-color: #ffffff;
+}
+
+@media (max-width: 768px) {
+  .formSection {
+    padding: 2rem 1.5rem;
+  }
+}
+
+/* Header */
+.formHeader {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.formTitle {
+  color: #1e90ff;
+  font-weight: 700;
+  font-size: 1.875rem;
+  margin-bottom: 0.5rem;
+}
+
+.formSubtitle {
+  color: #6c757d;
+  font-size: 0.95rem;
+}
+
+/* Input Groups */
+.inputLabel {
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+  color: #333333;
+  font-size: 0.875rem;
+  display: block;
+}
+
+.inputField {
+  border-radius: 4px;
+  padding: 0.65rem 0.9rem;
+  border: 1px solid #d0d5dd;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+  width: 100%;
+}
+
+.inputField:focus {
+  border-color: #1e90ff;
+  box-shadow: 0 0 0 0.2rem rgba(30, 144, 255, 0.15);
+  outline: none;
+}
+
+.inputFieldError {
+  border-color: #dc3545 !important;
+}
+
+.inputFieldError:focus {
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.15);
+}
+
+/* Password Wrapper */
+.passwordWrapper {
+  position: relative;
+  display: flex;
+}
+
+.passwordInput {
+  padding-right: 2.5rem;
+}
+
+.passwordToggle {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background-color: transparent;
+  border: none;
+  padding: 0 0.75rem;
+  cursor: pointer;
+  color: #6c757d;
+  transition: color 0.2s ease;
+  display: flex;
+  align-items: center;
+}
+
+.passwordToggle:hover {
+  color: #1e90ff;
+}
+
+.passwordToggle:focus {
+  outline: none;
+}
+
+/* Store Selector */
+.selectWrapper {
+  position: relative;
+}
+
+.storeSelect {
+  border-radius: 4px;
+  padding: 0.65rem 0.9rem;
+  border: 1px solid #d0d5dd;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+  width: 100%;
+}
+
+.storeSelect:focus {
+  border-color: #1e90ff;
+  box-shadow: 0 0 0 0.2rem rgba(30, 144, 255, 0.15);
+  outline: none;
+}
+
+/* Submit Button */
+.submitButton {
+  background: linear-gradient(135deg, #1e90ff 0%, #0d7dd8 100%);
+  border: none;
+  border-radius: 4px;
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: white;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.submitButton:hover:not(:disabled) {
+  background: linear-gradient(135deg, #1873cc 0%, #0a66b5 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(30, 144, 255, 0.3);
+}
+
+.submitButton:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.submitButton:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* Store Details Section */
+.storeDetailsSection {
+  background: linear-gradient(135deg, #1e90ff 0%, #0d4f8b 100%);
+  padding: 2.5rem 2rem;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.storeDetailsContent {
+  position: relative;
+  z-index: 2;
+}
+
+.storeDetailsHeader {
+  margin-bottom: 2rem;
+}
+
+.storeIconWrapper {
+  margin-bottom: 1rem;
+}
+
+.storeIcon {
+  color: white;
+  opacity: 0.95;
+}
+
+.storeDetailsTitle {
+  font-weight: 700;
+  font-size: 1.5rem;
+  margin-bottom: 0.75rem;
+  color: white;
+}
+
+.storeDetailsSubtitle {
+  opacity: 0.85;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+/* Store Card */
+.storeCard {
+  background-color: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  backdrop-filter: blur(10px);
+  margin-bottom: 1.5rem;
+  color: white;
+}
+
+.storeCard .card-body {
+  padding: 1.25rem;
+}
+
+.storeCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.storeName {
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin: 0;
+  color: white;
+}
+
+.storeTypeBadge {
+  background-color: rgba(255, 255, 255, 0.25);
+  color: white;
+  padding: 0.3rem 0.7rem;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.storeDetails {
+  margin-top: 1rem;
+}
+
+.storeDetailRow {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 0.65rem;
+}
+
+.storeDetailRow:last-child {
+  margin-bottom: 0;
+}
+
+.storeDetailIcon {
+  margin-right: 0.6rem;
+  margin-top: 0.15rem;
+  flex-shrink: 0;
+  opacity: 0.9;
+}
+
+.storeDetailText {
+  font-size: 0.85rem;
+  line-height: 1.4;
+  opacity: 0.95;
+}
+
+/* Store Placeholder */
+.storePlaceholder {
+  background-color: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  backdrop-filter: blur(10px);
+  margin-bottom: 1.5rem;
+  color: white;
+}
+
+.storePlaceholder .card-body {
+  padding: 2rem 1.25rem;
+}
+
+.storePlaceholderIcon {
+  opacity: 0.5;
+  margin-bottom: 1rem;
+}
+
+.storePlaceholderText {
+  opacity: 0.8;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+/* Available Stores */
+.availableStores {
+  margin-top: 1.5rem;
+}
+
+.availableStoresTitle {
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 0.75rem;
+  color: white;
+}
+
+.storeBadgeContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.storeBadge {
+  padding: 0.4rem 0.85rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  cursor: default;
+}
+
+.storeBadgeDefault {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.storeBadgeSelected {
+  background-color: white;
+  color: #1e90ff;
+  border: 1px solid white;
+  font-weight: 600;
+}
+
+/* Alert Messages */
+.alertSuccess {
+  background-color: #d4edda;
+  border-color: #c3e6cb;
+  color: #155724;
+  border-radius: 4px;
+  padding: 0.85rem 1rem;
+  display: flex;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.alertError {
+  background-color: #f8d7da;
+  border-color: #f5c6cb;
+  color: #721c24;
+  border-radius: 4px;
+  padding: 0.85rem 1rem;
+  display: flex;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+/* Sign In Link */
+.signInText {
+  color: #6c757d;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.signInLink {
+  color: #1e90ff;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.signInLink:hover {
+  color: #1873cc;
+  text-decoration: underline;
+}
+
+/* Error Message */
+.errorMessage {
+  color: #dc3545;
+  font-size: 0.8rem;
+  margin-top: 0.3rem;
+  display: block;
+}
+
+/* Spinner */
+.spinner {
+  animation: spin 0.75s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive Adjustments */
+@media (max-width: 991px) {
+  .storeDetailsSection {
+    display: none;
+  }
+}
+
+@media (max-width: 576px) {
+  .registerContainer {
+    padding: 1rem 0.5rem;
+  }
+  
+  .formTitle {
+    font-size: 1.5rem;
+  }
+  
+  .formSection {
+    padding: 1.5rem 1rem;
+  }
+  
+  .inputField,
+  .storeSelect {
+    font-size: 0.875rem;
+  }
+}
+
+/* Animation for form appearance */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.registerCard {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+/* Backdrop blur support */
+@supports (backdrop-filter: blur(10px)) {
+  .storeCard,
+  .storePlaceholder {
+    backdrop-filter: blur(10px);
+  }
+}
+
+/* Focus visible for accessibility */
+.inputField:focus-visible,
+.storeSelect:focus-visible,
+.submitButton:focus-visible {
+  outline: 2px solid #1e90ff;
+  outline-offset: 2px;
+}
+
+/* Additional Bootstrap Override */
+.form-control:focus,
+.form-select:focus {
+  border-color: #1e90ff;
+  box-shadow: 0 0 0 0.2rem rgba(30, 144, 255, 0.15);
+}

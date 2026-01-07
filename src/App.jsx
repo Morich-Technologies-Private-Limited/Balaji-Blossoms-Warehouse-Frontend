@@ -10,6 +10,7 @@ import './App.css' // Import the global CSS
 import LoginForm from "./component/auth/LoginForm"
 import Register from "./component/auth/Register"
 import DynamicSidebar from "./component/sidebar/DynamicSidebar"
+import MainStoreTransfer from "./component/mainstore/MainStoreTransfer"
 
 function App() {
   const location = useLocation();
@@ -70,6 +71,8 @@ function App() {
           <Route path="/" element={<LoginForm />} />
           <Route path="/login" element={<LoginForm />} />
           <Route path="/mainstore/register" element={<Register />} />
+          <Route path="/mainstore/transfer" element={<MainStoreTransfer />} />
+          
           
           {/* Main Store Routes */}
           <Route path="/mainstore" element={

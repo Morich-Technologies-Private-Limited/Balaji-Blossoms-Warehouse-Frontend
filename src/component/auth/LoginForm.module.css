@@ -1,4 +1,9 @@
 /* Branding Side */
+:root {
+  --sidebar-width-open:0;
+  --sidebar-width-closed: 0;
+}
+
 .brandingSide {
   background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
   position: relative;
@@ -160,6 +165,7 @@
   color: #adb5bd;
 }
 
+
 /* Password Toggle */
 .togglePassword {
   position: absolute;
@@ -203,60 +209,7 @@
   box-shadow: 0 2px 8px rgba(33, 150, 243, 0.25);
 }
 
-/* Divider */
-.divider {
-  position: relative;
-  text-align: center;
-  margin: 2rem 0;
-}
 
-.divider::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background-color: #e9ecef;
-}
-
-.divider span {
-  position: relative;
-  background-color: white;
-  padding: 0 1rem;
-  color: #adb5bd;
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
-/* Social Buttons */
-.socialBtn {
-  background-color: white;
-  border: 1.5px solid #e9ecef;
-  border-radius: 10px;
-  color: #495057;
-  font-weight: 500;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.75rem;
-}
-
-.socialBtn:hover {
-  background-color: #f8f9fa;
-  border-color: #2196F3;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-
-.socialBtn:active {
-  transform: translateY(0);
-}
-
-.socialBtn img {
-  flex-shrink: 0;
-}
 
 /* Links */
 .linkPrimary {

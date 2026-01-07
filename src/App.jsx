@@ -15,7 +15,8 @@ import MainStoreTransfer from "./component/mainstore/MainStoreTransfer"
 function App() {
   const location = useLocation();
   const pathname = location.pathname;
-  
+  const authRoutes = ["/", "/login"];
+  const hideSidebar = authRoutes.includes(pathname);
   // State for role and sidebar
   const [userRole, setUserRole] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -50,7 +51,7 @@ function App() {
     }
   }, [pathname]);
 
-  const showSidebar = userRole !== null;
+  const showSidebar = !hideSidebar && userRole !== null;
 
   // Handler to receive sidebar state from DynamicSidebar
   const handleSidebarToggle = (isOpen) => {
@@ -66,7 +67,7 @@ function App() {
         />
       )}
       
-      <div className={`main-content ${!isSidebarOpen || isMobile ? 'sidebar-closed' : ''}`}>
+      <div className={`main-content ${hideSidebar || !isSidebarOpen || isMobile ? 'sidebar-closed' : ''}`}>
         <Routes>
           <Route path="/" element={<LoginForm />} />
           <Route path="/login" element={<LoginForm />} />

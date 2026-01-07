@@ -1,17 +1,37 @@
 import React, { useState } from 'react';
 import styles from './LoginForm.module.css';
+import { loginApi } from '../api/loginApi';
+import { useNavigate } from 'react-router-dom';
 
 const LoginForm = () => {
+  
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+ const handleSubmit = async (e) => {
     e.preventDefault();
+    
     if (email && password) {
-      console.log('Login submitted:', { email, password, remember });
-      alert(`Login successful for: ${email}`);
+      setIsLoading(true);
+      
+      try {
+        const result = await loginApi(email, password);
+        
+        if (result.success) {
+          alert(`Login successful for: ${email}`);
+          navigate(result.navLink);
+        } else {
+          alert(result.message || 'Login failed');
+        }
+      } catch (error) {
+        alert('An error occurred during login');
+      } finally {
+        setIsLoading(false);
+      }
     } else {
       alert('Please fill in all fields');
     }
@@ -137,31 +157,6 @@ const LoginForm = () => {
                   Sign In
                   <i className="bi bi-arrow-right ms-2"></i>
                 </button>
-
-                <div className={styles.divider}>
-                  <span>or</span>
-                </div>
-
-                <div className="row g-2 mb-4">
-                  <div className="col-6">
-                    <button type="button" className={`btn ${styles.socialBtn} w-100 py-2`}>
-                      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18" height="18" alt="Google" />
-                      <span className="small ms-2">Google</span>
-                    </button>
-                  </div>
-                  <div className="col-6">
-                    <button type="button" className={`btn ${styles.socialBtn} w-100 py-2`}>
-                      <i className="bi bi-microsoft text-primary"></i>
-                      <span className="small ms-2">Microsoft</span>
-                    </button>
-                  </div>
-                </div>
-
-                <div className="text-center">
-                  <p className="small text-muted mb-0">
-                    Don't have an account? <a href="/register" className={styles.linkPrimary}>Sign up</a>
-                  </p>
-                </div>
               </form>
             </div>
           </div>

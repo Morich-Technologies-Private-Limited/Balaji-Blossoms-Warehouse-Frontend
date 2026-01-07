@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Eye, EyeOff, Store, MapPin, Phone, Building2, CheckCircle, XCircle } from 'lucide-react';
 import styles from './Register.module.css';
+import { registerApi } from '../api/registerApi';
 
 // Dummy store data
 const dummyStores = [
@@ -114,50 +115,52 @@ const Register = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
+  e.preventDefault();
 
-    setIsSubmitting(true);
-    setSubmitStatus(null);
+  if (!validateForm()) return;
 
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      const userDto = {
-        userId: formData.userId,
-        name: formData.name,
-        emailId: formData.emailId,
-        password: formData.password,
-        storeId: parseInt(formData.storeId)
-      };
+  setIsSubmitting(true);
+  setSubmitStatus(null);
 
-      console.log('Submitting user data:', userDto);
-      
-      setSubmitStatus('success');
-      
+  try {
+    const userDto = {
+      userId: formData.userId,
+      name: formData.name,
+      emailId: formData.emailId,
+      password: formData.password,
+      storeId: parseInt(formData.storeId),
+    };
+
+    console.log("Submitting user data:", userDto);
+
+    const response = await registerApi(userDto);
+
+    if (response.success) {
+      setSubmitStatus("success");
+
+      // Reset form after success
       setTimeout(() => {
         setFormData({
-          userId: '',
-          name: '',
-          emailId: '',
-          password: '',
-          confirmPassword: '',
-          storeId: ''
+          userId: "",
+          name: "",
+          emailId: "",
+          password: "",
+          confirmPassword: "",
+          storeId: "",
         });
         setSelectedStore(null);
         setSubmitStatus(null);
-      }, 3000);
-      
-    } catch (error) {
-      setSubmitStatus('error');
-      console.error('Registration error:', error);
-    } finally {
-      setIsSubmitting(false);
+      }, 2000);
+    } else {
+      setSubmitStatus("error");
     }
-  };
+  } catch (error) {
+    console.error("Registration error:", error);
+    setSubmitStatus("error");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   return (
     <div className={styles.registerContainer}>

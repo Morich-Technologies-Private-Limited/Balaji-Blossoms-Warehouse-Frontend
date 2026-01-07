@@ -55,8 +55,8 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
       title: 'Main Store',
       navItems: [
         { icon: 'bi-house-door-fill', text: 'Home', link: '/mainstore' },
-        { icon: 'bi-speedometer2', text: 'Register', link: '/mainstore/register' },
-        { icon: 'bi-graph-up-arrow', text: 'Dashboard 2', link: '/mainstore/dashboard2' },
+        { icon: 'bi-speedometer2', text: 'Store Transfer', link: '/mainstore/transfer' },
+        { icon: 'bi-graph-up-arrow', text: 'Shop Transfer 2', link: '/mainstore/dashboard2' },
         { icon: 'bi-bar-chart-fill', text: 'Dashboard 3', link: '/mainstore/dashboard3' },
         { icon: 'bi-box-seam-fill', text: 'Inventory', link: '/mainstore/inventory' },
         { icon: 'bi-people-fill', text: 'Customers', link: '/mainstore/customers' },

@@ -1,123 +1,149 @@
-// Updated App.js
-import { Routes, Route, useLocation } from "react-router-dom"
-import { useState, useEffect } from "react"
+import { Routes, Route, useLocation, Navigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 
-import 'bootstrap/dist/css/bootstrap.min.css'
-import 'bootstrap/dist/js/bootstrap.bundle.min.js'
-import 'bootstrap-icons/font/bootstrap-icons.css'
-import './App.css' // Import the global CSS
+import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+import 'bootstrap-icons/font/bootstrap-icons.css';
+import './App.css';
 
-import LoginForm from "./component/auth/LoginForm"
-import Register from "./component/auth/Register"
-import DynamicSidebar from "./component/sidebar/DynamicSidebar"
-import MainStoreTransfer from "./component/mainstore/MainStoreTransfer"
+import LoginForm from "./component/auth/LoginForm";
+import Register from "./component/auth/Register";
+import DynamicSidebar from "./component/sidebar/DynamicSidebar";
+import MainStoreTransfer from "./component/mainstore/MainStoreTransfer";
+
+const ProtectedRoute = ({ allowedRoles, children }) => {
+  const user = JSON.parse(sessionStorage.getItem("user"));
+
+  if (!user) return <Navigate to="/login" replace />;
+  if (!allowedRoles.includes(user.userRole))
+    return <Navigate to="/unauthorized" replace />;
+
+  return children;
+};
 
 function App() {
   const location = useLocation();
   const pathname = location.pathname;
-  const authRoutes = ["/", "/login"];
-  const hideSidebar = authRoutes.includes(pathname);
-  // State for role and sidebar
+
   const [userRole, setUserRole] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
 
-  // Detect mobile screen size
   useEffect(() => {
     const checkMobile = () => {
       const mobile = window.innerWidth <= 768;
       setIsMobile(mobile);
-      if (mobile) {
-        setIsSidebarOpen(false);
-      } else {
-        setIsSidebarOpen(true);
-      }
+      setIsSidebarOpen(!mobile);
     };
 
     checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
   useEffect(() => {
-    if (pathname.startsWith('/mainstore')) {
-      setUserRole('mainstore');
-    } else if (pathname.startsWith('/substore')) {
-      setUserRole('substore');
-    } else if (pathname.startsWith('/storehouse')) {
-      setUserRole('storehouse');
-    } else {
-      setUserRole(null);
-    }
+    if (pathname.startsWith("/admin")) setUserRole("admin");
+    else if (pathname.startsWith("/mainstore")) setUserRole("mainstore");
+    else if (pathname.startsWith("/substore")) setUserRole("substore");
+    else if (pathname.startsWith("/storehouse")) setUserRole("storehouse");
+    else setUserRole(null);
   }, [pathname]);
 
-  const showSidebar = !hideSidebar && userRole !== null;
-
-  // Handler to receive sidebar state from DynamicSidebar
-  const handleSidebarToggle = (isOpen) => {
-    setIsSidebarOpen(isOpen);
-  };
+  const showSidebar = userRole !== null;
 
   return (
     <>
       {showSidebar && (
-        <DynamicSidebar 
-          role={userRole} 
-          onSidebarChange={handleSidebarToggle}
+        <DynamicSidebar
+          role={userRole}
+          onSidebarChange={setIsSidebarOpen}
         />
       )}
-      
-      <div className={`main-content ${hideSidebar || !isSidebarOpen || isMobile ? 'sidebar-closed' : ''}`}>
+
+      <div className={`main-content ${!isSidebarOpen || isMobile ? "sidebar-closed" : ""}`}>
         <Routes>
+
+          {/* ============ PUBLIC ============ */}
           <Route path="/" element={<LoginForm />} />
           <Route path="/login" element={<LoginForm />} />
-          <Route path="/mainstore/register" element={<Register />} />
-          <Route path="/mainstore/transfer" element={<MainStoreTransfer />} />
+          <Route path="/register" element={<Register />} />
           
-          
-          {/* Main Store Routes */}
-          <Route path="/mainstore" element={
-            <div>
-              <h2>Main Store Dashboard</h2>
-              <p>Content should shift based on sidebar state</p>
-            </div>
-          } />
-          <Route path="/mainstore/dashboard1" element={
-            <div>
-              <h2>Dashboard 1</h2>
-              <p>This content should not be overlapped by sidebar</p>
-            </div>
-          } />
-          <Route path="/mainstore/dashboard2" element={
-            <div>
-              <h2>Dashboard 2</h2>
-              <p>This content should not be overlapped by sidebar</p>
-            </div>
-          } />
-          <Route path="/mainstore/dashboard3" element={
-            <div>
-              <h2>Dashboard 3</h2>
-              <p>This content should not be overlapped by sidebar</p>
-            </div>
-          } />
-          
-          {/* Sub Store Routes */}
-          <Route path="/substore" element={
-            <div>
-              <h2>Sub Store Dashboard</h2>
-            </div>
-          } />
-          
-          {/* Store House Routes */}
-          <Route path="/storehouse" element={
-            <div>
-              <h2>Store House Dashboard</h2>
-            </div>
-          } />
+
+          {/* ============ ADMIN ============ */}
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN"]}>
+                <h2>Admin Dashboard</h2>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/users"
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN"]}>
+                <h2>User Management</h2>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/stores"
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN"]}>
+                <h2>Store Management</h2>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* ============ MAIN STORE ============ */}
+          <Route
+            path="/mainstore"
+            element={
+              <ProtectedRoute allowedRoles={["MAIN_STORE_MANAGER", "ADMIN"]}>
+                <h2>Main Store Dashboard</h2>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/mainstore/transfer"
+            element={
+              <ProtectedRoute allowedRoles={["MAIN_STORE_MANAGER"]}>
+                <MainStoreTransfer />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* ============ SUB STORE ============ */}
+          <Route
+            path="/substore"
+            element={
+              <ProtectedRoute allowedRoles={["SUB_STORE_MANAGER", "SUB_STORE_SUPERVISOR"]}>
+                <h2>Sub Store Dashboard</h2>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/storehouse"
+            element={
+              <ProtectedRoute allowedRoles={["SHOP_MANAGER"]}>
+                <h2>Store House Dashboard</h2>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/unauthorized"
+            element={<h2>❌ You are not authorized</h2>}
+          />
+
         </Routes>
       </div>
     </>
-  )
+  );
 }
 
-export default App
+export default App;

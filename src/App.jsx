@@ -11,7 +11,6 @@ import Register from "./component/auth/Register";
 import DynamicSidebar from "./component/sidebar/DynamicSidebar";
 import MainStoreTransfer from "./component/mainstore/MainStoreTransfer";
 
-/* 🔐 Protected Route INSIDE App.jsx */
 const ProtectedRoute = ({ allowedRoles, children }) => {
   const user = JSON.parse(sessionStorage.getItem("user"));
 

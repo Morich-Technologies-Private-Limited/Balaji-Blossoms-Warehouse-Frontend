@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import styles from './LoginForm.module.css';
+import logo from "../../assets/logo.png";
 import { loginApi } from '../api/loginApi';
 import { useNavigate } from 'react-router-dom';
 
-const LoginForm = () => {
-  
+const LoginForm = () => {  
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(false);
@@ -43,31 +43,20 @@ const LoginForm = () => {
         {/* Left Side - Branding (Desktop Only) */}
         <div className={`col-lg-6 ${styles.brandingSide} d-none d-lg-flex align-items-center justify-content-center p-5 text-white position-relative overflow-hidden`}>
           <div className={`${styles.brandingContent} text-center position-relative z-1`}>
-            <div className={`${styles.logoWrapper} mb-4`}>
-              <svg width="100" height="100" viewBox="0 0 120 120" fill="none">
-                <circle cx="60" cy="60" r="50" fill="white" opacity="0.15"/>
-                <rect x="35" y="30" width="50" height="45" rx="4" fill="white" stroke="white" strokeWidth="2"/>
-                <rect x="35" y="75" width="50" height="15" rx="2" fill="white"/>
-                <circle cx="60" cy="52" r="8" fill="#2196F3"/>
-                <rect x="42" y="42" width="36" height="3" rx="1.5" fill="#2196F3" opacity="0.6"/>
-                <rect x="42" y="50" width="28" height="3" rx="1.5" fill="#2196F3" opacity="0.6"/>
-                <rect x="42" y="58" width="32" height="3" rx="1.5" fill="#2196F3" opacity="0.6"/>
-              </svg>
-            </div>
-            <h1 className="display-4 fw-bold mb-3">Balaji Blossoms</h1>
-            <p className="lead mb-4" style={{ opacity: 0.9 }}>Streamline Your Operations</p>
+            <img src={logo} className="img-fluid d-block mx-auto" alt="Responsive"/>
+            <p className="lead mb-4" style={{ opacity: 0.9 }}>The Home of Interior Plants</p>
             <div className={`${styles.featureList} mt-5`}>
               <div className={styles.featureItem}>
-                <i className="bi bi-shield-check"></i>
-                <span>Secure & Reliable</span>
+                <i className="bi bi-flower1"></i>
+                <span>House Plants</span>
               </div>
               <div className={styles.featureItem}>
-                <i className="bi bi-lightning-charge"></i>
-                <span>Fast Performance</span>
+                <i className="bi bi-flower3"></i>
+                <span>Pots</span>
               </div>
               <div className={styles.featureItem}>
-                <i className="bi bi-graph-up"></i>
-                <span>Real-time Analytics</span>
+                <i className="bi bi-flower1"></i>
+                <span>Containers</span>
               </div>
             </div>
           </div>
@@ -78,18 +67,7 @@ const LoginForm = () => {
           <div className={`${styles.formContainer} w-100`} style={{ maxWidth: '440px' }}>
             {/* Mobile Logo Header */}
             <div className={`${styles.mobileHeader} d-lg-none text-center mb-4`}>
-              <div className={styles.mobileLogo}>
-                <svg width="50" height="50" viewBox="0 0 120 120" fill="none">
-                  <rect x="35" y="30" width="50" height="45" rx="4" fill="#2196F3" stroke="#2196F3" strokeWidth="2"/>
-                  <rect x="35" y="75" width="50" height="15" rx="2" fill="#2196F3"/>
-                  <circle cx="60" cy="52" r="8" fill="white"/>
-                  <rect x="42" y="42" width="36" height="3" rx="1.5" fill="white" opacity="0.8"/>
-                  <rect x="42" y="50" width="28" height="3" rx="1.5" fill="white" opacity="0.8"/>
-                  <rect x="42" y="58" width="32" height="3" rx="1.5" fill="white" opacity="0.8"/>
-                </svg>
-              </div>
-              <h1 className={`${styles.mobileCompanyName} mt-3 mb-1`}>Balaji Blossoms</h1>
-              <p className="text-muted small mb-0">Streamline Your Operations</p>
+              <img src={logo} className="img-fluid d-block mx-auto" alt="Responsive"/>
             </div>
 
             <div className={`${styles.formCard} bg-white p-4 p-md-5 rounded-4 shadow-sm`}>
@@ -131,8 +109,7 @@ const LoginForm = () => {
                       className={styles.togglePassword}
                       onClick={() => setShowPassword(!showPassword)}
                       aria-label="Toggle password visibility"
-                    >
-                      <i className={`bi ${showPassword ? 'bi-eye-slash' : 'bi-eye'}`}></i>
+                    ><i id='eye-icon' className={`bi ${showPassword ? 'bi-eye-slash' : 'bi-eye'}`}></i>
                     </button>
                   </div>
                 </div>

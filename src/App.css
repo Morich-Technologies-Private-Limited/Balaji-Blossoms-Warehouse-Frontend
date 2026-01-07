@@ -11,7 +11,7 @@
   margin-left: var(--sidebar-width-open);
   transition: margin-left 0.3s ease;
   min-height: 100vh;
-  padding: 20px;
+  /* padding: 20px; */
 }
 
 .main-content.sidebar-closed {
@@ -30,7 +30,7 @@
 @media (max-width: 767.98px) {
   .main-content {
     margin-left: 0 !important;
-    padding-top: 70px;
+    /* padding-top: 70px; */
   }
   
   .main-content.sidebar-closed {
@@ -41,8 +41,8 @@
 /* Extra small devices (less than 576px) */
 @media (max-width: 575.98px) {
   .main-content {
-    padding: 0.75rem !important;
-    padding-top: 70px !important;
+    padding:0 0.75rem !important;
+    /* padding-top: 70px !important; */
   }
   
   /* Adjust Bootstrap container padding on mobile */
@@ -118,9 +118,9 @@
 
 /* Landscape orientation on mobile devices */
 @media (max-height: 500px) and (orientation: landscape) and (max-width: 767.98px) {
-  .main-content {
+  /* .main-content {
     padding-top: 60px !important;
-  }
+  } */
 }
 
 /* Prevent horizontal scroll */

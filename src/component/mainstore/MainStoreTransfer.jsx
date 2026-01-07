@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Plus, Edit2, Trash2, Package, X, Check } from 'lucide-react';
+import { Search, Package, Trash2, Send, Building2, User } from 'lucide-react';
 import styles from './MainStoreTransfer.module.css';
 
 // Dummy data
@@ -8,6 +8,8 @@ const dummyProducts = [
   { productId: 2, productName: "Cooking Oil", category: "LIQUID" },
   { productId: 3, productName: "Wheat Flour", category: "SOLID" },
   { productId: 4, productName: "Milk", category: "LIQUID" },
+  { productId: 5, productName: "Sugar", category: "SOLID" },
+  { productId: 6, productName: "Tea Powder", category: "SOLID" },
 ];
 
 const dummyPackings = [
@@ -25,6 +27,14 @@ const dummyPackings = [
     packingUnit: "KILOGRAM",
     inventoryList: [
       { inventoryId: 102, availableQuantity: 300, storeId: 1, storeName: "Main Store" }
+    ]
+  },
+  {
+    packingId: 3,
+    packingSize: "50",
+    packingUnit: "KILOGRAM",
+    inventoryList: [
+      { inventoryId: 103, availableQuantity: 150, storeId: 1, storeName: "Main Store" }
     ]
   }
 ];
@@ -61,8 +71,18 @@ const MainStoreTransfer = () => {
   const [stores, setStores] = useState([]);
   const [transferItems, setTransferItems] = useState([]);
   const [selectedDropdownIndex, setSelectedDropdownIndex] = useState(0);
+  
+  // Store and Manager selection (separate from items)
+  const [selectedStore, setSelectedStore] = useState('');
+  const [selectedManager, setSelectedManager] = useState({ id: '', name: '' });
+  
   const searchInputRef = useRef(null);
   const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    setPackingOptions(dummyPackings);
+    setStores(dummyStores);
+  }, []);
 
   // Get unit display
   const getUnitDisplay = (unit) => {
@@ -129,16 +149,15 @@ const MainStoreTransfer = () => {
   // Scroll selected item into view
   useEffect(() => {
     if (dropdownRef.current && showDropdown) {
-      const selectedRow = dropdownRef.current.querySelector(`tr:nth-child(${selectedDropdownIndex + 1})`);
+      const selectedRow = dropdownRef.current.querySelector(`tr:nth-child(${selectedDropdownIndex + 2})`);
       if (selectedRow) {
         selectedRow.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
       }
     }
   }, [selectedDropdownIndex, showDropdown]);
 
-  // Handle product selection - Add directly to table
+  // Handle product selection
   const handleProductSelect = (product) => {
-    // Check if product already exists in transfer items
     const exists = transferItems.some(item => item.productId === product.productId);
     
     if (exists) {
@@ -148,7 +167,6 @@ const MainStoreTransfer = () => {
       return;
     }
 
-    // Add product directly to table
     const newItem = {
       id: Date.now(),
       inventoryId: null,
@@ -158,22 +176,29 @@ const MainStoreTransfer = () => {
       category: product.category,
       quantity: 0,
       noOfBags: '',
-      storeToTransfer: '',
-      storeName: '',
-      managerId: '',
-      managerName: '',
       packingSize: '',
       packingUnit: '',
       availableQuantity: 0
     };
 
     setTransferItems([...transferItems, newItem]);
-    setPackingOptions(dummyPackings);
-    setStores(dummyStores);
-    
-    // Clear search and close dropdown
     setShowDropdown(false);
     setSearchKey('');
+  };
+
+  // Handle store selection
+  const handleStoreSelect = (storeId) => {
+    const store = stores.find(s => s.storeId === parseInt(storeId));
+    if (store) {
+      setSelectedStore(storeId);
+      setSelectedManager({
+        id: store.managerInfo.managerId,
+        name: store.managerInfo.name
+      });
+    } else {
+      setSelectedStore('');
+      setSelectedManager({ id: '', name: '' });
+    }
   };
 
   // Update item field
@@ -183,7 +208,6 @@ const MainStoreTransfer = () => {
 
       const updated = { ...item, [field]: value };
 
-      // Handle packing change
       if (field === 'packingId') {
         const packing = packingOptions.find(p => p.packingId === parseInt(value));
         if (packing) {
@@ -197,18 +221,6 @@ const MainStoreTransfer = () => {
         }
       }
 
-      // Handle store change
-      if (field === 'storeToTransfer') {
-        const store = stores.find(s => s.storeId === parseInt(value));
-        if (store) {
-          updated.storeToTransfer = store.storeId;
-          updated.storeName = store.storeName;
-          updated.managerId = store.managerInfo.managerId;
-          updated.managerName = store.managerInfo.name;
-        }
-      }
-
-      // Handle bags change
       if (field === 'noOfBags') {
         updated.noOfBags = value;
         updated.quantity = calculateQuantity(value, updated.packingSize);
@@ -227,13 +239,18 @@ const MainStoreTransfer = () => {
 
   // Validate and submit
   const handleSubmit = () => {
+    if (!selectedStore) {
+      alert('Please select a store to transfer to');
+      return;
+    }
+
     if (transferItems.length === 0) {
       alert('Please add at least one item to transfer');
       return;
     }
 
     const invalidItems = transferItems.filter(item => 
-      !item.packingId || !item.storeToTransfer || !item.noOfBags || parseFloat(item.noOfBags) <= 0
+      !item.packingId || !item.noOfBags || parseFloat(item.noOfBags) <= 0
     );
 
     if (invalidItems.length > 0) {
@@ -247,173 +264,217 @@ const MainStoreTransfer = () => {
       return;
     }
 
-    console.log('Submitting transfer:', transferItems);
+    // Format data according to DTO structure
+    const transferDto = {
+      storeToTransfer: parseInt(selectedStore),
+      managerId: selectedManager.id,
+      managerName: selectedManager.name,
+      stockList: transferItems.map(item => ({
+        inventoryId: item.inventoryId,
+        packingId: item.packingId,
+        productId: item.productId,
+        quantityToTransfer: item.quantity
+      }))
+    };
+
+    console.log('Transfer DTO:', transferDto);
     alert('Transfer submitted successfully!');
   };
 
+  // Calculate totals
+  const totalBags = transferItems.reduce((sum, item) => sum + (parseFloat(item.noOfBags) || 0), 0);
+
   return (
-    <div className={styles.mainStoreTransfer}>
-      <div className={styles.container}>
-        {/* Header */}
-        <div className={styles.pageHeader}>
-          <h2 className={styles.pageTitle}>
-            <Package size={28} />
-            Main Store Transfer
-          </h2>
-          <p className={styles.pageSubtitle}>Transfer stock from main store to branch stores</p>
+    <div className={styles.container}>
+      {/* Header */}
+      <div className={styles.header}>
+        <div className={styles.headerContent}>
+          <h1 className={styles.title}>Main Store Transfer</h1>
         </div>
+      </div>
 
+      {/* Main Content */}
+      <div className={styles.mainContent}>
         {/* Search Section */}
-        <div className={styles.card}>
-          <div className={styles.cardBody}>
-            <label className={styles.formLabel}>Search Product</label>
-            <div className={styles.searchWrapper}>
-              <Search className={styles.searchIcon} size={20} />
-              <input
-                ref={searchInputRef}
-                type="text"
-                className={styles.searchInput}
-                placeholder="Search by item code or name..."
-                value={searchKey}
-                onChange={(e) => setSearchKey(e.target.value)}
-                onFocus={() => searchKey && setShowDropdown(true)}
-                onKeyDown={handleKeyDown}
-              />
-              
-              {showDropdown && filteredProducts.length > 0 && (
-                <div className={styles.searchDropdown} ref={dropdownRef}>
-                  <table className={styles.dropdownTable}>
-                    <thead>
-                      <tr>
-                        <th>Item Code</th>
-                        <th>Item Name</th>
-                        <th>Type</th>
-                        <th>Category</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredProducts.map((product, index) => (
-                        <tr 
-                          key={product.productId}
-                          onClick={() => handleProductSelect(product)}
-                          className={selectedDropdownIndex === index ? styles.dropdownRowActive : ''}
-                        >
-                          <td>{product.productId}</td>
-                          <td>{product.productName}</td>
-                          <td>-</td>
-                          <td>{product.category}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Transfer Items Table */}
-        {transferItems.length > 0 && (
-          <div className={styles.card}>
-            <div className={styles.cardBody}>
-              <div className={styles.tableWrapper}>
-                <table className={styles.table}>
+        <div className={styles.searchSection}>
+          <label className={styles.inputLabel}>Search by item code</label>
+          <div className={styles.searchWrapper}>
+            <input
+              ref={searchInputRef}
+              type="text"
+              className={styles.searchInput}
+              placeholder="Search by item code"
+              value={searchKey}
+              onChange={(e) => setSearchKey(e.target.value)}
+              onFocus={() => searchKey && setShowDropdown(true)}
+              onKeyDown={handleKeyDown}
+            />
+            
+            {showDropdown && filteredProducts.length > 0 && (
+              <div className={styles.dropdown} ref={dropdownRef}>
+                <table className={styles.dropdownTable}>
                   <thead>
                     <tr>
                       <th>Item Code</th>
                       <th>Item Name</th>
-                      <th>Packing Size *</th>
-                      <th>Transfer To Store *</th>
-                      <th>Bags *</th>
-                      <th>Weight</th>
-                      <th>Manager</th>
-                      <th>Actions</th>
+                      <th>Category</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {transferItems.map((item) => (
-                      <tr key={item.id}>
-                        <td>{item.productId}</td>
-                        <td>{item.productName}</td>
-                        <td>
-                          <select
-                            className={styles.selectInput}
-                            value={item.packingId}
-                            onChange={(e) => updateItem(item.id, 'packingId', e.target.value)}
-                          >
-                            <option value="">Select</option>
-                            {packingOptions.map(packing => (
-                              <option key={packing.packingId} value={packing.packingId}>
-                                {packing.packingSize} {getUnitDisplay(packing.packingUnit)}
-                              </option>
-                            ))}
-                          </select>
-                        </td>
-                        <td>
-                          <select
-                            className={styles.selectInput}
-                            value={item.storeToTransfer}
-                            onChange={(e) => updateItem(item.id, 'storeToTransfer', e.target.value)}
-                          >
-                            <option value="">Select</option>
-                            {stores.map(store => (
-                              <option key={store.storeId} value={store.storeId}>
-                                {store.storeName}
-                              </option>
-                            ))}
-                          </select>
-                        </td>
-                        <td>
-                          <input
-                            type="number"
-                            className={styles.numberInput}
-                            placeholder="0"
-                            value={item.noOfBags}
-                            onChange={(e) => updateItem(item.id, 'noOfBags', e.target.value)}
-                            min="0"
-                          />
-                        </td>
-                        <td>
-                          <span className={styles.weightBadge}>
-                            {item.quantity} {item.packingUnit ? getUnitDisplay(item.packingUnit) : ''}
-                          </span>
-                        </td>
-                        <td>{item.managerName || '-'}</td>
-                        <td>
-                          <button
-                            className={styles.btnDelete}
-                            onClick={() => handleDelete(item.id)}
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </td>
+                    {filteredProducts.map((product, index) => (
+                      <tr 
+                        key={product.productId}
+                        onClick={() => handleProductSelect(product)}
+                        className={selectedDropdownIndex === index ? styles.dropdownActive : ''}
+                      >
+                        <td>{product.productId}</td>
+                        <td>{product.productName}</td>
+                        <td>{product.category}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
-            </div>
+            )}
           </div>
-        )}
+        </div>
 
-        {/* Fixed Footer */}
-        {transferItems.length > 0 && (
-          <div className={styles.footer}>
-            <div className={styles.footerContent}>
-              <div>
-                <div className={styles.totalLabel}>Transfer Summary</div>
-                <div className={styles.itemCount}>Total Items: {transferItems.length}</div>
-                <div className={styles.itemCount}>
-                  Total Bags: {transferItems.reduce((sum, item) => sum + (parseFloat(item.noOfBags) || 0), 0)}
-                </div>
-              </div>
-              <button className={styles.btnSubmit} onClick={handleSubmit}>
-                <Check size={20} />
-                Submit Transfer
-              </button>
-            </div>
+        {/* Store and Manager Selection */}
+        <div className={styles.selectionRow}>
+          <div className={styles.selectGroup}>
+            <label className={styles.inputLabel}>
+              <Building2 size={16} />
+              Store Name:
+            </label>
+            <select
+              className={styles.selectInput}
+              value={selectedStore}
+              onChange={(e) => handleStoreSelect(e.target.value)}
+            >
+              <option value="">Select a store</option>
+              {stores.map(store => (
+                <option key={store.storeId} value={store.storeId}>
+                  {store.storeName}
+                </option>
+              ))}
+            </select>
           </div>
-        )}
+
+          <div className={styles.selectGroup}>
+            <label className={styles.inputLabel}>
+              <User size={16} />
+              Manager Name:
+            </label>
+            <input
+              type="text"
+              className={styles.textInput}
+              value={selectedManager.name}
+              readOnly
+              placeholder="Select store first"
+            />
+          </div>
+        </div>
+
+        {/* Items Table */}
+        <div className={styles.tableContainer}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>Item Code</th>
+                <th>Item Name</th>
+                <th>Packing Size</th>
+                <th>No. of Bags</th>
+                <th>Quantity</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {transferItems.length > 0 ? (
+                transferItems.map((item) => (
+                  <tr key={item.id}>
+                    <td>{item.productId}</td>
+                    <td>{item.productName}</td>
+                    <td>
+                      <select
+                        className={styles.tableSelect}
+                        value={item.packingId}
+                        onChange={(e) => updateItem(item.id, 'packingId', e.target.value)}
+                      >
+                        <option value="">Select packing</option>
+                        {packingOptions.map(packing => (
+                          <option key={packing.packingId} value={packing.packingId}>
+                            {packing.packingSize} {getUnitDisplay(packing.packingUnit)}
+                          </option>
+                        ))}
+                      </select>
+                      {item.packingId && (
+                        <div className={styles.availableText}>
+                          Available: {item.availableQuantity} {getUnitDisplay(item.packingUnit)}
+                        </div>
+                      )}
+                    </td>
+                    <td>
+                      <input
+                        type="number"
+                        className={styles.tableInput}
+                        placeholder="0"
+                        value={item.noOfBags}
+                        onChange={(e) => updateItem(item.id, 'noOfBags', e.target.value)}
+                        min="0"
+                      />
+                    </td>
+                    <td>
+                      {item.quantity > 0 ? (
+                        <span className={styles.quantityBadge}>
+                          {item.quantity} {getUnitDisplay(item.packingUnit)}
+                        </span>
+                      ) : (
+                        '-'
+                      )}
+                    </td>
+                    <td>
+                      <button
+                        className={styles.deleteBtn}
+                        onClick={() => handleDelete(item.id)}
+                        title="Remove item"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="6" className={styles.emptyRow}>
+                    <Package size={48} />
+                    <p>No items added yet. Search and add products to create a transfer.</p>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className={styles.footer}>
+        <div className={styles.footerLeft}>
+          <div className={styles.totalInfo}>
+            <span className={styles.totalLabel}>Item Count:</span>
+            <span className={styles.totalValue}>{transferItems.length}</span>
+          </div>
+          <div className={styles.totalInfo}>
+            <span className={styles.totalLabel}>Total Bags:</span>
+            <span className={styles.totalValue}>{totalBags}</span>
+          </div>
+        </div>
+        <button 
+          className={styles.submitBtn}
+          onClick={handleSubmit}
+          disabled={transferItems.length === 0}
+        >
+          Transfer
+        </button>
       </div>
     </div>
   );

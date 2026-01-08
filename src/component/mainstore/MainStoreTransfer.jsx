@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, Package, Trash2, Send, Building2, User } from 'lucide-react';
 import styles from './MainStoreTransfer.module.css';
+import { fetchStoresWithUserApi } from '../api/findStoreAndEmployee';
 
 // Dummy data
 const dummyProducts = [
@@ -39,30 +40,6 @@ const dummyPackings = [
   }
 ];
 
-const dummyStores = [
-  {
-    storeId: 2,
-    storeName: "Branch Store A",
-    address: "123 Main St",
-    contactNo: "9876543210",
-    managerInfo: { managerId: "M001", name: "John Doe" }
-  },
-  {
-    storeId: 3,
-    storeName: "Branch Store B",
-    address: "456 Oak Ave",
-    contactNo: "9876543211",
-    managerInfo: { managerId: "M002", name: "Jane Smith" }
-  },
-  {
-    storeId: 4,
-    storeName: "Branch Store C",
-    address: "789 Pine Rd",
-    contactNo: "9876543212",
-    managerInfo: { managerId: "M003", name: "Mike Johnson" }
-  }
-];
-
 const MainStoreTransfer = () => {
   const [searchKey, setSearchKey] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
@@ -72,16 +49,35 @@ const MainStoreTransfer = () => {
   const [transferItems, setTransferItems] = useState([]);
   const [selectedDropdownIndex, setSelectedDropdownIndex] = useState(0);
   
-  // Store and Manager selection (separate from items)
+  // Store and User selection (separate from items)
   const [selectedStore, setSelectedStore] = useState('');
-  const [selectedManager, setSelectedManager] = useState({ id: '', name: '' });
+  const [selectedUser, setSelectedUser] = useState('');
+  const [availableUsers, setAvailableUsers] = useState([]);
   
   const searchInputRef = useRef(null);
   const dropdownRef = useRef(null);
 
+ const loadStores = async () => {
+    try {
+      const response = await fetchStoresWithUserApi();
+
+      if(response.data.status==="SUCCESS")
+      {
+       setStores(response.data.payload);
+      }else{
+       console.log(response.data);
+        setStores([]);
+      }
+    } catch (err) {
+      console.error("Failed to load stores", err);
+    }
+  };
+
+
+
   useEffect(() => {
     setPackingOptions(dummyPackings);
-    setStores(dummyStores);
+    loadStores();
   }, []);
 
   // Get unit display
@@ -93,6 +89,16 @@ const MainStoreTransfer = () => {
       'MILLILITER': 'ML'
     };
     return unitMap[unit] || unit;
+  };
+
+  // Get store type display
+  const getStoreTypeDisplay = (storeType) => {
+    const typeMap = {
+      'MAIN_STORE': 'Main Store',
+      'SUB_STORE': 'Sub Store',
+      'SHOP': 'Shop'
+    };
+    return typeMap[storeType] || storeType;
   };
 
   // Calculate quantity from bags
@@ -191,13 +197,12 @@ const MainStoreTransfer = () => {
     const store = stores.find(s => s.storeId === parseInt(storeId));
     if (store) {
       setSelectedStore(storeId);
-      setSelectedManager({
-        id: store.managerInfo.managerId,
-        name: store.managerInfo.name
-      });
+      setAvailableUsers(store.userList || []);
+      setSelectedUser(''); // Reset user selection when store changes
     } else {
       setSelectedStore('');
-      setSelectedManager({ id: '', name: '' });
+      setAvailableUsers([]);
+      setSelectedUser('');
     }
   };
 
@@ -244,6 +249,11 @@ const MainStoreTransfer = () => {
       return;
     }
 
+    if (!selectedUser) {
+      alert('Please select a user');
+      return;
+    }
+
     if (transferItems.length === 0) {
       alert('Please add at least one item to transfer');
       return;
@@ -264,11 +274,14 @@ const MainStoreTransfer = () => {
       return;
     }
 
+    // Get selected user details
+    const selectedUserObj = availableUsers.find(user => user.userId === selectedUser);
+
     // Format data according to DTO structure
     const transferDto = {
-      storeToTransfer: parseInt(selectedStore),
-      managerId: selectedManager.id,
-      managerName: selectedManager.name,
+      receiverStoreId: parseInt(selectedStore),
+      userId: selectedUser,
+      userName: selectedUserObj ? selectedUserObj.name : '',
       stockList: transferItems.map(item => ({
         inventoryId: item.inventoryId,
         packingId: item.packingId,
@@ -338,7 +351,7 @@ const MainStoreTransfer = () => {
           </div>
         </div>
 
-        {/* Store and Manager Selection */}
+        {/* Store and User Selection */}
         <div className={styles.selectionRow}>
           <div className={styles.selectGroup} id='select-store-name'>
             <label className={styles.inputLabel}>
@@ -353,7 +366,7 @@ const MainStoreTransfer = () => {
               <option value="">Select a store</option>
               {stores.map(store => (
                 <option key={store.storeId} value={store.storeId}>
-                  {store.storeName}
+                  {store.storeName} - {getStoreTypeDisplay(store.storeType)}
                 </option>
               ))}
             </select>
@@ -362,15 +375,21 @@ const MainStoreTransfer = () => {
           <div className={styles.selectGroup}>
             <label className={styles.inputLabel}>
               <User size={16} />
-              Manager Name:
+              Receiver Name:
             </label>
-            <input
-              type="text"
-              className={styles.textInput}
-              value={selectedManager.name}
-              readOnly
-              placeholder="Select store first"
-            />
+            <select
+              className={styles.selectInput}
+              value={selectedUser}
+              onChange={(e) => setSelectedUser(e.target.value)}
+              disabled={!selectedStore || availableUsers.length === 0}
+            >
+              <option value="">Select a user</option>
+              {availableUsers.map(user => (
+                <option key={user.userId} value={user.userId}>
+                  {user.name} - {user.userRole}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 

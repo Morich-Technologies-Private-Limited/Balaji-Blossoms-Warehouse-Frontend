@@ -456,7 +456,7 @@ const MainStoreTransfer = () => {
                 <th className={styles.tableitemname}>Item Name</th>
                 <th className={styles.tablesize}>Packing Size</th>
                 <th className={styles.tablesize}>Available Quantity</th>
-                <th className={styles.tablesize}>Available Bags</th>
+                <th className={styles.tablesize}>Available Bags/ Bottles</th>
                 <th className={styles.tablebags}>Bags</th>
                 <th className={styles.tablequantity}>Transfer Quantity</th>
                 <th className={styles.tableaction}>Actions</th>

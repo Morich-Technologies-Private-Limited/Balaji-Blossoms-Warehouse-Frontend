@@ -42,11 +42,22 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (pathname.startsWith("/admin")) setUserRole("admin");
-    else if (pathname.startsWith("/mainstore")) setUserRole("mainstore");
-    else if (pathname.startsWith("/substore")) setUserRole("substore");
-    else if (pathname.startsWith("/storehouse")) setUserRole("storehouse");
-    else setUserRole(null);
+    // Don't show sidebar on authentication pages
+    const authPages = ["/", "/login", "/register", "/unauthorized"];
+    
+    if (authPages.includes(pathname)) {
+      setUserRole(null);
+    } else if (pathname.startsWith("/admin")) {
+      setUserRole("admin");
+    } else if (pathname.startsWith("/mainstore")) {
+      setUserRole("mainstore");
+    } else if (pathname.startsWith("/substore")) {
+      setUserRole("substore");
+    } else if (pathname.startsWith("/storehouse")) {
+      setUserRole("storehouse");
+    } else {
+      setUserRole(null);
+    }
   }, [pathname]);
 
   const showSidebar = userRole !== null;
@@ -60,7 +71,7 @@ function App() {
         />
       )}
 
-      <div className={`main-content ${!isSidebarOpen || isMobile ? "sidebar-closed" : ""}`}>
+      <div className={`main-content ${!showSidebar ? "no-sidebar" : !isSidebarOpen || isMobile ? "sidebar-closed" : ""}`}>
         <Routes>
 
           {/* ============ PUBLIC ============ */}

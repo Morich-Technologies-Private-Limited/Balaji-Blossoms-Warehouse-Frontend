@@ -466,14 +466,14 @@ const MainStoreTransfer = () => {
             <span className={styles.totalLabel}>Total Bags:</span>
             <span className={styles.totalValue}>{totalBags}</span>
           </div>
-        </div>
-        <button 
+          <button 
           className={styles.submitBtn}
           onClick={handleSubmit}
           disabled={transferItems.length === 0}
         >
           Transfer
         </button>
+        </div>
       </div>
     </div>
   );

@@ -297,7 +297,6 @@ const MainStoreTransfer = () => {
       <div className={styles.mainContent}>
         {/* Search Section */}
         <div className={styles.searchSection}>
-          <label className={styles.inputLabel}>Search by item code</label>
           <div className={styles.searchWrapper}>
             <input
               ref={searchInputRef}
@@ -341,7 +340,7 @@ const MainStoreTransfer = () => {
 
         {/* Store and Manager Selection */}
         <div className={styles.selectionRow}>
-          <div className={styles.selectGroup}>
+          <div className={styles.selectGroup} id='select-store-name'>
             <label className={styles.inputLabel}>
               <Building2 size={16} />
               Store Name:

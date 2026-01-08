@@ -379,12 +379,12 @@ const MainStoreTransfer = () => {
           <table className={styles.table}>
             <thead>
               <tr>
-                <th>Item Code</th>
-                <th>Item Name</th>
-                <th>Packing Size</th>
-                <th>No. of Bags</th>
-                <th>Quantity</th>
-                <th>Actions</th>
+                <th className={styles.tableitemcode}>Item Code</th>
+                <th className={styles.tableitemname}>Item Name</th>
+                <th className={styles.tablesize}>Packing Size</th>
+                <th className={styles.tablebags}>No. of Bags</th>
+                <th className={styles.tablequantity}>Quantity</th>
+                <th className={styles.tableaction}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -395,13 +395,13 @@ const MainStoreTransfer = () => {
                     <td>{item.productName}</td>
                     <td>
                       <select
-                        className={styles.tableSelect}
+                        className={`${styles.tableSelect} ${styles.packingSizeinput}`}
                         value={item.packingId}
                         onChange={(e) => updateItem(item.id, 'packingId', e.target.value)}
                       >
-                        <option value="">Select packing</option>
+                        <option value="" className={styles.optionSelect} >Select packing</option>
                         {packingOptions.map(packing => (
-                          <option key={packing.packingId} value={packing.packingId}>
+                          <option key={packing.packingId} value={packing.packingId} >
                             {packing.packingSize} {getUnitDisplay(packing.packingUnit)}
                           </option>
                         ))}
@@ -466,14 +466,14 @@ const MainStoreTransfer = () => {
             <span className={styles.totalLabel}>Total Bags:</span>
             <span className={styles.totalValue}>{totalBags}</span>
           </div>
-        </div>
-        <button 
+          <button 
           className={styles.submitBtn}
           onClick={handleSubmit}
           disabled={transferItems.length === 0}
         >
           Transfer
         </button>
+        </div>
       </div>
     </div>
   );

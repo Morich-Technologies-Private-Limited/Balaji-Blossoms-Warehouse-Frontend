@@ -1,17 +1,20 @@
+/* Branding Side */
+
 .brandingSide {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
   position: relative;
 }
 
 .brandingSide::before {
   content: '';
   position: absolute;
-  width: 500px;
-  height: 500px;
+  width: 400px;
+  height: 400px;
   background: rgba(255, 255, 255, 0.05);
   border-radius: 50%;
-  top: -200px;
-  right: -200px;
+  top: -150px;
+  right: -150px;
+  animation: pulse 8s ease-in-out infinite;
 }
 
 .brandingSide::after {
@@ -23,67 +26,270 @@
   border-radius: 50%;
   bottom: -100px;
   left: -100px;
+  animation: pulse 6s ease-in-out infinite reverse;
 }
 
-.textEmerald {
-  color: #10b981 !important;
+@keyframes pulse {
+  0%, 100% { 
+    transform: scale(1);
+    opacity: 0.05;
+  }
+  50% { 
+    transform: scale(1.15);
+    opacity: 0.08;
+  }
 }
 
-.btnEmerald {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  color: white;
-  border: none;
-  transition: all 0.3s ease;
+.brandingContent {
+  max-width: 500px;
+  z-index: 1;
 }
 
-.btnEmerald:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
-  color: white;
-  filter: brightness(1.1);
-}
-
-.btnEmerald:active {
-  transform: translateY(0);
-}
-
-.customInputGroup :global(.form-control:focus) {
-  background-color: #fff !important;
-  border-color: #10b981;
-  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
-}
-
-.customInputGroup :global(.input-group-text),
-.customInputGroup :global(.btn) {
-  border-color: transparent;
-}
-
-.customInputGroup :global(.form-control) {
-  border: 1.5px solid #e9ecef;
-  border-radius: 8px;
-}
-
-.customInputGroup {
-  background-color: #f8f9fa;
-  border-radius: 12px;
-  overflow: hidden;
-  border: 1.5px solid #e9ecef;
-}
-
-.animateFloat {
-  animation: float 3s ease-in-out infinite;
+.logoWrapper {
+  display: inline-block;
+  animation: float 6s ease-in-out infinite;
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
+  0%, 100% { 
+    transform: translateY(0px); 
+  }
+  50% { 
+    transform: translateY(-10px); 
+  }
 }
 
-.cursorPointer {
+.featureList {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.featureItem {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 1rem;
+  opacity: 0.95;
+}
+
+.featureItem i {
+  font-size: 1.5rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Mobile Header */
+.mobileHeader {
+  animation: fadeInDown 0.6s ease-out;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mobileLogo {
+  display: inline-block;
+}
+
+.mobileCompanyName {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1976D2;
+  margin: 0;
+}
+
+/* Form Container */
+.formContainer {
+  animation: fadeIn 0.8s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.formCard {
+  border: 1px solid #e9ecef;
+}
+
+/* Input Wrapper */
+.inputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.inputWrapper i {
+  position: absolute;
+  left: 1rem;
+  color: #6c757d;
+  font-size: 1rem;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.inputWrapper input {
+  width: 100%;
+  padding: 0.875rem 1rem 0.875rem 3rem;
+  border: 1.5px solid #e9ecef;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  background-color: #f8f9fa;
+}
+
+.inputWrapper input:focus {
+  outline: none;
+  border-color: #2196F3;
+  background-color: #fff;
+  box-shadow: 0 0 0 4px rgba(33, 150, 243, 0.08);
+}
+
+.inputWrapper input::placeholder {
+  color: #adb5bd;
+}
+
+
+/* Password Toggle */
+.togglePassword {
+  position: absolute;
+  right: 1rem;
+  background: none;
+  border: none;
+  color: #6c757d;
   cursor: pointer;
+  padding: 0.5rem;
+  transition: color 0.2s ease;
+  z-index: 2;
 }
 
-.socialBtn:hover {
-  background-color: #f8f9fa !important;
-  border-color: #10b981 !important;
+.togglePassword:hover {
+  color: #2196F3;
+}
+
+.togglePassword:focus {
+  outline: none;
+}
+
+/* Primary Button */
+.btnPrimary {
+  background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(33, 150, 243, 0.2);
+}
+
+.btnPrimary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(33, 150, 243, 0.35);
+  color: white;
+}
+
+.btnPrimary:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.25);
+}
+
+
+
+/* Links */
+.linkPrimary {
+  color: #2196F3;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.linkPrimary:hover {
+  color: #1976D2;
+  text-decoration: underline;
+}
+
+/* Form Check */
+:global(.form-check-input) {
+  cursor: pointer;
+  border-color: #ced4da;
+  transition: all 0.2s ease;
+}
+
+:global(.form-check-input:checked) {
+  background-color: #2196F3;
+  border-color: #2196F3;
+}
+
+:global(.form-check-input:focus) {
+  box-shadow: 0 0 0 4px rgba(33, 150, 243, 0.08);
+  border-color: #2196F3;
+}
+
+:global(.form-check-label) {
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Responsive Design */
+@media (max-width: 991.98px) {
+  .formCard {
+    box-shadow: none !important;
+    border: none;
+  }
+  
+  .mobileCompanyName {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .formCard {
+    padding: 1.5rem !important;
+  }
+  
+  .mobileCompanyName {
+    font-size: 1.35rem;
+  }
+  
+  .socialBtn span {
+    display: none;
+  }
+  
+  .btnPrimary {
+    font-size: 0.95rem;
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Focus styles for accessibility */
+*:focus-visible {
+  outline: 2px solid #2196F3;
+  outline-offset: 2px;
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline: none;
 }

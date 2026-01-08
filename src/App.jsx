@@ -91,7 +91,17 @@ function App() {
           />
 
           <Route
-            path="/admin/users"
+            path="/admin/users/register"
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN"]}>
+               <Register />
+              </ProtectedRoute>
+            }
+          />
+
+
+          <Route
+            path="/admin/manage/users"
             element={
               <ProtectedRoute allowedRoles={["ADMIN"]}>
                 <h2>User Management</h2>

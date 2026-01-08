@@ -60,8 +60,9 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
       title: 'Admin Panel',
       navItems: [
         { icon: 'bi-house-door-fill', text: 'Home', link: '/admin' },
+        { icon: 'bi-people', text: 'Create User', link: '/admin/users/register' },
         { icon: 'bi-shop', text: 'Create Store', link: '/admin/create-store' },
-        { icon: 'bi-person-badge', text: 'Assign Manager', link: '/admin/assign-manager' },
+        { icon: 'bi-person-badge', text: 'User Management', link: '/admin/manage/user' },
         { icon: 'bi-people', text: 'Assign Supervisor', link: '/admin/assign-supervisor' },
         { icon: 'bi-boxes', text: 'View Inventory', link: '/admin/inventory' },
         { icon: 'bi-clock-history', text: 'Transfer History', link: '/admin/transfer-history' },

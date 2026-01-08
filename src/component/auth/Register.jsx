@@ -1,39 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Eye, EyeOff, Store, MapPin, Phone, Building2, CheckCircle, XCircle } from 'lucide-react';
 import styles from './Register.module.css';
 import { registerApi } from '../api/registerApi';
-
-// Dummy store data
-const dummyStores = [
-  {
-    storeId: 1,
-    storeName: "Central Main Store",
-    address: "123 Main Street, Downtown, New York, NY 10001",
-    contactNo: "+1 (555) 123-4567",
-    storeType: "MAIN_STORE"
-  },
-  {
-    storeId: 2,
-    storeName: "East Side Branch",
-    address: "456 East Avenue, Manhattan, New York, NY 10002",
-    contactNo: "+1 (555) 234-5678",
-    storeType: "SUB_STORE"
-  },
-  {
-    storeId: 3,
-    storeName: "Downtown Shop",
-    address: "789 Market Street, Brooklyn, New York, NY 10003",
-    contactNo: "+1 (555) 345-6789",
-    storeType: "SHOP"
-  },
-  {
-    storeId: 4,
-    storeName: "West End Store",
-    address: "321 West Boulevard, Queens, New York, NY 10004",
-    contactNo: "+1 (555) 456-7890",
-    storeType: "SUB_STORE"
-  }
-];
+import { fetchAllStores } from '../api/fetchAllStores';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -51,6 +20,31 @@ const Register = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState(null);
   const [selectedStore, setSelectedStore] = useState(null);
+  const [stores, setStores] = useState([]);
+  const [isLoadingStores, setIsLoadingStores] = useState(true);
+
+  // Fetch stores on component mount
+  useEffect(() => {
+    const loadStores = async () => {
+      try {
+        setIsLoadingStores(true);
+        const response = await fetchAllStores();
+        if (response.data.status==='SUCCESS' && response.data) {
+          setStores(response.data.payload);
+        } else {
+          console.error('Failed to fetch stores:', response.data.message);
+          setStores([]);
+        }
+      } catch (error) {
+        console.error('Error fetching stores:', error);
+        setStores([]);
+      } finally {
+        setIsLoadingStores(false);
+      }
+    };
+
+    loadStores();
+  }, []);
 
   const validateForm = () => {
     const newErrors = {};
@@ -109,58 +103,58 @@ const Register = () => {
     }
 
     if (name === 'storeId') {
-      const store = dummyStores.find(s => s.storeId === parseInt(value));
+      const store = stores.find(s => s.storeId === parseInt(value));
       setSelectedStore(store);
     }
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  if (!validateForm()) return;
+    if (!validateForm()) return;
 
-  setIsSubmitting(true);
-  setSubmitStatus(null);
+    setIsSubmitting(true);
+    setSubmitStatus(null);
 
-  try {
-    const userDto = {
-      userId: formData.userId,
-      name: formData.name,
-      emailId: formData.emailId,
-      password: formData.password,
-      storeId: parseInt(formData.storeId),
-    };
+    try {
+      const userDto = {
+        userId: formData.userId,
+        name: formData.name,
+        emailId: formData.emailId,
+        password: formData.password,
+        storeId: parseInt(formData.storeId),
+      };
 
-    console.log("Submitting user data:", userDto);
+      console.log("Submitting user data:", userDto);
 
-    const response = await registerApi(userDto);
+      const response = await registerApi(userDto);
 
-    if (response.success) {
-      setSubmitStatus("success");
+      if (response.data.status==='SUCCESS') {
+        setSubmitStatus("success");
 
-      // Reset form after success
-      setTimeout(() => {
-        setFormData({
-          userId: "",
-          name: "",
-          emailId: "",
-          password: "",
-          confirmPassword: "",
-          storeId: "",
-        });
-        setSelectedStore(null);
-        setSubmitStatus(null);
-      }, 2000);
-    } else {
+        // Reset form after success
+        setTimeout(() => {
+          setFormData({
+            userId: "",
+            name: "",
+            emailId: "",
+            password: "",
+            confirmPassword: "",
+            storeId: "",
+          });
+          setSelectedStore(null);
+          setSubmitStatus(null);
+        }, 2000);
+      } else {
+        setSubmitStatus("error");
+      }
+    } catch (error) {
+      console.error("Registration error:", error);
       setSubmitStatus("error");
+    } finally {
+      setIsSubmitting(false);
     }
-  } catch (error) {
-    console.error("Registration error:", error);
-    setSubmitStatus("error");
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+  };
 
   return (
     <div className={styles.registerContainer}>
@@ -292,10 +286,13 @@ const Register = () => {
                               name="storeId"
                               value={formData.storeId}
                               onChange={handleChange}
+                              disabled={isLoadingStores}
                               data-testid="select-store"
                             >
-                              <option value="">Choose a store...</option>
-                              {dummyStores.map(store => (
+                              <option value="">
+                                {isLoadingStores ? 'Loading stores...' : 'Choose a store...'}
+                              </option>
+                              {stores.map(store => (
                                 <option key={store.storeId} value={store.storeId}>
                                   {store.storeName}
                                 </option>
@@ -308,7 +305,7 @@ const Register = () => {
                         <div className="col-12 mt-4">
                           <button
                             type="submit"
-                            disabled={isSubmitting}
+                            disabled={isSubmitting || isLoadingStores}
                             className={`btn w-100 ${styles.submitButton}`}
                             data-testid="button-submit"
                           >
@@ -322,8 +319,6 @@ const Register = () => {
                             )}
                           </button>
                         </div>
-
-                    
                       </div>
                     </form>
                   </div>
@@ -340,7 +335,16 @@ const Register = () => {
                       <p className={styles.storeDetailsSubtitle}>Select your preferred store to get started with localized services and support.</p>
                     </div>
 
-                    {selectedStore ? (
+                    {isLoadingStores ? (
+                      <div className={`card ${styles.storePlaceholder}`}>
+                        <div className="card-body text-center">
+                          <div className="spinner-border text-primary mb-3" role="status">
+                            <span className="visually-hidden">Loading...</span>
+                          </div>
+                          <p className={styles.storePlaceholderText}>Loading store information...</p>
+                        </div>
+                      </div>
+                    ) : selectedStore ? (
                       <div className={`card ${styles.storeCard}`}>
                         <div className="card-body">
                           <div className={styles.storeCardHeader}>
@@ -377,16 +381,22 @@ const Register = () => {
 
                     <div className={styles.availableStores}>
                       <h6 className={styles.availableStoresTitle}>Available Locations</h6>
-                      <div className={styles.storeBadgeContainer}>
-                        {dummyStores.map(store => (
-                          <span 
-                            key={store.storeId} 
-                            className={`badge ${styles.storeBadge} ${selectedStore?.storeId === store.storeId ? styles.storeBadgeSelected : styles.storeBadgeDefault}`}
-                          >
-                            {store.storeName}
-                          </span>
-                        ))}
-                      </div>
+                      {isLoadingStores ? (
+                        <p className="text-muted small">Loading stores...</p>
+                      ) : stores.length > 0 ? (
+                        <div className={styles.storeBadgeContainer}>
+                          {stores.map(store => (
+                            <span 
+                              key={store.storeId} 
+                              className={`badge ${styles.storeBadge} ${selectedStore?.storeId === store.storeId ? styles.storeBadgeSelected : styles.storeBadgeDefault}`}
+                            >
+                              {store.storeName}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-muted small">No stores available</p>
+                      )}
                     </div>
                   </div>
                 </div>

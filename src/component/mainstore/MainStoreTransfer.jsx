@@ -1,87 +1,44 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, Package, Trash2, Send, Building2, User } from 'lucide-react';
 import styles from './MainStoreTransfer.module.css';
-
-// Dummy data
-const dummyProducts = [
-  { productId: 1, productName: "Premium Rice", category: "SOLID" },
-  { productId: 2, productName: "Cooking Oil", category: "LIQUID" },
-  { productId: 3, productName: "Wheat Flour", category: "SOLID" },
-  { productId: 4, productName: "Milk", category: "LIQUID" },
-  { productId: 5, productName: "Sugar", category: "SOLID" },
-  { productId: 6, productName: "Tea Powder", category: "SOLID" },
-];
-
-const dummyPackings = [
-  {
-    packingId: 1,
-    packingSize: "10",
-    packingUnit: "KILOGRAM",
-    inventoryList: [
-      { inventoryId: 101, availableQuantity: 500, storeId: 1, storeName: "Main Store" }
-    ]
-  },
-  {
-    packingId: 2,
-    packingSize: "25",
-    packingUnit: "KILOGRAM",
-    inventoryList: [
-      { inventoryId: 102, availableQuantity: 300, storeId: 1, storeName: "Main Store" }
-    ]
-  },
-  {
-    packingId: 3,
-    packingSize: "50",
-    packingUnit: "KILOGRAM",
-    inventoryList: [
-      { inventoryId: 103, availableQuantity: 150, storeId: 1, storeName: "Main Store" }
-    ]
-  }
-];
-
-const dummyStores = [
-  {
-    storeId: 2,
-    storeName: "Branch Store A",
-    address: "123 Main St",
-    contactNo: "9876543210",
-    managerInfo: { managerId: "M001", name: "John Doe" }
-  },
-  {
-    storeId: 3,
-    storeName: "Branch Store B",
-    address: "456 Oak Ave",
-    contactNo: "9876543211",
-    managerInfo: { managerId: "M002", name: "Jane Smith" }
-  },
-  {
-    storeId: 4,
-    storeName: "Branch Store C",
-    address: "789 Pine Rd",
-    contactNo: "9876543212",
-    managerInfo: { managerId: "M003", name: "Mike Johnson" }
-  }
-];
+import { fetchStoresWithUserApi } from '../api/findStoreAndEmployee';
+import { findProducts } from '../api/findProducts';
+import { findProductsPacking } from '../api/findProductsPacking';
+import { sendProductToStore } from '../api/sendProductToStore';
 
 const MainStoreTransfer = () => {
   const [searchKey, setSearchKey] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
   const [filteredProducts, setFilteredProducts] = useState([]);
-  const [packingOptions, setPackingOptions] = useState([]);
   const [stores, setStores] = useState([]);
   const [transferItems, setTransferItems] = useState([]);
   const [selectedDropdownIndex, setSelectedDropdownIndex] = useState(0);
   
-  // Store and Manager selection (separate from items)
+  // Store and User selection (separate from items)
   const [selectedStore, setSelectedStore] = useState('');
-  const [selectedManager, setSelectedManager] = useState({ id: '', name: '' });
+  const [selectedUser, setSelectedUser] = useState('');
+  const [availableUsers, setAvailableUsers] = useState([]);
   
   const searchInputRef = useRef(null);
   const dropdownRef = useRef(null);
 
+  const loadStores = async () => {
+    try {
+      const response = await fetchStoresWithUserApi();
+
+      if(response.data.status === "SUCCESS") {
+        setStores(response.data.payload);
+      } else {
+        console.log(response.data);
+        setStores([]);
+      }
+    } catch (err) {
+      console.error("Failed to load stores", err);
+    }
+  };
+
   useEffect(() => {
-    setPackingOptions(dummyPackings);
-    setStores(dummyStores);
+    loadStores();
   }, []);
 
   // Get unit display
@@ -95,26 +52,48 @@ const MainStoreTransfer = () => {
     return unitMap[unit] || unit;
   };
 
-  // Calculate quantity from bags
+  // Get store type display
+  const getStoreTypeDisplay = (storeType) => {
+    const typeMap = {
+      'MAIN_STORE': 'Main Store',
+      'SUB_STORE': 'Sub Store',
+      'SHOP': 'Shop'
+    };
+    return typeMap[storeType] || storeType;
+  };
+
   const calculateQuantity = (bags, packingSize) => {
     if (!bags || !packingSize) return 0;
     return parseFloat(bags) * parseFloat(packingSize);
   };
 
-  // Search products
   useEffect(() => {
-    if (searchKey.trim()) {
-      const filtered = dummyProducts.filter(p => 
-        p.productName.toLowerCase().includes(searchKey.toLowerCase()) ||
-        p.productId.toString().includes(searchKey)
-      );
-      setFilteredProducts(filtered);
-      setShowDropdown(true);
-      setSelectedDropdownIndex(0);
-    } else {
-      setFilteredProducts([]);
-      setShowDropdown(false);
-    }
+    const fetchProducts = async () => {
+      try {
+        if (!searchKey.trim()) {
+          setFilteredProducts([]);
+          setShowDropdown(false);
+          return;
+        }
+
+        const response = await findProducts(searchKey);
+
+        if (response.data.status === "SUCCESS" ) {
+          setFilteredProducts(response.data.payload);
+          setShowDropdown(true);
+          setSelectedDropdownIndex(0);
+        } else {
+          setFilteredProducts([]);
+          setShowDropdown(false);
+        }
+      } catch (error) {
+        console.error("Product search failed:", error);
+        setFilteredProducts([]);
+        setShowDropdown(false);
+      }
+    };
+
+    fetchProducts();
   }, [searchKey]);
 
   // Handle keyboard navigation in dropdown
@@ -156,12 +135,30 @@ const MainStoreTransfer = () => {
     }
   }, [selectedDropdownIndex, showDropdown]);
 
+  // Fetch packing options for a product
+  const fetchPackingForProduct = async (productId) => {
+    try {
+      const response = await findProductsPacking(productId);
+      
+      if (response.data.status === "SUCCESS") {
+        return response.data.payload;
+      } else {
+        console.error("Failed to fetch packing options:", response);
+        return [];
+      }
+    } catch (error) {
+      console.error("Error fetching packing options:", error);
+      return [];
+    }
+  };
+
   // Handle product selection
-  const handleProductSelect = (product) => {
-    const exists = transferItems.some(item => item.productId === product.productId);
+  const handleProductSelect = async (product) => {
+    // Fetch packing options for the selected product
+    const packingOptions = await fetchPackingForProduct(product.productId);
     
-    if (exists) {
-      alert('This product is already added to the transfer list');
+    if (packingOptions.length === 0) {
+      alert('No packing options available for this product');
       setShowDropdown(false);
       setSearchKey('');
       return;
@@ -178,7 +175,9 @@ const MainStoreTransfer = () => {
       noOfBags: '',
       packingSize: '',
       packingUnit: '',
-      availableQuantity: 0
+      availableQuantity: 0,
+      maxBags: 0,
+      packingOptions: packingOptions // Store packing options for this specific item
     };
 
     setTransferItems([...transferItems, newItem]);
@@ -191,13 +190,12 @@ const MainStoreTransfer = () => {
     const store = stores.find(s => s.storeId === parseInt(storeId));
     if (store) {
       setSelectedStore(storeId);
-      setSelectedManager({
-        id: store.managerInfo.managerId,
-        name: store.managerInfo.name
-      });
+      setAvailableUsers(store.userList || []);
+      setSelectedUser(''); // Reset user selection when store changes
     } else {
       setSelectedStore('');
-      setSelectedManager({ id: '', name: '' });
+      setAvailableUsers([]);
+      setSelectedUser('');
     }
   };
 
@@ -209,21 +207,55 @@ const MainStoreTransfer = () => {
       const updated = { ...item, [field]: value };
 
       if (field === 'packingId') {
-        const packing = packingOptions.find(p => p.packingId === parseInt(value));
+        // Check if this product+packing combination already exists (excluding current item)
+        const duplicateExists = transferItems.some(
+          existingItem => 
+            existingItem.id !== id && 
+            existingItem.productId === item.productId && 
+            existingItem.packingId === parseInt(value)
+        );
+
+        if (duplicateExists) {
+          alert('This product with the same packing size is already added to the transfer list');
+          return item; // Don't update
+        }
+
+        const packing = item.packingOptions.find(p => p.packingId === parseInt(value));
         if (packing) {
-          const inventory = packing.inventoryList[0];
+          const inventory = packing.inventoryList && packing.inventoryList.length > 0 
+            ? packing.inventoryList[0] 
+            : null;
+          
+          if (!inventory) {
+            alert('No inventory available for this packing');
+            return item;
+          }
+
+          const maxBags = Math.floor(inventory.availableQuantity / parseFloat(packing.packingSize));
+          
           updated.packingId = packing.packingId;
           updated.inventoryId = inventory.inventoryId;
           updated.packingSize = packing.packingSize;
           updated.packingUnit = packing.packingUnit;
           updated.availableQuantity = inventory.availableQuantity;
-          updated.quantity = calculateQuantity(updated.noOfBags, packing.packingSize);
+          updated.maxBags = maxBags;
+          updated.noOfBags = ''; // Reset bags when packing changes
+          updated.quantity = 0;
         }
       }
 
       if (field === 'noOfBags') {
-        updated.noOfBags = value;
-        updated.quantity = calculateQuantity(value, updated.packingSize);
+        // Only allow integer values
+        const intValue = value === '' ? '' : Math.floor(parseFloat(value) || 0);
+        
+        // Check if exceeds max bags
+        if (intValue > updated.maxBags) {
+          alert(`Maximum ${updated.maxBags} bags available`);
+          return item; // Don't update
+        }
+        
+        updated.noOfBags = intValue === 0 ? '' : intValue.toString();
+        updated.quantity = calculateQuantity(updated.noOfBags, updated.packingSize);
       }
 
       return updated;
@@ -237,49 +269,84 @@ const MainStoreTransfer = () => {
     }
   };
 
-  // Validate and submit
-  const handleSubmit = () => {
+
+  const handleSubmit = async () => {
+  try {
     if (!selectedStore) {
-      alert('Please select a store to transfer to');
+      alert("Please select a store to transfer to");
+      return;
+    }
+
+    if (!selectedUser) {
+      alert("Please select a user");
       return;
     }
 
     if (transferItems.length === 0) {
-      alert('Please add at least one item to transfer');
+      alert("Please add at least one item to transfer");
       return;
     }
 
-    const invalidItems = transferItems.filter(item => 
-      !item.packingId || !item.noOfBags || parseFloat(item.noOfBags) <= 0
+    // Validate items
+    const invalidItems = transferItems.filter(item =>
+      !item.packingId ||
+      !item.quantity ||
+      Number(item.quantity) <= 0
     );
 
     if (invalidItems.length > 0) {
-      alert('Please fill all required fields for all items');
+      alert("Please fill all required fields for all items");
       return;
     }
 
-    const exceededItems = transferItems.filter(item => item.quantity > item.availableQuantity);
+    // Quantity exceeded check
+    const exceededItems = transferItems.filter(
+      item => Number(item.quantity) > Number(item.availableQuantity)
+    );
+
     if (exceededItems.length > 0) {
-      alert('Some items exceed available quantity');
+      alert("Some items exceed available quantity");
       return;
     }
 
-    // Format data according to DTO structure
+    // Get selected user details
+    const selectedUserObj = availableUsers.find(
+      user => user.userId === selectedUser
+    );
+
+    // Build DTO exactly as backend expects
     const transferDto = {
-      storeToTransfer: parseInt(selectedStore),
-      managerId: selectedManager.id,
-      managerName: selectedManager.name,
+      receiverStoreId: Number(selectedStore),
+      userId: selectedUser,
+      userName: selectedUserObj?.name || "",
       stockList: transferItems.map(item => ({
-        inventoryId: item.inventoryId,
-        packingId: item.packingId,
-        productId: item.productId,
-        quantityToTransfer: item.quantity
-      }))
+        inventoryId: Number(item.inventoryId),
+        packingId: Number(item.packingId),
+        productId: Number(item.productId),
+        quantityToTransfer: Number(item.quantity),
+      })),
     };
 
-    console.log('Transfer DTO:', transferDto);
-    alert('Transfer submitted successfully!');
-  };
+    console.log("Transfer DTO:", transferDto);
+
+    // 🔥 API call
+    const response = await sendProductToStore(transferDto);
+
+    if(response.data.status==="SUCCESS")
+    {
+    alert(response.data.message || "Stock transferred successfully!");
+     setTransferItems([]);
+     setSelectedStore("");
+     setSelectedUser("");
+    }else{
+       alert(response.data.message || "Unable to tranfer stock");
+    }
+
+  } catch (error) {
+    console.error("Transfer failed:", error);
+    alert(error.message || "Stock transfer failed");
+  }
+};
 
   // Calculate totals
   const totalBags = transferItems.reduce((sum, item) => sum + (parseFloat(item.noOfBags) || 0), 0);
@@ -338,7 +405,7 @@ const MainStoreTransfer = () => {
           </div>
         </div>
 
-        {/* Store and Manager Selection */}
+        {/* Store and User Selection */}
         <div className={styles.selectionRow}>
           <div className={styles.selectGroup} id='select-store-name'>
             <label className={styles.inputLabel}>
@@ -353,7 +420,7 @@ const MainStoreTransfer = () => {
               <option value="">Select a store</option>
               {stores.map(store => (
                 <option key={store.storeId} value={store.storeId}>
-                  {store.storeName}
+                  {store.storeName} - {getStoreTypeDisplay(store.storeType)}
                 </option>
               ))}
             </select>
@@ -362,15 +429,21 @@ const MainStoreTransfer = () => {
           <div className={styles.selectGroup}>
             <label className={styles.inputLabel}>
               <User size={16} />
-              Manager Name:
+              Receiver Name:
             </label>
-            <input
-              type="text"
-              className={styles.textInput}
-              value={selectedManager.name}
-              readOnly
-              placeholder="Select store first"
-            />
+            <select
+              className={styles.selectInput}
+              value={selectedUser}
+              onChange={(e) => setSelectedUser(e.target.value)}
+              disabled={!selectedStore || availableUsers.length === 0}
+            >
+              <option value="">Select a user</option>
+              {availableUsers.map(user => (
+                <option key={user.userId} value={user.userId}>
+                  {user.name} - {user.userRole}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 
@@ -379,12 +452,14 @@ const MainStoreTransfer = () => {
           <table className={styles.table}>
             <thead>
               <tr>
-                <th>Item Code</th>
-                <th>Item Name</th>
-                <th>Packing Size</th>
-                <th>No. of Bags</th>
-                <th>Quantity</th>
-                <th>Actions</th>
+                <th className={styles.tableitemcode}>Item Code</th>
+                <th className={styles.tableitemname}>Item Name</th>
+                <th className={styles.tablesize}>Packing Size</th>
+                <th className={styles.tablesize}>Available Quantity</th>
+                <th className={styles.tablesize}>Available Bags/ Bottles</th>
+                <th className={styles.tablebags}>Bags</th>
+                <th className={styles.tablequantity}>Transfer Quantity</th>
+                <th className={styles.tableaction}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -395,23 +470,40 @@ const MainStoreTransfer = () => {
                     <td>{item.productName}</td>
                     <td>
                       <select
-                        className={styles.tableSelect}
+                        className={`${styles.tableSelect} ${styles.packingSizeinput}`}
                         value={item.packingId}
                         onChange={(e) => updateItem(item.id, 'packingId', e.target.value)}
                       >
-                        <option value="">Select packing</option>
-                        {packingOptions.map(packing => (
+                        <option value="" className={styles.optionSelect}>Select packing</option>
+                        {item.packingOptions && item.packingOptions.map(packing => (
                           <option key={packing.packingId} value={packing.packingId}>
                             {packing.packingSize} {getUnitDisplay(packing.packingUnit)}
                           </option>
                         ))}
                       </select>
+                    </td>
+
+                    <td>
+                      {item.packingId && (() => {
+                        const packing = item.packingOptions.find(p => p.packingId === item.packingId);
+                        return packing ? (
+                          <div className={styles.availableText}>
+                            {item.availableQuantity} {getUnitDisplay(packing.packingUnit)}
+                          </div>
+                        ) : (
+                          '-'
+                        );
+                      })()}
+                    </td>
+
+                    <td>
                       {item.packingId && (
                         <div className={styles.availableText}>
-                          Available: {item.availableQuantity} {getUnitDisplay(item.packingUnit)}
+                          {item.maxBags} (max)
                         </div>
                       )}
                     </td>
+
                     <td>
                       <input
                         type="number"
@@ -420,6 +512,9 @@ const MainStoreTransfer = () => {
                         value={item.noOfBags}
                         onChange={(e) => updateItem(item.id, 'noOfBags', e.target.value)}
                         min="0"
+                        max={item.maxBags}
+                        step="1"
+                        disabled={!item.packingId}
                       />
                     </td>
                     <td>
@@ -444,7 +539,7 @@ const MainStoreTransfer = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="6" className={styles.emptyRow}>
+                  <td colSpan="8" className={styles.emptyRow}>
                     <Package size={48} />
                     <p>No items added yet. Search and add products to create a transfer.</p>
                   </td>
@@ -466,14 +561,14 @@ const MainStoreTransfer = () => {
             <span className={styles.totalLabel}>Total Bags:</span>
             <span className={styles.totalValue}>{totalBags}</span>
           </div>
+          <button 
+            className={styles.submitBtn}
+            onClick={handleSubmit}
+            disabled={transferItems.length === 0}
+          >
+            Transfer
+          </button>
         </div>
-        <button 
-          className={styles.submitBtn}
-          onClick={handleSubmit}
-          disabled={transferItems.length === 0}
-        >
-          Transfer
-        </button>
       </div>
     </div>
   );

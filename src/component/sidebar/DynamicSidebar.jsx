@@ -60,8 +60,9 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
       title: 'Admin Panel',
       navItems: [
         { icon: 'bi-house-door-fill', text: 'Home', link: '/admin' },
+        { icon: 'bi-people', text: 'Create User', link: '/admin/users/register' },
         { icon: 'bi-shop', text: 'Create Store', link: '/admin/create-store' },
-        { icon: 'bi-person-badge', text: 'Assign Manager', link: '/admin/assign-manager' },
+        { icon: 'bi-person-badge', text: 'User Management', link: '/admin/manage/user' },
         { icon: 'bi-people', text: 'Assign Supervisor', link: '/admin/assign-supervisor' },
         { icon: 'bi-boxes', text: 'View Inventory', link: '/admin/inventory' },
         { icon: 'bi-clock-history', text: 'Transfer History', link: '/admin/transfer-history' },
@@ -72,9 +73,11 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
       title: 'Main Store',
       navItems: [
         { icon: 'bi-house-door-fill', text: 'Home', link: '/mainstore' },
-        { icon: 'bi-shop', text: 'Store Transfer', link: '/mainstore/transfer' },
+        { icon: 'bi-clock-history', text: 'In Entry', link: '/mainstore/in'},
+        { icon: 'bi-shop', text: 'Out Entry', link: '/mainstore/transfer' },
         { icon: 'bi-arrow-left-right', text: 'Shop Transfer', link: '/mainstore/dashboard2' },
         { icon: 'bi-clock-history', text: 'Transfer History', link: '/mainstore/dashboard3' },
+        { icon: 'bi-clock-history', text: 'Product Master', link: '/mainstore/product/add'},
         { icon: 'bi-boxes', text: 'Inventory View', link: '/mainstore/inventory' },
       ]
     },

@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import styles from './DynamicSidebar.module.css';
+import { Logout } from '../utils/Logout';
 
 const DynamicSidebar = ({ role, onSidebarChange }) => {
   const [isOpen, setIsOpen] = useState(true);
@@ -48,31 +49,43 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
     closeSidebarOnMobile();
   };
 
-  // Define sidebar configurations for each role
+  const handleLogout = () => {
+    Logout(navigate);
+    closeSidebarOnMobile();
+  };
+
   const sidebarConfig = {
+    admin: {
+      logo: 'Balaji Admin',
+      title: 'Admin Panel',
+      navItems: [
+        { icon: 'bi-house-door-fill', text: 'Home', link: '/admin' },
+        { icon: 'bi-shop', text: 'Create Store', link: '/admin/create-store' },
+        { icon: 'bi-person-badge', text: 'Assign Manager', link: '/admin/assign-manager' },
+        { icon: 'bi-people', text: 'Assign Supervisor', link: '/admin/assign-supervisor' },
+        { icon: 'bi-boxes', text: 'View Inventory', link: '/admin/inventory' },
+        { icon: 'bi-clock-history', text: 'Transfer History', link: '/admin/transfer-history' },
+      ]
+    },
     mainstore: {
       logo: 'Balaji Blossoms',
       title: 'Main Store',
       navItems: [
         { icon: 'bi-house-door-fill', text: 'Home', link: '/mainstore' },
-        { icon: 'bi-speedometer2', text: 'Store Transfer', link: '/mainstore/transfer' },
-        { icon: 'bi-graph-up-arrow', text: 'Shop Transfer 2', link: '/mainstore/dashboard2' },
-        { icon: 'bi-bar-chart-fill', text: 'Dashboard 3', link: '/mainstore/dashboard3' },
-        { icon: 'bi-box-seam-fill', text: 'Inventory', link: '/mainstore/inventory' },
-        { icon: 'bi-people-fill', text: 'Customers', link: '/mainstore/customers' },
-        { icon: 'bi-gear-fill', text: 'Settings', link: '/mainstore/settings' },
+        { icon: 'bi-shop', text: 'Store Transfer', link: '/mainstore/transfer' },
+        { icon: 'bi-arrow-left-right', text: 'Shop Transfer', link: '/mainstore/dashboard2' },
+        { icon: 'bi-clock-history', text: 'Transfer History', link: '/mainstore/dashboard3' },
+        { icon: 'bi-boxes', text: 'Inventory View', link: '/mainstore/inventory' },
       ]
     },
     substore: {
-      logo: 'Balaji Buds',
+       logo: 'Balaji Blossoms',
       title: 'Sub Store',
       navItems: [
         { icon: 'bi-house-door-fill', text: 'Home', link: '/substore' },
-        { icon: 'bi-cart-fill', text: 'Sales', link: '/substore/sales' },
-        { icon: 'bi-box-seam-fill', text: 'Products', link: '/substore/products' },
-        { icon: 'bi-receipt', text: 'Orders', link: '/substore/orders' },
-        { icon: 'bi-clock-history', text: 'History', link: '/substore/history' },
-        { icon: 'bi-gear-fill', text: 'Settings', link: '/substore/settings' },
+        { icon: 'bi-arrow-up-circle', text: 'Stock Transfer', link: '/substore/sales' },
+        { icon: 'bi-file-text', text: 'Transfer History', link: '/substore/products' },
+        { icon: 'bi-person-plus-fill', text: 'View Supervisor', link: '/substore/orders' },
       ]
     },
     storehouse: {
@@ -82,10 +95,10 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
         { icon: 'bi-house-door-fill', text: 'Home', link: '/storehouse' },
         { icon: 'bi-box-seam-fill', text: 'Inventory', link: '/storehouse/inventory' },
         { icon: 'bi-truck', text: 'Shipments', link: '/storehouse/shipments' },
-        { icon: 'bi-clipboard-data-fill', text: 'Stock Control', link: '/storehouse/stock-control' },
-        { icon: 'bi-arrow-left-right', text: 'Transfers', link: '/storehouse/transfers' },
+        { icon: 'bi-clipboard-check', text: 'Stock Control', link: '/storehouse/stock-control' },
+        { icon: 'bi-arrow-down-up', text: 'Transfers', link: '/storehouse/transfers' },
         { icon: 'bi-journal-text', text: 'Logs', link: '/storehouse/logs' },
-        { icon: 'bi-sliders', text: 'Configuration', link: '/storehouse/configuration' },
+        { icon: 'bi-gear-fill', text: 'Configuration', link: '/storehouse/configuration' },
       ]
     }
   };
@@ -143,8 +156,28 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
         </nav>
 
         <div className={styles.sidebarFooter}>
-          <div className={styles.footerText}>{config.title}</div>
-          <div className={styles.copyright}>© 2025 All Rights Reserved</div>
+          {/* Logout Button */}
+          <div 
+            className={styles.logoutBtn}
+            onClick={handleLogout}
+            role="button"
+            tabIndex={0}
+            onKeyPress={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                handleLogout();
+              }
+            }}
+            title="Logout"
+          >
+            <i className="bi bi-box-arrow-right"></i>
+            <span className={styles.navText}>Logout</span>
+          </div>
+          
+          {/* Footer Info */}
+          <div className={styles.footerInfo}>
+            <div className={styles.footerText}>{config.title}</div>
+            <div className={styles.copyright}>© 2025 All Rights Reserved</div>
+          </div>
         </div>
       </div>
 

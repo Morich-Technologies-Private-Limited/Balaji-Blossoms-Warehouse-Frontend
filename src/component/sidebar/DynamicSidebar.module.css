@@ -570,3 +570,69 @@
     display: none;
   }
 }
+
+
+/* Logout Button Styles */
+.logoutBtn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  color: #fff;
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  box-shadow: 0 2px 8px rgba(231, 76, 60, 0.2);
+}
+
+.logoutBtn:hover {
+  background: linear-gradient(135deg, #c0392b, #a93226);
+  transform: translateX(4px);
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
+}
+
+.logoutBtn i {
+  font-size: 20px;
+  transition: transform 0.3s ease;
+}
+
+.logoutBtn:hover i {
+  transform: translateX(2px);
+}
+
+.sidebar.closed .logoutBtn {
+  justify-content: center;
+  padding: 12px;
+}
+
+.sidebar.closed .logoutBtn .navText {
+  display: none;
+}
+
+.footerInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Existing footer styles - update if needed */
+.sidebarFooter {
+  margin-top: auto;
+  padding: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.footerText {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 4px;
+}
+
+.copyright {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+}

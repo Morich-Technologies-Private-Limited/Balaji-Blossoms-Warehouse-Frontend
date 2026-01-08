@@ -1,8 +1,4 @@
 /* Branding Side */
-:root {
-  --sidebar-width-open:0;
-  --sidebar-width-closed: 0;
-}
 
 .brandingSide {
   background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);

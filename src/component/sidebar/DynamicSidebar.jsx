@@ -65,7 +65,7 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
         { icon: 'bi-person-badge', text: 'User Management', link: '/admin/manage/user' },
         { icon: 'bi-people', text: 'Assign Supervisor', link: '/admin/assign-supervisor' },
         { icon: 'bi-boxes', text: 'View Inventory', link: '/admin/inventory' },
-        { icon: 'bi-clock-history', text: 'Transfer History', link: '/admin/transfer-history' },
+        { icon: 'bi-clock-history', text: 'Transfer History', link: '/admin/view/tranferHistory' },
       ]
     },
     mainstore: {
@@ -76,9 +76,9 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
         { icon: 'bi-clock-history', text: 'In Entry', link: '/mainstore/in'},
         { icon: 'bi-shop', text: 'Out Entry', link: '/mainstore/transfer' },
         { icon: 'bi-arrow-left-right', text: 'Shop Transfer', link: '/mainstore/dashboard2' },
-        { icon: 'bi-clock-history', text: 'Transfer History', link: '/mainstore/dashboard3' },
         { icon: 'bi-clock-history', text: 'Product Master', link: '/mainstore/product/add'},
         { icon: 'bi-boxes', text: 'Inventory View', link: '/mainstore/inventory' },
+         { icon: 'bi-clock-history', text: 'Transfer History', link: '/mainstore/view/tranferHistory' },
       ]
     },
     substore: {
@@ -89,6 +89,7 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
         { icon: 'bi-arrow-up-circle', text: 'Stock Transfer', link: '/substore/sales' },
         { icon: 'bi-file-text', text: 'Transfer History', link: '/substore/products' },
         { icon: 'bi-person-plus-fill', text: 'View Supervisor', link: '/substore/orders' },
+         { icon: 'bi-clock-history', text: 'Transfer History', link: '/mainstore/view/tranferHistory' },
       ]
     },
     storehouse: {

@@ -1,7 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect,useRef } from 'react';
 import { ChevronDown, ChevronUp, Search, Package, Calendar, User, Store } from 'lucide-react';
 import styles from './StockTransferHistory.module.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import { findTranfserHistoryStore } from '../api/findTranfserHistoryStore';
+import { getSessionData } from '../utils/getSessionData';
+
 
 const StockTransferHistory = () => {
   const [transferHistory, setTransferHistory] = useState([]);
@@ -12,181 +15,66 @@ const StockTransferHistory = () => {
   const [stores, setStores] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedTransfers, setSelectedTransfers] = useState(new Set());
+  const hasFetched = useRef(false);
 
-  // Mock data - Replace with actual API call
-  useEffect(() => {
-    const mockData = [
-      {
-        transferId: 'TRF001',
-        stockDetails: [
-          {
-            productId: 1,
-            productName: 'Rice Premium',
-            packingSize: 25,
-            packingUnit: 'KG',
-            currentQuantity: 100,
-            outgoingQuantity: 20,
-            incomingQuantity: 0,
-            finalRemainingQuantity: 80,
-            currentBags: 4,
-            outgoingBags: 0.8,
-            incomingBags: 0,
-            finalRemainingBags: 3.2
-          },
-          {
-            productId: 2,
-            productName: 'Wheat Flour',
-            packingSize: 50,
-            packingUnit: 'KG',
-            currentQuantity: 200,
-            outgoingQuantity: 50,
-            incomingQuantity: 0,
-            finalRemainingQuantity: 150,
-            currentBags: 4,
-            outgoingBags: 1,
-            incomingBags: 0,
-            finalRemainingBags: 3
-          }
-        ],
-        transferType: 'OUT',
-        senderDetails: {
-          userId: 'U001',
-          name: 'Rajesh Kumar',
-          emailId: 'rajesh@example.com',
-          contactNumber: '9876543210',
-          role: 'Store Manager',
-          storeId: 1,
-          storeName: 'Main Store'
-        },
-        receiverDetails: {
-          userId: 'U002',
-          name: 'Priya Sharma',
-          emailId: 'priya@example.com',
-          contactNumber: '9876543211',
-          role: 'Store Keeper',
-          storeId: 2,
-          storeName: 'Branch Store A'
-        },
-        storeType: 'MAIN',
-        transferDate: '2026-01-08',
-        transferTime: '10:30 AM',
-        storeId: 1
-      },
-      {
-        transferId: 'TRF002',
-        stockDetails: [
-          {
-            productId: 3,
-            productName: 'Sugar',
-            packingSize: 10,
-            packingUnit: 'KG',
-            currentQuantity: 50,
-            outgoingQuantity: 0,
-            incomingQuantity: 30,
-            finalRemainingQuantity: 80,
-            currentBags: 5,
-            outgoingBags: 0,
-            incomingBags: 3,
-            finalRemainingBags: 8
-          }
-        ],
-        transferType: 'IN',
-        senderDetails: {
-          userId: 'U003',
-          name: 'Amit Patel',
-          emailId: 'amit@example.com',
-          contactNumber: '9876543212',
-          role: 'Store Manager',
-          storeId: 3,
-          storeName: 'Warehouse'
-        },
-        receiverDetails: {
-          userId: 'U001',
-          name: 'Rajesh Kumar',
-          emailId: 'rajesh@example.com',
-          contactNumber: '9876543210',
-          role: 'Store Manager',
-          storeId: 1,
-          storeName: 'Main Store'
-        },
-        storeType: 'MAIN',
-        transferDate: '2026-01-07',
-        transferTime: '02:15 PM',
-        storeId: 1
-      },
-      {
-        transferId: 'TRF003',
-        stockDetails: [
-          {
-            productId: 4,
-            productName: 'Oil',
-            packingSize: 15,
-            packingUnit: 'L',
-            currentQuantity: 75,
-            outgoingQuantity: 15,
-            incomingQuantity: 0,
-            finalRemainingQuantity: 60,
-            currentBags: 5,
-            outgoingBags: 1,
-            incomingBags: 0,
-            finalRemainingBags: 4
-          }
-        ],
-        transferType: 'OUT',
-        senderDetails: {
-          userId: 'U001',
-          name: 'Rajesh Kumar',
-          emailId: 'rajesh@example.com',
-          contactNumber: '9876543210',
-          role: 'Store Manager',
-          storeId: 1,
-          storeName: 'Main Store'
-        },
-        receiverDetails: {
-          userId: 'U004',
-          name: 'Sneha Gupta',
-          emailId: 'sneha@example.com',
-          contactNumber: '9876543213',
-          role: 'Store Keeper',
-          storeId: 4,
-          storeName: 'Branch Store B'
-        },
-        storeType: 'MAIN',
-        transferDate: '2026-01-06',
-        transferTime: '11:45 AM',
-        storeId: 1
-      }
-    ];
+ useEffect(() => {
+  if (hasFetched.current) return;
+  hasFetched.current = true;
 
-    // Extract unique stores from both sender and receiver details
-    const storeMap = new Map();
+  const fetchTransferHistory = async () => {
+    try {
+      setLoading(true);
+
+      const {storeId} = getSessionData();
+      const response = await findTranfserHistoryStore(storeId);
     
-    mockData.forEach(item => {
-      // Add sender store
-      if (!storeMap.has(item.senderDetails.storeId)) {
-        storeMap.set(item.senderDetails.storeId, {
-          id: item.senderDetails.storeId,
-          name: item.senderDetails.storeName
-        });
-      }
-      
-      // Add receiver store
-      if (!storeMap.has(item.receiverDetails.storeId)) {
-        storeMap.set(item.receiverDetails.storeId, {
-          id: item.receiverDetails.storeId,
-          name: item.receiverDetails.storeName
-        });
-      }
-    });
+      console.log(storeId);
 
-    // Convert map to array and sort by storeId
-    const uniqueStores = Array.from(storeMap.values()).sort((a, b) => a.id - b.id);
+      if(response.data.status!="SUCCESS")
+      {
+        alert(response.data.message || "Unable to find tranfer");
+        return;
+      }
 
-    setTransferHistory(mockData);
-    setFilteredHistory(mockData);
-    setStores(uniqueStores);
-    setLoading(false);
-  }, []);
+      const data = response.data.payload || [];
+
+      // Extract unique stores
+      const storeMap = new Map();
+
+      data.forEach(({ senderDetails, receiverDetails }) => {
+        if (senderDetails && !storeMap.has(senderDetails.storeId)) {
+          storeMap.set(senderDetails.storeId, {
+            id: senderDetails.storeId,
+            name: senderDetails.storeName,
+          });
+        }
+
+        if (receiverDetails && !storeMap.has(receiverDetails.storeId)) {
+          storeMap.set(receiverDetails.storeId, {
+            id: receiverDetails.storeId,
+            name: receiverDetails.storeName,
+          });
+        }
+      });
+
+      const uniqueStores = Array.from(storeMap.values()).sort(
+        (a, b) => a.id - b.id
+      );
+
+      setTransferHistory(data);
+      setFilteredHistory(data);
+      setStores(uniqueStores);
+
+    } catch (error) {
+      console.error("Failed to fetch transfer history:", error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchTransferHistory();
+}, []);
+
 
   // Filter logic
   useEffect(() => {

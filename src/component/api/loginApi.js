@@ -97,7 +97,7 @@ export const loginApi = async (userId, password) => {
       }));
 
       sessionStorage.setItem("token", user.token);
-      sessionStorage.setItem("storeId", data.storeId);
+      sessionStorage.setItem("storeId", data.payload.storeId);
 
       return {
         success: true,

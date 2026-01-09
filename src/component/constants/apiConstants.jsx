@@ -6,6 +6,8 @@ export const REGISTER_URL = `${API_BASE_URL}/admin/register`;
 
 export const FIND_ALL_STORE_URL = `${API_BASE_URL}/store/findAll`;
 export const FIND_ALL_STORE_USER_URL = `${API_BASE_URL}/store/find/all-store/user`;
+export const FIND_TRANSFER_HISTORY_URL = `${API_BASE_URL}/store/find/transfer-history`;
+
 
 
 export const FIND_PRODUCT_SEARCH_URL = `${API_BASE_URL}/product/search`;

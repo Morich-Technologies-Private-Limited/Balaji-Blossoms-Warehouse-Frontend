@@ -10,6 +10,7 @@ import LoginForm from "./component/auth/LoginForm";
 import Register from "./component/auth/Register";
 import DynamicSidebar from "./component/sidebar/DynamicSidebar";
 import MainStoreTransfer from "./component/mainstore/MainStoreTransfer";
+import StockTransferHistory from "./component/stock/StockTransferHistory";
 
 const ProtectedRoute = ({ allowedRoles, children }) => {
   const user = JSON.parse(sessionStorage.getItem("user"));
@@ -78,6 +79,8 @@ function App() {
           <Route path="/" element={<LoginForm />} />
           <Route path="/login" element={<LoginForm />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/stock" element={<StockTransferHistory />} />
+          
           
 
           {/* ============ ADMIN ============ */}

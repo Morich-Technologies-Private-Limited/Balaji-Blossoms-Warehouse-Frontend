@@ -11,6 +11,7 @@ import Register from "./component/auth/Register";
 import DynamicSidebar from "./component/sidebar/DynamicSidebar";
 import MainStoreTransfer from "./component/mainstore/MainStoreTransfer";
 import StockTransferHistory from "./component/stock/StockTransferHistory";
+import InventoryView from "./component/stock/InventoryView";
 
 /* ================= ROLE ↔ PATH MAP ================= */
 const ROLE_PATH_MAP = {
@@ -102,6 +103,8 @@ function App() {
           {/* ============ PUBLIC ============ */}
           <Route path="/" element={<LoginForm />} />
           <Route path="/login" element={<LoginForm />} />
+          <Route path="/inventory" element={<InventoryView />} />
+          
 
           {/* ============ ADMIN ============ */}
           <Route

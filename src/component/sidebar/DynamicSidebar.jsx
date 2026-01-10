@@ -135,7 +135,7 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
               onClick={closeSidebarOnMobile}
               aria-label="Close sidebar"
             >
-              <i className="bi bi-x-lg"></i>
+              <i className="bi bi-chevron-left"></i>
             </button>
           )}
         </div>

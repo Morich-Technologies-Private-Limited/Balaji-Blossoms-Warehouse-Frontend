@@ -39,6 +39,111 @@ const sampleProducts = [
     packings: [
       { packingSize: 1, packingUnit: "KG", availableQuantity: 500 }
     ]
+  },{
+    productId: 1,
+    productName: "Basmati Rice",
+    category: "Solid",
+    packings: [
+      { packingSize: 10, packingUnit: "KG", availableQuantity: 15 },
+      { packingSize: 20, packingUnit: "KG", availableQuantity: 40 },
+      { packingSize: 30, packingUnit: "KG", availableQuantity: 20 }
+    ]
+  },
+  {
+    productId: 2,
+    productName: "Wheat Flour",
+    category: "Solid",
+    packings: [
+      { packingSize: 25, packingUnit: "KG", availableQuantity: 100 },
+      { packingSize: 50, packingUnit: "KG", availableQuantity: 75 }
+    ]
+  },
+  {
+    productId: 3,
+    productName: "Sunflower Oil",
+    category: "Liquid",
+    packings: [
+      { packingSize: 5, packingUnit: "LITER", availableQuantity: 120 },
+      { packingSize: 10, packingUnit: "LITER", availableQuantity: 60 }
+    ]
+  },
+  {
+    productId: 4,
+    productName: "Sugar",
+    category: "Solid",
+    packings: [
+      { packingSize: 1, packingUnit: "KG", availableQuantity: 500 }
+    ]
+  },{
+    productId: 1,
+    productName: "Basmati Rice",
+    category: "Solid",
+    packings: [
+      { packingSize: 10, packingUnit: "KG", availableQuantity: 15 },
+      { packingSize: 20, packingUnit: "KG", availableQuantity: 40 },
+      { packingSize: 30, packingUnit: "KG", availableQuantity: 20 }
+    ]
+  },
+  {
+    productId: 2,
+    productName: "Wheat Flour",
+    category: "Solid",
+    packings: [
+      { packingSize: 25, packingUnit: "KG", availableQuantity: 100 },
+      { packingSize: 50, packingUnit: "KG", availableQuantity: 75 }
+    ]
+  },
+  {
+    productId: 3,
+    productName: "Sunflower Oil",
+    category: "Liquid",
+    packings: [
+      { packingSize: 5, packingUnit: "LITER", availableQuantity: 120 },
+      { packingSize: 10, packingUnit: "LITER", availableQuantity: 60 }
+    ]
+  },
+  {
+    productId: 4,
+    productName: "Sugar",
+    category: "Solid",
+    packings: [
+      { packingSize: 1, packingUnit: "KG", availableQuantity: 500 }
+    ]
+  },{
+    productId: 1,
+    productName: "Basmati Rice",
+    category: "Solid",
+    packings: [
+      { packingSize: 10, packingUnit: "KG", availableQuantity: 15 },
+      { packingSize: 20, packingUnit: "KG", availableQuantity: 40 },
+      { packingSize: 30, packingUnit: "KG", availableQuantity: 20 }
+    ]
+  },
+  {
+    productId: 2,
+    productName: "Wheat Flour",
+    category: "Solid",
+    packings: [
+      { packingSize: 25, packingUnit: "KG", availableQuantity: 100 },
+      { packingSize: 50, packingUnit: "KG", availableQuantity: 75 }
+    ]
+  },
+  {
+    productId: 3,
+    productName: "Sunflower Oil",
+    category: "Liquid",
+    packings: [
+      { packingSize: 5, packingUnit: "LITER", availableQuantity: 120 },
+      { packingSize: 10, packingUnit: "LITER", availableQuantity: 60 }
+    ]
+  },
+  {
+    productId: 4,
+    productName: "Sugar",
+    category: "Solid",
+    packings: [
+      { packingSize: 1, packingUnit: "KG", availableQuantity: 500 }
+    ]
   }
 ];
 
@@ -59,8 +164,14 @@ const InventoryView = () => {
     );
   }, [products, searchTerm]);
 
-  return (
+  return (     
     <div className={styles.container}>
+      <div className={styles.header}>
+            <div className={styles.headerContent}>
+              <h1 className={styles.title}>Inventory</h1>
+            </div>
+      </div>
+      <div className={styles.maincontent}>
       <div className={styles.controls}>
         <div className={styles.searchBox}>
           <svg className={styles.searchIcon} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -138,6 +249,7 @@ const InventoryView = () => {
             ))}
           </tbody>
         </table>
+      </div>
       </div>
     </div>
   );

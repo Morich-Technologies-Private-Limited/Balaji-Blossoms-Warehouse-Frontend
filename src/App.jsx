@@ -103,7 +103,6 @@ function App() {
           {/* ============ PUBLIC ============ */}
           <Route path="/" element={<LoginForm />} />
           <Route path="/login" element={<LoginForm />} />
-          <Route path="/inventory" element={<InventoryView />} />
           
 
           {/* ============ ADMIN ============ */}
@@ -156,6 +155,21 @@ function App() {
                 ]}
               >
                 <StockTransferHistory />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/:scope/view/inventory"
+            element={
+              <ProtectedRoute
+                allowedRoles={[
+                  "ADMIN",
+                  "MAIN_STORE_MANAGER",
+                  "SUB_STORE_MANAGER",
+                ]}
+              >
+                <InventoryView />
               </ProtectedRoute>
             }
           />

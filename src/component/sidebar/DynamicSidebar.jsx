@@ -77,7 +77,7 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
         { icon: 'bi-shop', text: 'Out Entry', link: '/mainstore/transfer' },
         { icon: 'bi-arrow-left-right', text: 'Shop Transfer', link: '/mainstore/dashboard2' },
         { icon: 'bi-clock-history', text: 'Product Master', link: '/mainstore/product/add'},
-        { icon: 'bi-boxes', text: 'Inventory View', link: '/mainstore/inventory' },
+        { icon: 'bi-boxes', text: 'Inventory View', link: '/mainstore/view/inventory' },
          { icon: 'bi-clock-history', text: 'Transfer History', link: '/mainstore/view/tranferHistory' },
       ]
     },
@@ -89,7 +89,9 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
         { icon: 'bi-arrow-up-circle', text: 'Stock Transfer', link: '/substore/sales' },
         { icon: 'bi-file-text', text: 'Transfer History', link: '/substore/products' },
         { icon: 'bi-person-plus-fill', text: 'View Supervisor', link: '/substore/orders' },
-         { icon: 'bi-clock-history', text: 'Transfer History', link: '/mainstore/view/tranferHistory' },
+        { icon: 'bi-clock-history', text: 'Transfer History', link: '/mainstore/view/tranferHistory' },
+        { icon: 'bi-boxes', text: 'Inventory View', link: '/mainstore/view/inventory' },
+     
       ]
     },
     storehouse: {

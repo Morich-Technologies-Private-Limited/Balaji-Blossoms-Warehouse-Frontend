@@ -2,7 +2,6 @@ import { createContext, useContext, useState } from "react";
 import { fetchAllStores } from "../component/api/fetchAllStores";
 
 const StoreContext = createContext();
-
 const STORE_CACHE_KEY = "STORE_LIST";
 const STORE_CACHE_TIME_KEY = "STORE_LIST_TIME";
 const TTL = 5 * 60 * 60 * 1000;

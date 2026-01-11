@@ -11,7 +11,6 @@
 .container {
   margin: 0 auto;
   padding: 20px;
-  
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   width: 100%;
   height: 100%;
@@ -37,6 +36,45 @@
 
 .titleIcon {
   color: #2563eb;
+}
+
+/* Store Select Section */
+.storeSelectSection {
+  margin-bottom: 20px;
+  flex-shrink: 0;
+}
+
+.storeSelectWrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: white;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 2px solid #2563eb;
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.1);
+  max-width: 400px;
+}
+
+.storeIcon {
+  color: #2563eb;
+  flex-shrink: 0;
+}
+
+.storeSelect {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e3a5f;
+  cursor: pointer;
+  outline: none;
+  padding: 4px 8px;
+}
+
+.storeSelect:focus {
+  outline: none;
 }
 
 /* Filter Section */
@@ -79,37 +117,221 @@
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
-.storeFilter {
-  position: relative;
-  min-width: 200px;
-}
-
-.filterIcon {
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #6b7280;
-  pointer-events: none;
-  z-index: 1;
-}
-
-.storeSelect {
-  width: 100%;
-  padding: 12px 12px 12px 42px;
+.filterButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
   border: 1px solid #d1d5db;
   border-radius: 8px;
+  background: white;
+  color: #374151;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.filterButton:hover {
+  border-color: #2563eb;
+  color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.filterActive {
+  background: #eff6ff;
+  border-color: #2563eb;
+  color: #2563eb;
+}
+
+.filterBadge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 8px;
+  height: 8px;
+  background: #ef4444;
+  border-radius: 50%;
+  border: 2px solid white;
+}
+
+/* Modal Styles */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modalContent {
+  background: white;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  animation: modalSlideIn 0.2s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.modalHeader h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e3a5f;
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  color: #6b7280;
+  transition: all 0.2s;
+}
+
+.closeBtn:hover {
+  background: #f3f4f6;
+  color: #1e3a5f;
+}
+
+.modalBody {
+  padding: 24px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.filterGroup {
+  margin-bottom: 20px;
+}
+
+.filterGroup:last-child {
+  margin-bottom: 0;
+}
+
+.filterGroup label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.dateRangeInputs {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dateSeparator {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.dateInput {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  color: black;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: all 0.2s;
+  background: white;
+}
+
+.dateInput:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.filterSelect {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
   font-size: 14px;
   background: white;
-  color: black;
+  color: #374151;
   cursor: pointer;
   transition: all 0.2s;
 }
 
-.storeSelect:focus {
+.filterSelect:focus {
   outline: none;
   border-color: #2563eb;
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.modalFooter {
+  display: flex;
+  gap: 12px;
+  padding: 20px 24px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.clearBtn {
+  flex: 1;
+  padding: 10px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: white;
+  color: #374151;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.clearBtn:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.applyBtn {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  background: #2563eb;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.applyBtn:hover {
+  background: #1d4ed8;
 }
 
 /* Table Wrapper - Scrollable */
@@ -432,6 +654,24 @@
   background: #555;
 }
 
+.modalBody::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modalBody::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.modalBody::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 3px;
+}
+
+.modalBody::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
 @media (max-width: 768px) {
   .pageWrapper {
     height: 100vh;
@@ -445,13 +685,34 @@
     font-size: 22px;
   }
 
+  .storeSelectWrapper {
+    max-width: 100%;
+  }
+
   .filterSection {
     flex-direction: column;
   }
 
-  .searchWrapper,
-  .storeFilter {
+  .searchWrapper {
     min-width: 100%;
+  }
+
+  .filterButton {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .modalContent {
+    max-width: 100%;
+    margin: 0 10px;
+  }
+
+  .dateRangeInputs {
+    flex-direction: column;
+  }
+
+  .dateSeparator {
+    display: none;
   }
 
   .hideOnMobile {
@@ -549,5 +810,23 @@
   .expandCol,
   .checkboxCol {
     width: 40px;
+  }
+
+  .modalHeader {
+    padding: 16px;
+  }
+
+  .modalBody {
+    padding: 16px;
+  }
+
+  .modalFooter {
+    padding: 16px;
+    flex-direction: column;
+  }
+
+  .clearBtn,
+  .applyBtn {
+    width: 100%;
   }
 }

@@ -1,79 +1,99 @@
-import React, { useState, useEffect,useRef } from 'react';
-import { ChevronDown, ChevronUp, Search, Package, Calendar, User, Store } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { ChevronDown, ChevronUp, Search, Package, Calendar, User, Settings, X, Store } from 'lucide-react';
 import styles from './StockTransferHistory.module.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { findTranfserHistoryStore } from '../../api/findTranfserHistoryStore';
 import { getSessionData } from '../utils/getSessionData';
-
+import { useStores } from '../../context/StoreContext';
 
 const StockTransferHistory = () => {
   const [transferHistory, setTransferHistory] = useState([]);
   const [filteredHistory, setFilteredHistory] = useState([]);
   const [expandedRows, setExpandedRows] = useState(new Set());
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedStore, setSelectedStore] = useState('all');
   const [stores, setStores] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedTransfers, setSelectedTransfers] = useState(new Set());
-  const hasFetched = useRef(false);
+  const [showFilterModal, setShowFilterModal] = useState(false);
 
- useEffect(() => {
-  if (hasFetched.current) return;
-  hasFetched.current = true;
+  const[allStores,setAllStores]=useState([]);
+  const[selectedStore,setSelectedStore]=useState(null);
+  const { stores: contextStores } = useStores();
 
-  const fetchTransferHistory = async () => {
-    try {
-      setLoading(true);
+  
+  // Filter states
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [senderStore, setSenderStore] = useState('all');
+  const [receiverStore, setReceiverStore] = useState('all');
+  const [transferType, setTransferType] = useState('all');
+  const{role} =getSessionData();
+  
 
-      const {storeId} = getSessionData();
-      const response = await findTranfserHistoryStore(storeId);
-    
 
-      if(response.data.status!="SUCCESS")
-      {
-        alert(response.data.message || "Unable to find tranfer");
-        return;
-      }
-
-      const data = response.data.payload || [];
-
-      // Extract unique stores
-      const storeMap = new Map();
-
-      data.forEach(({ senderDetails, receiverDetails }) => {
-        if (senderDetails && !storeMap.has(senderDetails.storeId)) {
-          storeMap.set(senderDetails.storeId, {
-            id: senderDetails.storeId,
-            name: senderDetails.storeName,
-          });
-        }
-
-        if (receiverDetails && !storeMap.has(receiverDetails.storeId)) {
-          storeMap.set(receiverDetails.storeId, {
-            id: receiverDetails.storeId,
-            name: receiverDetails.storeName,
-          });
-        }
-      });
-
-      const uniqueStores = Array.from(storeMap.values()).sort(
-        (a, b) => a.id - b.id
+  useEffect(() => {
+    if (contextStores?.length) {
+      setAllStores(contextStores);
+      const selectedOne = contextStores.find(
+        (store) => store.tag === "DEFAULT"
       );
-
-      setTransferHistory(data);
-      setFilteredHistory(data);
-      setStores(uniqueStores);
-
-    } catch (error) {
-      console.error("Failed to fetch transfer history:", error.message);
-    } finally {
-      setLoading(false);
+      setSelectedStore(selectedOne || null);
     }
-  };
+  }, [contextStores]);
 
-  fetchTransferHistory();
-}, []);
 
+  useEffect(() => {
+    if (!selectedStore) return;
+
+    const fetchTransferHistory = async () => {
+      try {
+        setLoading(true);
+
+        const response = await findTranfserHistoryStore(selectedStore.storeId);
+
+        if (response.data.status != "SUCCESS") {
+          alert(response.data.message || "Unable to find tranfer");
+          return;
+        }
+
+        const data = response.data.payload || [];
+
+        // Extract unique stores
+        const storeMap = new Map();
+
+        data.forEach(({ senderDetails, receiverDetails }) => {
+          if (senderDetails && !storeMap.has(senderDetails.storeId)) {
+            storeMap.set(senderDetails.storeId, {
+              id: senderDetails.storeId,
+              name: senderDetails.storeName,
+            });
+          }
+
+          if (receiverDetails && !storeMap.has(receiverDetails.storeId)) {
+            storeMap.set(receiverDetails.storeId, {
+              id: receiverDetails.storeId,
+              name: receiverDetails.storeName,
+            });
+          }
+        });
+
+        const uniqueStores = Array.from(storeMap.values()).sort(
+          (a, b) => a.id - b.id
+        );
+
+        setTransferHistory(data);
+        setFilteredHistory(data);
+        setStores(uniqueStores);
+
+      } catch (error) {
+        console.error("Failed to fetch transfer history:", error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTransferHistory();
+  }, [selectedStore]);
 
   // Filter logic
   useEffect(() => {
@@ -81,7 +101,7 @@ const StockTransferHistory = () => {
 
     // Filter by search term
     if (searchTerm) {
-      filtered = filtered.filter(item => 
+      filtered = filtered.filter(item =>
         item.transferId.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.senderDetails.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.senderDetails.contactNumber.includes(searchTerm) ||
@@ -92,17 +112,48 @@ const StockTransferHistory = () => {
       );
     }
 
-    // Filter by store - check both sender and receiver stores
-    if (selectedStore !== 'all') {
-      const storeIdNum = parseInt(selectedStore);
-      filtered = filtered.filter(item => 
-        item.senderDetails.storeId === storeIdNum || 
+    // Filter by date range
+    if (dateFrom) {
+      filtered = filtered.filter(item => {
+        const transferDate = new Date(item.transferDate);
+        const fromDate = new Date(dateFrom);
+        return transferDate >= fromDate;
+      });
+    }
+
+    if (dateTo) {
+      filtered = filtered.filter(item => {
+        const transferDate = new Date(item.transferDate);
+        const toDate = new Date(dateTo);
+        return transferDate <= toDate;
+      });
+    }
+
+    // Filter by sender store
+    if (senderStore !== 'all') {
+      const storeIdNum = parseInt(senderStore);
+      filtered = filtered.filter(item =>
+        item.senderDetails.storeId === storeIdNum
+      );
+    }
+
+    // Filter by receiver store
+    if (receiverStore !== 'all') {
+      const storeIdNum = parseInt(receiverStore);
+      filtered = filtered.filter(item =>
         item.receiverDetails.storeId === storeIdNum
       );
     }
 
+    // Filter by transfer type
+    if (transferType !== 'all') {
+      filtered = filtered.filter(item =>
+        item.transferType === transferType
+      );
+    }
+
     setFilteredHistory(filtered);
-  }, [searchTerm, selectedStore, transferHistory]);
+  }, [searchTerm, dateFrom, dateTo, senderStore, receiverStore, transferType, transferHistory]);
 
   const toggleRow = (transferId) => {
     const newExpanded = new Set(expandedRows);
@@ -133,26 +184,39 @@ const StockTransferHistory = () => {
     }
   };
 
+  const handleStoreChange = (e) => {
+    const storeId = parseInt(e.target.value);
+    const store = allStores.find(s => s.storeId === storeId);
+    setSelectedStore(store);
+    // Reset selections when changing stores
+    setSelectedTransfers(new Set());
+    setExpandedRows(new Set());
+  };
+
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
   };
 
   const handleExport = () => {
-    // This is where you'll integrate your export API
     const selectedIds = Array.from(selectedTransfers);
     console.log('Selected Transfer IDs for export:', selectedIds);
-    
-    // TODO: Call your export API with selectedIds
-    // Example:
-    // exportTransfers(selectedIds).then(response => {
-    //   // Handle success
-    // }).catch(error => {
-    //   // Handle error
-    // });
-    
     alert(`Selected ${selectedIds.length} transfers for export: ${selectedIds.join(', ')}`);
   };
+
+  const clearFilters = () => {
+    setDateFrom('');
+    setDateTo('');
+    setSenderStore('all');
+    setReceiverStore('all');
+    setTransferType('all');
+  };
+
+  const applyFilters = () => {
+    setShowFilterModal(false);
+  };
+
+  const hasActiveFilters = dateFrom || dateTo || senderStore !== 'all' || receiverStore !== 'all' || transferType !== 'all';
 
   if (loading) {
     return (
@@ -172,6 +236,25 @@ const StockTransferHistory = () => {
           </h1>
         </div>
 
+        {role === "ADMIN" && (
+          <div className={styles.storeSelectSection}>
+            <div className={styles.storeSelectWrapper}>
+              <Store className={styles.storeIcon} size={18} />
+              <select
+                value={selectedStore?.storeId || ''}
+                onChange={handleStoreChange}
+                className={styles.storeSelect}
+              >
+                {allStores.map(store => (
+                  <option key={store.storeId} value={store.storeId}>
+                    {store.storeName} {store.tag === 'DEFAULT' ? '(Default)' : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        )}
+
         <div className={styles.filterSection}>
           <div className={styles.searchWrapper}>
             <Search className={styles.searchIcon} />
@@ -184,22 +267,17 @@ const StockTransferHistory = () => {
             />
           </div>
 
-          <div className={styles.storeFilter}>
-            <Store className={styles.filterIcon} />
-            <select
-              value={selectedStore}
-              onChange={(e) => setSelectedStore(e.target.value)}
-              className={styles.storeSelect}
-            >
-              <option value="all">All Stores</option>
-              {stores.map(store => (
-                <option key={store.id} value={store.id}>{store.id}-{store.name}</option>
-              ))}
-            </select>
-          </div>
+          <button
+            className={`${styles.filterButton} ${hasActiveFilters ? styles.filterActive : ''}`}
+            onClick={() => setShowFilterModal(true)}
+          >
+            <Settings size={18} />
+            Filters
+            {hasActiveFilters && <span className={styles.filterBadge}></span>}
+          </button>
 
           {selectedTransfers.size > 0 && (
-            <button 
+            <button
               className="btn btn-primary"
               onClick={handleExport}
             >
@@ -250,7 +328,7 @@ const StockTransferHistory = () => {
                           />
                         </td>
                         <td className={styles.expandCol}>
-                          <button 
+                          <button
                             className={styles.expandBtn}
                             onClick={() => toggleRow(transfer.transferId)}
                           >
@@ -359,14 +437,14 @@ const StockTransferHistory = () => {
                                           <td>{stock.packingSize} {stock.packingUnit}</td>
                                           <td className={styles.hideOnMobile}>{stock.currentQuantity}</td>
                                           <td className={styles.highlight}>
-                                            {transfer.transferType === 'OUT' 
-                                              ? stock.outgoingQuantity 
+                                            {transfer.transferType === 'OUT'
+                                              ? stock.outgoingQuantity
                                               : stock.incomingQuantity}
                                           </td>
                                           <td><strong>{stock.finalRemainingQuantity}</strong></td>
                                           <td className={styles.hideOnMobile}>
-                                            {transfer.transferType === 'OUT' 
-                                              ? stock.outgoingBags 
+                                            {transfer.transferType === 'OUT'
+                                              ? stock.outgoingBags
                                               : stock.incomingBags}
                                           </td>
                                         </tr>
@@ -387,6 +465,93 @@ const StockTransferHistory = () => {
           </div>
         )}
       </div>
+
+      {/* Filter Modal */}
+      {showFilterModal && (
+        <div className={styles.modalOverlay} onClick={() => setShowFilterModal(false)}>
+          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h3>Filter Transfers</h3>
+              <button className={styles.closeBtn} onClick={() => setShowFilterModal(false)}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className={styles.modalBody}>
+              <div className={styles.filterGroup}>
+                <label>Date Range</label>
+                <div className={styles.dateRangeInputs}>
+                  <input
+                    type="date"
+                    value={dateFrom}
+                    onChange={(e) => setDateFrom(e.target.value)}
+                    className={styles.dateInput}
+                    placeholder="From"
+                  />
+                  <span className={styles.dateSeparator}>to</span>
+                  <input
+                    type="date"
+                    value={dateTo}
+                    onChange={(e) => setDateTo(e.target.value)}
+                    className={styles.dateInput}
+                    placeholder="To"
+                  />
+                </div>
+              </div>
+
+              <div className={styles.filterGroup}>
+                <label>Sender Store</label>
+                <select
+                  value={senderStore}
+                  onChange={(e) => setSenderStore(e.target.value)}
+                  className={styles.filterSelect}
+                >
+                  <option value="all">All Stores</option>
+                  {stores.map(store => (
+                    <option key={store.id} value={store.id}>{store.id}-{store.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className={styles.filterGroup}>
+                <label>Receiver Store</label>
+                <select
+                  value={receiverStore}
+                  onChange={(e) => setReceiverStore(e.target.value)}
+                  className={styles.filterSelect}
+                >
+                  <option value="all">All Stores</option>
+                  {stores.map(store => (
+                    <option key={store.id} value={store.id}>{store.id}-{store.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className={styles.filterGroup}>
+                <label>Transfer Type</label>
+                <select
+                  value={transferType}
+                  onChange={(e) => setTransferType(e.target.value)}
+                  className={styles.filterSelect}
+                >
+                  <option value="all">All Types</option>
+                  <option value="IN">IN Entries</option>
+                  <option value="OUT">OUT Entries</option>
+                </select>
+              </div>
+            </div>
+
+            <div className={styles.modalFooter}>
+              <button className={styles.clearBtn} onClick={clearFilters}>
+                Clear All
+              </button>
+              <button className={styles.applyBtn} onClick={applyFilters}>
+                Apply Filters
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

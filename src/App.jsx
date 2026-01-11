@@ -14,6 +14,8 @@ import StockTransferHistory from "./component/stock/StockTransferHistory";
 import InventoryView from "./component/stock/InventoryView";
 import AddProduct from "./component/mainstore/AddProduct";
 import UnauthorizedPage from "./component/auth/UnauthorizedPage";
+import ShopTransfer from "./component/mainstore/ShopTransfer";
+import StockImport from "./component/mainstore/StockImport";
 
 /* ================= ROLE ↔ PATH MAP ================= */
 const ROLE_PATH_MAP = {
@@ -175,6 +177,25 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={["MAIN_STORE_MANAGER","SUB_STORE_MANAGER"]}>
                 <MainStoreTransfer />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/:scope/import"
+            element={
+              <ProtectedRoute allowedRoles={["MAIN_STORE_MANAGER","SUB_STORE_MANAGER"]}>
+                <StockImport />
+              </ProtectedRoute>
+            }
+          />
+
+
+                  <Route
+            path="/:scope/shop/tranfer"
+            element={
+              <ProtectedRoute allowedRoles={["MAIN_STORE_MANAGER","SUB_STORE_MANAGER"]}>
+                <ShopTransfer />
               </ProtectedRoute>
             }
           />

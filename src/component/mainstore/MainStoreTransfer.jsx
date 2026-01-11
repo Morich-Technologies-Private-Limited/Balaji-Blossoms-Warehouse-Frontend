@@ -356,7 +356,7 @@ const MainStoreTransfer = () => {
       {/* Header */}
       <div className={styles.header}>
         <div className={styles.headerContent}>
-          <h1 className={styles.title}>Main Store Transfer</h1>
+          <h1 className={styles.title}>Stock Transfer</h1>
         </div>
       </div>
 

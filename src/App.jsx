@@ -13,6 +13,7 @@ import MainStoreTransfer from "./component/mainstore/MainStoreTransfer";
 import StockTransferHistory from "./component/stock/StockTransferHistory";
 import InventoryView from "./component/stock/InventoryView";
 import AddProduct from "./component/mainstore/AddProduct";
+import UnauthorizedPage from "./component/auth/UnauthorizedPage";
 
 /* ================= ROLE ↔ PATH MAP ================= */
 const ROLE_PATH_MAP = {
@@ -135,14 +136,6 @@ function App() {
             }
           />
 
-          <Route
-            path="/mainstore/transfer"
-            element={
-              <ProtectedRoute allowedRoles={["MAIN_STORE_MANAGER"]}>
-                <MainStoreTransfer />
-              </ProtectedRoute>
-            }
-          />
 
           {/* ============ 🔥 DYNAMIC COMMON ROUTE (KEY FIX) 🔥 ============ */}
           <Route
@@ -175,7 +168,18 @@ function App() {
             }
           />
 
-                    <Route
+
+
+          <Route
+            path="/:scope/transfer"
+            element={
+              <ProtectedRoute allowedRoles={["MAIN_STORE_MANAGER","SUB_STORE_MANAGER"]}>
+                <MainStoreTransfer />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
             path="/:scope/product/add"
             element={
               <ProtectedRoute
@@ -189,6 +193,8 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+
 
           {/* ============ SUB STORE ============ */}
           <Route
@@ -213,8 +219,8 @@ function App() {
           />
 
           {/* ============ UNAUTHORIZED ============ */}
-          <Route path="/unauthorized" element={<h2>❌ You are not authorized</h2>} />
-
+           <Route path="/unauthorized" element={<UnauthorizedPage />} />
+     
         </Routes>
       </div>
     </>

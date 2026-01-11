@@ -7,6 +7,7 @@ import { Logout } from '../utils/Logout';
 const DynamicSidebar = ({ role, onSidebarChange }) => {
   const [isOpen, setIsOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
+
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -15,11 +16,7 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
     const checkMobile = () => {
       const mobile = window.innerWidth <= 768;
       setIsMobile(mobile);
-      if (mobile) {
-        setIsOpen(false);
-      } else {
-        setIsOpen(true);
-      }
+      setIsOpen(!mobile);
     };
 
     checkMobile();
@@ -27,21 +24,17 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Notify parent component whenever sidebar state changes
+  // Notify parent when sidebar state changes
   useEffect(() => {
     if (onSidebarChange) {
       onSidebarChange(isOpen);
     }
   }, [isOpen, onSidebarChange]);
 
-  const toggleSidebar = () => {
-    setIsOpen(!isOpen);
-  };
+  const toggleSidebar = () => setIsOpen(prev => !prev);
 
   const closeSidebarOnMobile = () => {
-    if (isMobile) {
-      setIsOpen(false);
-    }
+    if (isMobile) setIsOpen(false);
   };
 
   const handleNavigation = (link) => {
@@ -54,6 +47,7 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
     closeSidebarOnMobile();
   };
 
+  // 🔹 Sidebar configuration
   const sidebarConfig = {
     admin: {
       logo: 'Balaji Admin',
@@ -64,36 +58,37 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
         { icon: 'bi-shop', text: 'Create Store', link: '/admin/create-store' },
         { icon: 'bi-person-badge', text: 'User Management', link: '/admin/manage/user' },
         { icon: 'bi-people', text: 'Assign Supervisor', link: '/admin/assign-supervisor' },
-        { icon: 'bi-boxes', text: 'View Inventory', link: '/admin/inventory' },
+        { icon: 'bi-boxes', text: 'View Inventory', link: '/admin/view/inventory' },
         { icon: 'bi-clock-history', text: 'Transfer History', link: '/admin/view/tranferHistory' },
       ]
     },
+
     mainstore: {
       logo: 'Balaji Blossoms',
       title: 'Main Store',
       navItems: [
         { icon: 'bi-house-door-fill', text: 'Home', link: '/mainstore' },
-        { icon: 'bi-clock-history', text: 'In Entry', link: '/mainstore/in'},
+        { icon: 'bi-clock-history', text: 'In Entry', link: '/mainstore/in' },
         { icon: 'bi-shop', text: 'Out Entry', link: '/mainstore/transfer' },
         { icon: 'bi-arrow-left-right', text: 'Shop Transfer', link: '/mainstore/dashboard2' },
-        { icon: 'bi-clock-history', text: 'Product Master', link: '/mainstore/product/add'},
+        { icon: 'bi-box', text: 'Product Master', link: '/mainstore/product/add' },
         { icon: 'bi-boxes', text: 'Inventory View', link: '/mainstore/view/inventory' },
-         { icon: 'bi-clock-history', text: 'Transfer History', link: '/mainstore/view/tranferHistory' },
+        { icon: 'bi-clock-history', text: 'Transfer History', link: '/mainstore/view/tranferHistory' },
       ]
     },
+
     substore: {
-       logo: 'Balaji Blossoms',
+      logo: 'Balaji Blossoms',
       title: 'Sub Store',
       navItems: [
         { icon: 'bi-house-door-fill', text: 'Home', link: '/substore' },
-        { icon: 'bi-arrow-up-circle', text: 'Stock Transfer', link: '/substore/sales' },
+        { icon: 'bi-arrow-up-circle', text: 'Stock Transfer', link: '/substore/transfer' },
         { icon: 'bi-file-text', text: 'Transfer History', link: '/substore/products' },
         { icon: 'bi-person-plus-fill', text: 'View Supervisor', link: '/substore/orders' },
-        { icon: 'bi-clock-history', text: 'Transfer History', link: '/mainstore/view/tranferHistory' },
-        { icon: 'bi-boxes', text: 'Inventory View', link: '/mainstore/view/inventory' },
-     
+        { icon: 'bi-boxes', text: 'Inventory View', link: '/substore/view/inventory' },
       ]
     },
+
     storehouse: {
       logo: 'Balaji Blossoms',
       title: 'Warehouse Hub',
@@ -109,16 +104,23 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
     }
   };
 
-  const config = sidebarConfig[role] || sidebarConfig.mainstore;
+  // 🔥 FIX: Backend enum → sidebar key mapping
+  const roleKeyMap = {
+    ADMIN: 'admin',
+    MAIN_STORE_MANAGER: 'mainstore',
+    SUB_STORE_MANAGER: 'substore',
+    SUB_STORE_SUPERVISOR: 'substore',
+    SHOP_MANAGER: 'storehouse',
+  };
+
+  const sidebarKey = roleKeyMap[role] || 'mainstore';
+  const config = sidebarConfig[sidebarKey];
 
   return (
     <>
-      {/* Overlay for mobile */}
+      {/* Mobile overlay */}
       {isMobile && isOpen && (
-        <div 
-          className={styles.overlay}
-          onClick={closeSidebarOnMobile}
-        />
+        <div className={styles.overlay} onClick={closeSidebarOnMobile} />
       )}
 
       {/* Sidebar */}
@@ -128,13 +130,9 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
             <i className="bi bi-building"></i>
             <span className={styles.logoText}>{config.logo}</span>
           </div>
-          {/* Close button for mobile */}
-          {isMobile && isOpen && (
-            <button 
-              className={styles.closeBtn}
-              onClick={closeSidebarOnMobile}
-              aria-label="Close sidebar"
-            >
+
+          {isMobile && (
+            <button className={styles.closeBtn} onClick={closeSidebarOnMobile}>
               <i className="bi bi-chevron-left"></i>
             </button>
           )}
@@ -142,18 +140,14 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
 
         <nav className={styles.sidebarNav}>
           {config.navItems.map((item, index) => (
-            <div 
+            <div
               key={index}
+              className={`${styles.navItem} ${
+                location.pathname === item.link ? styles.active : ''
+              }`}
               onClick={() => handleNavigation(item.link)}
-              className={`${styles.navItem} ${location.pathname === item.link ? styles.active : ''}`}
-              title={!isOpen ? item.text : ''}
               role="button"
               tabIndex={0}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  handleNavigation(item.link);
-                }
-              }}
             >
               <i className={item.icon}></i>
               <span className={styles.navText}>{item.text}</span>
@@ -162,37 +156,29 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
         </nav>
 
         <div className={styles.sidebarFooter}>
-          {/* Logout Button */}
-          <div 
+          <div
             className={styles.logoutBtn}
             onClick={handleLogout}
             role="button"
             tabIndex={0}
-            onKeyPress={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                handleLogout();
-              }
-            }}
-            title="Logout"
           >
             <i className="bi bi-box-arrow-right"></i>
             <span className={styles.navText}>Logout</span>
           </div>
-          
-          {/* Footer Info */}
+
           <div className={styles.footerInfo}>
             <div className={styles.footerText}>{config.title}</div>
-            <div className={styles.copyright}>© 2025 All Rights Reserved</div>
+            <div className={styles.copyright}>
+              © 2025 All Rights Reserved
+            </div>
           </div>
         </div>
       </div>
 
       {/* Toggle button */}
-      <button 
+      <button
         className={`${styles.toggleBtn} ${!isOpen ? styles.toggleBtnClosed : ''}`}
         onClick={toggleSidebar}
-        title={isOpen ? 'Collapse sidebar' : 'Expand sidebar'}
-        aria-label={isOpen ? 'Collapse sidebar' : 'Expand sidebar'}
       >
         <i className={`bi ${isOpen ? 'bi-chevron-left' : 'bi-chevron-right'}`}></i>
       </button>

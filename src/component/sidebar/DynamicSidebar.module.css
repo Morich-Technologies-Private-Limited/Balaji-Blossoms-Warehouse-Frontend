@@ -222,16 +222,16 @@
   display: none;
 }
 
+/* UPDATED: Rectangle toggle button instead of circular */
 .toggleBtn {
   position: fixed;
   left: 250px;
-  top: 20px;
-  width: 40px;
-  height: 40px;
-  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+  top: 45%;
+  width: 20px;
+  height: 80px;
+  background: #0f4776;
   color: white;
   border: 2px solid rgba(255, 255, 255, 0.2);
-  border-radius: 50%;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -239,11 +239,12 @@
   transition: all 0.3s ease;
   z-index: 1051;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  
 }
 
 .toggleBtn:hover {
   background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  transform: scale(1.15);
+  transform: scale(1.1);
   box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
 }
 
@@ -256,7 +257,7 @@
 }
 
 .toggleBtn i {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: bold;
 }
 
@@ -333,8 +334,8 @@
   
   .toggleBtn {
     left: 220px;
-    width: 38px;
-    height: 38px;
+    width: 46px;
+    height: 46px;
   }
   
   .toggleBtnClosed {
@@ -369,8 +370,8 @@
   
   .toggleBtn {
     left: 20px;
-    width: 44px;
-    height: 44px;
+    width: 50px;
+    height: 50px;
   }
   
   .toggleBtn.toggleBtnClosed {
@@ -378,7 +379,7 @@
   }
   
   .toggleBtn i {
-    font-size: 20px;
+    font-size: 22px;
   }
   
   .closeBtn {
@@ -441,8 +442,8 @@
   .toggleBtn {
     left: 15px;
     top: 15px;
-    width: 46px;
-    height: 46px;
+    width: 52px;
+    height: 52px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
   }
   
@@ -451,7 +452,7 @@
   }
   
   .toggleBtn i {
-    font-size: 22px;
+    font-size: 24px;
   }
   
   .closeBtn {
@@ -498,12 +499,12 @@
   }
   
   .toggleBtn {
-    width: 42px;
-    height: 42px;
+    width: 48px;
+    height: 48px;
   }
   
   .toggleBtn i {
-    font-size: 20px;
+    font-size: 22px;
   }
 }
 

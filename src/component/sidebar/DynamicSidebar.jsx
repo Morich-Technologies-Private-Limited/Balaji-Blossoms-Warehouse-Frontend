@@ -194,7 +194,7 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
         title={isOpen ? 'Collapse sidebar' : 'Expand sidebar'}
         aria-label={isOpen ? 'Collapse sidebar' : 'Expand sidebar'}
       >
-        <i className={`bi ${isOpen ? 'bi-chevron-left' : 'bi-list'}`}></i>
+        <i className={`bi ${isOpen ? 'bi-chevron-left' : 'bi-chevron-right'}`}></i>
       </button>
     </>
   );

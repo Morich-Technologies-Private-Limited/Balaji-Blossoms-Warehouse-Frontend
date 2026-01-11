@@ -5,6 +5,7 @@
   flex-direction: column;
   overflow: hidden;
   background: #f8f9fa;
+  margin-left: 10px;
 }
 
 .container {

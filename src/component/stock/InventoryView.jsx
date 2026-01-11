@@ -210,7 +210,6 @@ const InventoryView = () => {
             <tr className={styles.mainHeader}>
               <th rowSpan="2" className={styles.headerCell}>Product Id</th>
               <th rowSpan="2" className={styles.headerCell}>Name</th>
-              <th rowSpan="2" className={styles.headerCell}>Category</th>
               <th colSpan="4" className={`${styles.headerCell} ${styles.detailsHeader}`}>Details</th>
             </tr>
             <tr className={styles.subHeader}>
@@ -232,9 +231,7 @@ const InventoryView = () => {
                         <td rowSpan={product.packings.length} className={styles.mergedCell}>
                           {product.productName}
                         </td>
-                        <td rowSpan={product.packings.length} className={styles.mergedCell}>
-                          {product.category}
-                        </td>
+                        
                       </>
                     )}
                     <td className={styles.regularCell}>{packing.packingSize}  {packing.packingUnit}</td>

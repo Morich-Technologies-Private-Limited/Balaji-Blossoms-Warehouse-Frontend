@@ -65,7 +65,7 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
         { icon: 'bi-person-badge', text: 'User Management', link: '/admin/manage/user' },
         { icon: 'bi-people', text: 'Assign Supervisor', link: '/admin/assign-supervisor' },
         { icon: 'bi-boxes', text: 'View Inventory', link: '/admin/inventory' },
-        { icon: 'bi-clock-history', text: 'Transfer History', link: '/admin/transfer-history' },
+        { icon: 'bi-clock-history', text: 'Transfer History', link: '/admin/view/tranferHistory' },
       ]
     },
     mainstore: {
@@ -76,9 +76,9 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
         { icon: 'bi-clock-history', text: 'In Entry', link: '/mainstore/in'},
         { icon: 'bi-shop', text: 'Out Entry', link: '/mainstore/transfer' },
         { icon: 'bi-arrow-left-right', text: 'Shop Transfer', link: '/mainstore/dashboard2' },
-        { icon: 'bi-clock-history', text: 'Transfer History', link: '/mainstore/dashboard3' },
         { icon: 'bi-clock-history', text: 'Product Master', link: '/mainstore/product/add'},
-        { icon: 'bi-boxes', text: 'Inventory View', link: '/mainstore/inventory' },
+        { icon: 'bi-boxes', text: 'Inventory View', link: '/mainstore/view/inventory' },
+         { icon: 'bi-clock-history', text: 'Transfer History', link: '/mainstore/view/tranferHistory' },
       ]
     },
     substore: {
@@ -89,6 +89,9 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
         { icon: 'bi-arrow-up-circle', text: 'Stock Transfer', link: '/substore/sales' },
         { icon: 'bi-file-text', text: 'Transfer History', link: '/substore/products' },
         { icon: 'bi-person-plus-fill', text: 'View Supervisor', link: '/substore/orders' },
+        { icon: 'bi-clock-history', text: 'Transfer History', link: '/mainstore/view/tranferHistory' },
+        { icon: 'bi-boxes', text: 'Inventory View', link: '/mainstore/view/inventory' },
+     
       ]
     },
     storehouse: {
@@ -132,7 +135,7 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
               onClick={closeSidebarOnMobile}
               aria-label="Close sidebar"
             >
-              <i className="bi bi-x-lg"></i>
+              <i className="bi bi-chevron-left"></i>
             </button>
           )}
         </div>
@@ -191,7 +194,7 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
         title={isOpen ? 'Collapse sidebar' : 'Expand sidebar'}
         aria-label={isOpen ? 'Collapse sidebar' : 'Expand sidebar'}
       >
-        <i className={`bi ${isOpen ? 'bi-chevron-left' : 'bi-list'}`}></i>
+        <i className={`bi ${isOpen ? 'bi-chevron-left' : 'bi-chevron-right'}`}></i>
       </button>
     </>
   );

@@ -3,6 +3,7 @@ import styles from './LoginForm.module.css';
 import logo from "../../assets/logo.png";
 import { loginApi, devModeLogin } from '../api/loginApi';
 import { useNavigate } from 'react-router-dom';
+import { useStores } from '../../context/StoreContext';
 
 const LoginForm = () => {  
   const [email, setEmail] = useState('');
@@ -11,6 +12,7 @@ const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedRole, setSelectedRole] = useState('');
+    const { loadStores } = useStores(); 
   const navigate = useNavigate();
 
   // Check if dev mode is enabled
@@ -27,6 +29,7 @@ const LoginForm = () => {
         
         if (result.success) {
           alert(`Login successful for: ${email}`);
+          loadStores();
           navigate(result.navLink);
         } else {
           alert(result.message || 'Login failed');

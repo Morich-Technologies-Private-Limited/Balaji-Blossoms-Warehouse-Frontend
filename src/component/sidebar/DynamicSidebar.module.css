@@ -11,7 +11,7 @@
   transition: all 0.3s ease;
   display: flex;
   flex-direction: column;
-  z-index: 1050;
+  z-index: 1052;
   box-shadow: 4px 0 15px rgba(0, 0, 0, 0.2);
   overflow-y: auto;
   overflow-x: hidden;
@@ -222,42 +222,43 @@
   display: none;
 }
 
-/* UPDATED: Rectangle toggle button instead of circular */
+/* UPDATED: Rectangle toggle button - consistent across all screen sizes */
 .toggleBtn {
   position: fixed;
   left: 250px;
-  top: 45%;
+  top: 50%;
+  transform: translateY(-50%);
   width: 20px;
   height: 80px;
   background: #0f4776;
   color: white;
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: 0 8px 8px 0;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.3s ease;
   z-index: 1051;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
 }
 
 .toggleBtn:hover {
   background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  transform: scale(1.1);
+  transform: translateY(-50%) scale(1.1);
   box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
 }
 
 .toggleBtn:active {
-  transform: scale(1.05);
+  transform: translateY(-50%) scale(1.05);
 }
 
 .toggleBtnClosed {
-  left: 20px;
+  left: 70px;
 }
 
 .toggleBtn i {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: bold;
 }
 
@@ -334,8 +335,8 @@
   
   .toggleBtn {
     left: 220px;
-    width: 46px;
-    height: 46px;
+    width: 18px;
+    height: 70px;
   }
   
   .toggleBtnClosed {
@@ -369,17 +370,28 @@
   }
   
   .toggleBtn {
-    left: 20px;
-    width: 50px;
-    height: 50px;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 80px;
+    border-radius: 0 8px 8px 0;
+  }
+  
+  .toggleBtn:hover {
+    transform: translateY(-50%) scale(1.1);
+  }
+  
+  .toggleBtn:active {
+    transform: translateY(-50%) scale(1.05);
   }
   
   .toggleBtn.toggleBtnClosed {
-    left: 20px;
+    left: 10px;
   }
   
   .toggleBtn i {
-    font-size: 22px;
+    font-size: 18px;
   }
   
   .closeBtn {
@@ -439,20 +451,31 @@
     font-size: 10px;
   }
   
+  /* Toggle button for mobile - slim rectangle in center */
   .toggleBtn {
-    left: 15px;
-    top: 15px;
-    width: 52px;
-    height: 52px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 80px;
+    border-radius: 0 8px 8px 0;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+  }
+  
+  .toggleBtn:hover {
+    transform: translateY(-50%) scale(1.1);
+  }
+  
+  .toggleBtn:active {
+    transform: translateY(-50%) scale(1.05);
   }
   
   .toggleBtn.toggleBtnClosed {
-    left: 15px;
+    left: 10px;
   }
   
   .toggleBtn i {
-    font-size: 24px;
+    font-size: 18px;
   }
   
   .closeBtn {
@@ -499,12 +522,12 @@
   }
   
   .toggleBtn {
-    width: 48px;
-    height: 48px;
+    width: 18px;
+    height: 70px;
   }
   
   .toggleBtn i {
-    font-size: 22px;
+    font-size: 16px;
   }
 }
 
@@ -535,12 +558,16 @@
   .copyright {
     font-size: 9px;
   }
+  
+  .toggleBtn {
+    height: 60px;
+  }
 }
 
 /* High DPI screens */
 @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
   .toggleBtn {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.35);
   }
   
   .sidebar {
@@ -560,6 +587,10 @@
   
   .navText {
     animation: none;
+  }
+  
+  .toggleBtn:hover {
+    transform: translateY(-50%);
   }
 }
 

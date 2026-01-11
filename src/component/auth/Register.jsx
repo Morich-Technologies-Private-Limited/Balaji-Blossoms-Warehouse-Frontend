@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Eye, EyeOff, Store, MapPin, Phone, Building2, CheckCircle, XCircle } from 'lucide-react';
 import styles from './Register.module.css';
-import { registerApi } from '../api/registerApi';
-import { fetchAllStores } from '../api/fetchAllStores';
+import { registerApi } from '../../api/registerApi';
+import { fetchAllStores } from '../../api/fetchAllStores';
 
 const Register = () => {
   const [formData, setFormData] = useState({

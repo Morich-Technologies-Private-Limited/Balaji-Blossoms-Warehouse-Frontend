@@ -1,16 +1,17 @@
 import axios from "axios";
-import { FIND_TRANSFER_HISTORY_URL } from "../constants/apiConstants";
-import { getSessionData } from "../utils/getSessionData";
+import { FETCH_STORE_INVENTORY_URL } from "../constants/apiConstants";
+import { getSessionData } from "../component/utils/getSessionData";
 
-export const findTranfserHistoryStore = async (storeId) => {
+export const findStoreInventory = async (storeId) => {
   try {
+    console.log("Inventory api");
     const { token } = getSessionData();
 
     if (!token) {
       throw new Error("Authentication token not found");
     }
 
-    const response = await axios.get(FIND_TRANSFER_HISTORY_URL, {
+    const response = await axios.get(FETCH_STORE_INVENTORY_URL, {
       params: { storeId },
       headers: {
         Authorization: `Bearer ${token}`,

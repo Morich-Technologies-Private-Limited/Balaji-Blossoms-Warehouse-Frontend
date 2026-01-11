@@ -1,5 +1,6 @@
 import { createContext, useContext, useState } from "react";
-import { fetchAllStores } from "../component/api/fetchAllStores";
+import { fetchAllStores } from "../api/fetchAllStores";
+import { getSessionData } from "../component/utils/getSessionData"; 
 
 const StoreContext = createContext();
 const STORE_CACHE_KEY = "STORE_LIST";
@@ -23,37 +24,47 @@ export const StoreProvider = ({ children }) => {
   };
 
   const loadStores = async (forceRefresh = false) => {
-    try {
-      setLoading(true);
-      setError(null);
+  try {
+    setLoading(true);
+    setError(null);
 
-      // ✅ Access-based TTL check
-      if (!forceRefresh && stores.length && isCacheValid()) {
-        return stores;
-      }
-
-      // 🔄 Cache expired OR forced → refresh
-      const response = await fetchAllStores();
-
-      if(response.data.status!="SUCCESS")
-      {
-        alert(response.data.message|| "Store not found");
-      }
-
-      const storeList = response.data.payload;
-
-      setStores(storeList);
-      sessionStorage.setItem(STORE_CACHE_KEY, JSON.stringify(storeList));
-      sessionStorage.setItem(STORE_CACHE_TIME_KEY, Date.now().toString());
-
-      return storeList;
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setLoading(false);
+    if (!forceRefresh && stores.length && isCacheValid()) {
+      return stores;
     }
-  };
+
+    const response = await fetchAllStores();
+
+    if (response.data.status !== "SUCCESS") {
+      alert(response.data.message || "Store not found");
+      return [];
+    }
+
+    const { storeId: currentStoreId } = getSessionData();
+
+    const storeList = response.data.payload.map(
+      ({ userList, storeId, ...store }) => ({
+        storeId,
+        ...store,
+        tag:
+          String(storeId) === String(currentStoreId)
+            ? "DEFAULT"
+            : "REGULAR",
+      })
+    );
+
+    setStores(storeList);
+    sessionStorage.setItem(STORE_CACHE_KEY, JSON.stringify(storeList));
+    sessionStorage.setItem(STORE_CACHE_TIME_KEY, Date.now().toString());
+
+    return storeList;
+  } catch (err) {
+    setError(err.message);
+    throw err;
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <StoreContext.Provider

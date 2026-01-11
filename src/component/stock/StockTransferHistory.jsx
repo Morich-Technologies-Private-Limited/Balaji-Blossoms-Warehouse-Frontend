@@ -2,7 +2,7 @@ import React, { useState, useEffect,useRef } from 'react';
 import { ChevronDown, ChevronUp, Search, Package, Calendar, User, Store } from 'lucide-react';
 import styles from './StockTransferHistory.module.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { findTranfserHistoryStore } from '../api/findTranfserHistoryStore';
+import { findTranfserHistoryStore } from '../../api/findTranfserHistoryStore';
 import { getSessionData } from '../utils/getSessionData';
 
 
@@ -28,7 +28,6 @@ const StockTransferHistory = () => {
       const {storeId} = getSessionData();
       const response = await findTranfserHistoryStore(storeId);
     
-      console.log(storeId);
 
       if(response.data.status!="SUCCESS")
       {

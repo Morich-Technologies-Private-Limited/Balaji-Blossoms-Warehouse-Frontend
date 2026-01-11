@@ -1,6 +1,6 @@
 import axios from "axios";
 import { SEND_PRODUCT_URL } from "../constants/apiConstants";
-import { getSessionData } from "../utils/getSessionData";
+import { getSessionData } from "../component/utils/getSessionData";
 
 export const sendProductToStore = async (transferDetails) => {
   try {

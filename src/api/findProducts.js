@@ -1,8 +1,8 @@
 import axios from "axios";
-import { FETCH_STORE_INVENTORY_URL } from "../constants/apiConstants";
-import { getSessionData } from "../utils/getSessionData";
+import { FIND_PRODUCT_SEARCH_URL } from "../constants/apiConstants";
+import { getSessionData } from "../component/utils/getSessionData";
 
-export const findStoreInventory = async (storeId) => {
+export const findProducts = async (key) => {
   try {
     const { token } = getSessionData();
 
@@ -10,8 +10,8 @@ export const findStoreInventory = async (storeId) => {
       throw new Error("Authentication token not found");
     }
 
-    const response = await axios.get(FETCH_STORE_INVENTORY_URL, {
-      params: { storeId },
+    const response = await axios.get(FIND_PRODUCT_SEARCH_URL, {
+      params: { key },
       headers: {
         Authorization: `Bearer ${token}`,
       },

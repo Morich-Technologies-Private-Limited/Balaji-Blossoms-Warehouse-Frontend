@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, Package, Trash2, Send, Building2, User } from 'lucide-react';
 import styles from './MainStoreTransfer.module.css';
-import { fetchStoresWithUserApi } from '../api/findStoreAndEmployee';
-import { findProducts } from '../api/findProducts';
-import { findProductsPacking } from '../api/findProductsPacking';
-import { sendProductToStore } from '../api/sendProductToStore';
+import { fetchStoresWithUserApi } from '../../api/findStoreAndEmployee';
+import { findProducts } from '../../api/findProducts';
+import { findProductsPacking } from '../../api/findProductsPacking';
+import { sendProductToStore } from '../../api/sendProductToStore';
 
 const MainStoreTransfer = () => {
   const [searchKey, setSearchKey] = useState('');

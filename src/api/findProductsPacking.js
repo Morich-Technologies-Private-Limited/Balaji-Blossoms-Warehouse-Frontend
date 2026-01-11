@@ -1,6 +1,6 @@
 import axios from "axios";
 import { FIND_PRODUCT_PACKING_URL } from "../constants/apiConstants";
-import { getSessionData } from "../utils/getSessionData";
+import { getSessionData } from "../component/utils/getSessionData";
 
 export const findProductsPacking = async (productId) => {
   try {

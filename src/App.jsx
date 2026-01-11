@@ -12,6 +12,7 @@ import DynamicSidebar from "./component/sidebar/DynamicSidebar";
 import MainStoreTransfer from "./component/mainstore/MainStoreTransfer";
 import StockTransferHistory from "./component/stock/StockTransferHistory";
 import InventoryView from "./component/stock/InventoryView";
+import AddProduct from "./component/mainstore/AddProduct";
 
 /* ================= ROLE ↔ PATH MAP ================= */
 const ROLE_PATH_MAP = {
@@ -170,6 +171,21 @@ function App() {
                 ]}
               >
                 <InventoryView />
+              </ProtectedRoute>
+            }
+          />
+
+                    <Route
+            path="/:scope/product/add"
+            element={
+              <ProtectedRoute
+                allowedRoles={[
+                  "ADMIN",
+                  "MAIN_STORE_MANAGER",
+                  "SUB_STORE_MANAGER",
+                ]}
+              >
+                <AddProduct />
               </ProtectedRoute>
             }
           />

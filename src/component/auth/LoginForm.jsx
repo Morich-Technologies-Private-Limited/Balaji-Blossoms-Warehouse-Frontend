@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import styles from './LoginForm.module.css';
 import logo from "../../assets/logo.png";
-import { loginApi, devModeLogin } from '../api/loginApi';
+import { loginApi, devModeLogin } from '../../api/loginApi';
 import { useNavigate } from 'react-router-dom';
 import { useStores } from '../../context/StoreContext';
 

@@ -82,25 +82,12 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
       navItems: [
         { icon: 'bi-house-door-fill', text: 'Home', link: '/substore' },
         { icon: 'bi-arrow-up-circle', text: 'Stock Transfer', link: '/substore/transfer' },
-        { icon: 'bi-file-text', text: 'Transfer History', link: '/substore/products' },
+        { icon: 'bi-file-text', text: 'Transfer History', link: '/substore/view/tranferHistory' },
         { icon: 'bi-person-plus-fill', text: 'View Supervisor', link: '/substore/orders' },
         { icon: 'bi-boxes', text: 'Inventory View', link: '/substore/view/inventory' },
       ]
     },
 
-    storehouse: {
-      logo: 'Balaji Blossoms',
-      title: 'Warehouse Hub',
-      navItems: [
-        { icon: 'bi-house-door-fill', text: 'Home', link: '/storehouse' },
-        { icon: 'bi-box-seam-fill', text: 'Inventory', link: '/storehouse/inventory' },
-        { icon: 'bi-truck', text: 'Shipments', link: '/storehouse/shipments' },
-        { icon: 'bi-clipboard-check', text: 'Stock Control', link: '/storehouse/stock-control' },
-        { icon: 'bi-arrow-down-up', text: 'Transfers', link: '/storehouse/transfers' },
-        { icon: 'bi-journal-text', text: 'Logs', link: '/storehouse/logs' },
-        { icon: 'bi-gear-fill', text: 'Configuration', link: '/storehouse/configuration' },
-      ]
-    }
   };
 
   // 🔥 FIX: Backend enum → sidebar key mapping
@@ -109,7 +96,6 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
     MAIN_STORE_MANAGER: 'mainstore',
     SUB_STORE_MANAGER: 'substore',
     SUB_STORE_SUPERVISOR: 'substore',
-    SHOP_MANAGER: 'storehouse',
   };
 
   const sidebarKey = roleKeyMap[role] || 'mainstore';

@@ -48,7 +48,11 @@ const StockTransferHistory = () => {
     const fetchTransferHistory = async () => {
       try {
         setLoading(true);
+        setTransferHistory([]);
+        setFilteredHistory([]);
+        setStores([]);
 
+        
         const response = await findTranfserHistoryStore(selectedStore.storeId);
 
         if (response.data.status != "SUCCESS") {

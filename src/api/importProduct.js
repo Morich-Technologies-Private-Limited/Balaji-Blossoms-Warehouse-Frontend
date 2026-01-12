@@ -1,5 +1,5 @@
 import axios from "axios";
-import { SEND_PRODUCT_URL } from "../constants/apiConstants";
+import { ADD_INVENROTY_URL } from "../constants/apiConstants";
 import { getSessionData } from "../component/utils/getSessionData";
 
 export const importProduct = async (transferDetails) => {
@@ -11,7 +11,7 @@ export const importProduct = async (transferDetails) => {
     }
 
     const response = await axios.post(
-      SEND_PRODUCT_URL,
+      ADD_INVENROTY_URL,
       transferDetails,
       {
         headers: {

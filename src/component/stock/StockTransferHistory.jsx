@@ -104,9 +104,9 @@ const StockTransferHistory = () => {
       filtered = filtered.filter(item =>
         item.transferId.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.senderDetails.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.senderDetails.contactNumber.includes(searchTerm) ||
+        item.senderDetails.contactNumber?.includes(searchTerm) ||
         item.receiverDetails.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.receiverDetails.contactNumber.includes(searchTerm) ||
+        item.receiverDetails.contactNumber?.includes(searchTerm) ||
         item.senderDetails.storeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.receiverDetails.storeName.toLowerCase().includes(searchTerm.toLowerCase())
       );
@@ -359,7 +359,7 @@ const StockTransferHistory = () => {
                             <User size={14} />
                             <div>
                               <div className={styles.userName}>{transfer.senderDetails.name}</div>
-                              <div className={styles.userContact}>{transfer.senderDetails.contactNumber}</div>
+                              <div className={styles.userContact}>{transfer.senderDetails.contactNumber || 'N/A'}</div>
                               <div className={styles.showOnMobile}>
                                 {transfer.senderDetails.storeName}
                               </div>
@@ -371,7 +371,7 @@ const StockTransferHistory = () => {
                             <User size={14} />
                             <div>
                               <div className={styles.userName}>{transfer.receiverDetails.name}</div>
-                              <div className={styles.userContact}>{transfer.receiverDetails.contactNumber}</div>
+                              <div className={styles.userContact}>{transfer.receiverDetails.contactNumber || 'N/A'}</div>
                               <div className={styles.showOnMobile}>
                                 {transfer.receiverDetails.storeName}
                               </div>
@@ -400,7 +400,7 @@ const StockTransferHistory = () => {
                                 <div className={styles.detailCard}>
                                   <h4>Sender Details</h4>
                                   <p><strong>Name:</strong> {transfer.senderDetails.name}</p>
-                                  <p><strong>Contact:</strong> {transfer.senderDetails.contactNumber}</p>
+                                  <p><strong>Contact:</strong> {transfer.senderDetails.contactNumber || 'N/A'}</p>
                                   <p><strong>Email:</strong> {transfer.senderDetails.emailId}</p>
                                   <p><strong>Role:</strong> {transfer.senderDetails.role}</p>
                                   <p><strong>Store:</strong> {transfer.senderDetails.storeName}</p>
@@ -409,7 +409,7 @@ const StockTransferHistory = () => {
                                 <div className={styles.detailCard}>
                                   <h4>Receiver Details</h4>
                                   <p><strong>Name:</strong> {transfer.receiverDetails.name}</p>
-                                  <p><strong>Contact:</strong> {transfer.receiverDetails.contactNumber}</p>
+                                  <p><strong>Contact:</strong> {transfer.receiverDetails.contactNumber || 'N/A'}</p>
                                   <p><strong>Email:</strong> {transfer.receiverDetails.emailId}</p>
                                   <p><strong>Role:</strong> {transfer.receiverDetails.role}</p>
                                   <p><strong>Store:</strong> {transfer.receiverDetails.storeName}</p>
@@ -432,22 +432,42 @@ const StockTransferHistory = () => {
                                     </thead>
                                     <tbody>
                                       {transfer.stockDetails.map((stock, idx) => (
-                                        <tr key={idx}>
-                                          <td>{stock.productName}</td>
-                                          <td>{stock.packingSize} {stock.packingUnit}</td>
-                                          <td className={styles.hideOnMobile}>{stock.currentQuantity}</td>
-                                          <td className={styles.highlight}>
-                                            {transfer.transferType === 'OUT'
-                                              ? stock.outgoingQuantity
-                                              : stock.incomingQuantity}
-                                          </td>
-                                          <td><strong>{stock.finalRemainingQuantity}</strong></td>
-                                          <td className={styles.hideOnMobile}>
-                                            {transfer.transferType === 'OUT'
-                                              ? stock.outgoingBags
-                                              : stock.incomingBags}
-                                          </td>
-                                        </tr>
+                                        <React.Fragment key={idx}>
+                                          <tr>
+                                            <td>{stock.productName}</td>
+                                            <td>{stock.packingSize} {stock.packingUnit}</td>
+                                            <td className={styles.hideOnMobile}>{stock.currentQuantity}</td>
+                                            <td className={styles.highlight}>
+                                              {transfer.transferType === 'OUT'
+                                                ? stock.outgoingQuantity
+                                                : stock.incomingQuantity}
+                                            </td>
+                                            <td><strong>{stock.finalRemainingQuantity}</strong></td>
+                                            <td className={styles.hideOnMobile}>
+                                              {transfer.transferType === 'OUT'
+                                                ? stock.outgoingBags
+                                                : stock.incomingBags}
+                                            </td>
+                                          </tr>
+                                          {stock.transferMetadata && 
+                                           stock.transferMetadata.transferType === 'weight' && 
+                                           stock.transferMetadata.unit !== stock.packingUnit && (
+                                            <tr className={styles.metadataRow}>
+                                              <td colSpan="6">
+                                                <div className={styles.metadataContent}>
+                                                  <span className={styles.metadataLabel}>Transfer Details : </span>
+                                                  <span className={styles.metadataValue}>
+                                                     {stock.transferMetadata.weight}
+                                                  </span>
+                                                  <span className={styles.metadataSeparator}>  •  </span>
+                                                  <span className={styles.metadataValue}>
+                                                    Unit Transferred: {stock.transferMetadata.unit}
+                                                  </span>
+                                                </div>
+                                              </td>
+                                            </tr>
+                                          )}
+                                        </React.Fragment>
                                       ))}
                                     </tbody>
                                   </table>

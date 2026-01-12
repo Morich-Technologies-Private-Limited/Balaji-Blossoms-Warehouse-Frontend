@@ -465,8 +465,8 @@ const ShopTransfer = () => {
             transferMetadata = {
               transferType: 'bags',
               transferUnit: item.packingUnit, // User's packing unit selection (KILOGRAM, GRAM, LITER, MILLILITER)
-              weightTransferred: `${Number(item.quantity).toFixed(2)} ${item.packingUnit}`,
-              unitTransferred: String(numberOfBags.toFixed(2)) // Actual number of bags rounded to 2 decimals
+              weight: `${Number(item.quantity).toFixed(2)} ${item.packingUnit}`,
+              unit: String(numberOfBags.toFixed(2)) // Actual number of bags rounded to 2 decimals
             };
           } else {
             // For weight/quantity transfer
@@ -476,8 +476,8 @@ const ShopTransfer = () => {
             transferMetadata = {
               transferType: 'weight',
               transferUnit: item.inputUnit, // User selected unit (KILOGRAM, GRAM, LITER, MILLILITER)
-              weightTransferred: `${Number(item.directQuantity).toFixed(2)} ${item.inputUnit}`,
-              unitTransferred: String(equivalentBags.toFixed(2)) // Equivalent bags rounded to 2 decimals
+              weight: `${Number(item.directQuantity).toFixed(2)} ${item.inputUnit}`,
+              unit: String(equivalentBags.toFixed(2)) // Equivalent bags rounded to 2 decimals
             };
           }
 

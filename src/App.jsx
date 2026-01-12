@@ -9,7 +9,6 @@ import "./App.css";
 import LoginForm from "./component/auth/LoginForm";
 import Register from "./component/auth/Register";
 import DynamicSidebar from "./component/sidebar/DynamicSidebar";
-import MainStoreTransfer from "./component/mainstore/MainStoreTransfer";
 import StockTransferHistory from "./component/stock/StockTransferHistory";
 import InventoryView from "./component/stock/InventoryView";
 import AddProduct from "./component/mainstore/AddProduct";
@@ -176,7 +175,7 @@ function App() {
             path="/:scope/transfer"
             element={
               <ProtectedRoute allowedRoles={["MAIN_STORE_MANAGER","SUB_STORE_MANAGER"]}>
-                <MainStoreTransfer />
+                <ShopTransfer />
               </ProtectedRoute>
             }
           />
@@ -191,14 +190,6 @@ function App() {
           />
 
 
-                  <Route
-            path="/:scope/shop/tranfer"
-            element={
-              <ProtectedRoute allowedRoles={["MAIN_STORE_MANAGER","SUB_STORE_MANAGER"]}>
-                <ShopTransfer />
-              </ProtectedRoute>
-            }
-          />
 
           <Route
             path="/:scope/product/add"

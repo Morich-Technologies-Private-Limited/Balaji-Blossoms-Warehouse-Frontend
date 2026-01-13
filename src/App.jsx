@@ -15,6 +15,7 @@ import AddProduct from "./component/mainstore/AddProduct";
 import UnauthorizedPage from "./component/auth/UnauthorizedPage";
 import ShopTransfer from "./component/mainstore/ShopTransfer";
 import StockImport from "./component/mainstore/StockImport";
+import SupervisorTransfer from "./component/mainstore/SupervisorTransfer";
 
 /* ================= ROLE ↔ PATH MAP ================= */
 const ROLE_PATH_MAP = {
@@ -189,6 +190,14 @@ function App() {
             }
           />
 
+      <Route
+            path="/:scope/supervisor/transfer"
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN","SUB_STORE_MANAGER"]}>
+                <SupervisorTransfer />
+              </ProtectedRoute>
+            }
+          /> 
 
 
           <Route

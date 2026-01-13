@@ -3,6 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import styles from './DynamicSidebar.module.css';
 import { Logout } from '../utils/Logout';
+import Logo2 from "../../assets/logo2.png"
+import Logo3 from "../../assets/logo3.png"
+
 
 const DynamicSidebar = ({ role, onSidebarChange }) => {
   const [isOpen, setIsOpen] = useState(true);
@@ -71,7 +74,7 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
         { icon: 'bi-shop', text: 'Out Entry', link: '/mainstore/transfer' },
         { icon: 'bi-box', text: 'Product Master', link: '/mainstore/product/add' },
         { icon: 'bi-boxes', text: 'Inventory View', link: '/mainstore/view/inventory' },
-        { icon: 'bi-clock-history', text: 'Transfer History', link: '/mainstore/view/tranferHistory' },
+        { icon: 'bi-clock-history', text: 'Transfer History', link: '/mainstore/view/tranferHistory'},
       ]
     },
 
@@ -81,17 +84,21 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
       navItems: [
         { icon: 'bi-house-door-fill', text: 'Home', link: '/substore' },
         { icon: 'bi-arrow-up-circle', text: 'Stock Transfer', link: '/substore/transfer' },
+        { icon: 'bi-arrow-up-circle', text: 'Out Entry', link: '/substore/supervisor/transfer' },
         { icon: 'bi-file-text', text: 'Transfer History', link: '/substore/view/tranferHistory' },
+        
         { icon: 'bi-boxes', text: 'Inventory View', link: '/substore/view/inventory' },
       ]
     },
 
   };
 
+  // 🔥 FIX: Backend enum → sidebar key mapping
   const roleKeyMap = {
     ADMIN: 'admin',
     MAIN_STORE_MANAGER: 'mainstore',
     SUB_STORE_MANAGER: 'substore',
+    SUB_STORE_SUPERVISOR: 'substore',
   };
 
   const sidebarKey = roleKeyMap[role] || 'mainstore';
@@ -108,10 +115,12 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
       <div className={`${styles.sidebar} ${isOpen ? styles.open : styles.closed}`}>
         <div className={styles.sidebarHeader}>
           <div className={styles.logo}>
-            <i className="bi bi-building"></i>
-            <span className={styles.logoText}>{config.logo}</span>
+            <img 
+              src={isOpen ? Logo2 : Logo3} 
+              alt="Logo" 
+              className={styles.logoImage} 
+            />
           </div>
-
           {isMobile && (
             <button className={styles.closeBtn} onClick={closeSidebarOnMobile}>
               <i className="bi bi-chevron-left"></i>

@@ -159,6 +159,23 @@ const StockTransferHistory = () => {
     setFilteredHistory(filtered);
   }, [searchTerm, dateFrom, dateTo, senderStore, receiverStore, transferType, transferHistory]);
 
+
+  const formatPackingUnit = (unit) => {
+  switch (unit) {
+    case 'KILOGRAM':
+      return 'KG';
+    case 'GRAM':
+      return 'G';
+    case 'MILLILITER':
+      return 'ML';
+    case 'LITER':
+      return 'L';
+    default:
+      return unit;
+  }
+};
+
+
   const toggleRow = (transferId) => {
     const newExpanded = new Set(expandedRows);
     if (newExpanded.has(transferId)) {
@@ -224,24 +241,25 @@ const StockTransferHistory = () => {
 
   if (loading) {
     return (
-      <div className={styles.container}>
-        <div className={styles.loading}>Loading transfer history...</div>
+      <div className={styles.pageWrapper}>
+        <div className={styles.container}>
+          <div className={styles.loading}>Loading transfer history...</div>
+        </div>
       </div>
     );
   }
 
-  return (
+ return (
     <div className={styles.pageWrapper}>
       <div className={styles.container}>
         <div className={styles.header}>
           <h1 className={styles.title}>
-            <Package className={styles.titleIcon} />
             Stock Transfer History
           </h1>
         </div>
 
-        {role === "ADMIN" && (
-          <div className={styles.storeSelectSection}>
+        <div className={styles.controlsSection}>
+          {role === "ADMIN" && (
             <div className={styles.storeSelectWrapper}>
               <Store className={styles.storeIcon} size={18} />
               <select
@@ -256,38 +274,38 @@ const StockTransferHistory = () => {
                 ))}
               </select>
             </div>
-          </div>
-        )}
-
-        <div className={styles.filterSection}>
-          <div className={styles.searchWrapper}>
-            <Search className={styles.searchIcon} />
-            <input
-              type="text"
-              placeholder="Search by transfer ID, name or contact..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className={styles.searchInput}
-            />
-          </div>
-
-          <button
-            className={`${styles.filterButton} ${hasActiveFilters ? styles.filterActive : ''}`}
-            onClick={() => setShowFilterModal(true)}
-          >
-            <Settings size={18} />
-            Filters
-            {hasActiveFilters && <span className={styles.filterBadge}></span>}
-          </button>
-
-          {selectedTransfers.size > 0 && (
-            <button
-              className="btn btn-primary"
-              onClick={handleExport}
-            >
-              Export Selected ({selectedTransfers.size})
-            </button>
           )}
+
+          <div className={styles.filterSection}>
+            <div className={styles.searchWrapper}>
+              <Search className={styles.searchIcon} />
+              <input
+                type="text"
+                placeholder="Search by transfer ID, name or contact..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className={styles.searchInput}
+              />
+            </div>
+
+            <button
+              className={`${styles.filterButton} ${hasActiveFilters ? styles.filterActive : ''}`}
+              onClick={() => setShowFilterModal(true)}
+            >
+              <Settings size={18} />
+              Filters
+              {hasActiveFilters && <span className={styles.filterBadge}></span>}
+            </button>
+
+            {selectedTransfers.size > 0 && (
+              <button
+                className={styles.exportBtn}
+                onClick={handleExport}
+              >
+                Export Selected ({selectedTransfers.size})
+              </button>
+            )}
+          </div>
         </div>
 
         {filteredHistory.length === 0 ? (
@@ -296,196 +314,251 @@ const StockTransferHistory = () => {
             <p>No transfer history found</p>
           </div>
         ) : (
-          <div className={styles.tableWrapper}>
-            <div className={styles.tableScroll}>
-              <table className={styles.table}>
-                <thead>
-                  <tr>
-                    <th className={styles.checkboxCol}>
-                      <input
-                        type="checkbox"
-                        className="form-check-input"
-                        checked={selectedTransfers.size === filteredHistory.length && filteredHistory.length > 0}
-                        onChange={handleSelectAll}
-                      />
-                    </th>
-                    <th className={styles.expandCol}></th>
-                    <th>Transfer ID</th>
-                    <th>Type</th>
-                    <th className={styles.hideOnMobile}>Date & Time</th>
-                    <th>Sender</th>
-                    <th>Receiver</th>
-                    <th className={styles.hideOnMobile}>Items</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredHistory.map((transfer) => (
-                    <React.Fragment key={transfer.transferId}>
-                      <tr className={styles.parentRow}>
-                        <td className={styles.checkboxCol}>
-                          <input
-                            type="checkbox"
-                            className="form-check-input"
-                            checked={selectedTransfers.has(transfer.transferId)}
-                            onChange={() => handleCheckboxChange(transfer.transferId)}
-                            onClick={(e) => e.stopPropagation()}
-                          />
-                        </td>
-                        <td className={styles.expandCol}>
-                          <button
-                            className={styles.expandBtn}
-                            onClick={() => toggleRow(transfer.transferId)}
-                          >
-                            {expandedRows.has(transfer.transferId) ? (
-                              <ChevronUp size={18} />
-                            ) : (
-                              <ChevronDown size={18} />
-                            )}
-                          </button>
-                        </td>
-                        <td>
-                          <span className={styles.transferId}>{transfer.transferId}</span>
-                        </td>
-                        <td>
-                          <span className={`${styles.badge} ${styles[transfer.transferType.toLowerCase()]}`}>
-                            {transfer.transferType}
-                          </span>
-                        </td>
-                        <td className={styles.hideOnMobile}>
-                          <div className={styles.dateTime}>
-                            <Calendar size={14} />
-                            <span>{formatDate(transfer.transferDate)}</span>
-                            <span className={styles.time}>{transfer.transferTime}</span>
-                          </div>
-                        </td>
-                        <td>
-                          <div className={styles.userInfo}>
-                            <User size={14} />
-                            <div>
-                              <div className={styles.userName}>{transfer.senderDetails.name}</div>
-                              <div className={styles.userContact}>{transfer.senderDetails.contactNumber || 'N/A'}</div>
-                              <div className={styles.showOnMobile}>
-                                {transfer.senderDetails.storeName}
-                              </div>
+          <div className={styles.tableContainer}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th className={styles.checkboxCol}>
+                    <input
+                      type="checkbox"
+                      className="form-check-input"
+                      checked={selectedTransfers.size === filteredHistory.length && filteredHistory.length > 0}
+                      onChange={handleSelectAll}
+                    />
+                  </th>
+                  <th className={styles.expandCol}></th>
+                  <th>Transfer ID</th>
+                  <th>Type</th>
+                  <th className={styles.hideOnMobile}>Date & Time</th>
+                  <th>Sender</th>
+                  <th>Receiver</th>
+                  <th className={styles.hideOnMobile}>Items</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredHistory.map((transfer) => (
+                  <React.Fragment key={transfer.transferId}>
+                    <tr className={styles.parentRow}>
+                      <td className={styles.checkboxCol}>
+                        <input
+                          type="checkbox"
+                          className="form-check-input"
+                          checked={selectedTransfers.has(transfer.transferId)}
+                          onChange={() => handleCheckboxChange(transfer.transferId)}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </td>
+                      <td className={styles.expandCol}>
+                        <button
+                          className={styles.expandBtn}
+                          onClick={() => toggleRow(transfer.transferId)}
+                        >
+                          {expandedRows.has(transfer.transferId) ? (
+                            <ChevronUp size={18} />
+                          ) : (
+                            <ChevronDown size={18} />
+                          )}
+                        </button>
+                      </td>
+                      <td>
+                        <span className={styles.transferId}>{transfer.transferId}</span>
+                      </td>
+                      <td>
+                        <span className={`${styles.badge} ${styles[transfer.transferType.toLowerCase()]}`}>
+                          {transfer.transferType}
+                        </span>
+                      </td>
+                      <td className={styles.hideOnMobile}>
+                        <div className={styles.dateTime}>
+                          <Calendar size={14} />
+                          <span>{formatDate(transfer.transferDate)}</span>
+                          <span className={styles.time}>{transfer.transferTime}</span>
+                        </div>
+                      </td>
+                      <td>
+                        <div className={styles.userInfo}>
+                          <User size={14} />
+                          <div>
+                            <div className={styles.userName}>{transfer.senderDetails.name}</div>
+                            <div className={styles.userContact}>{transfer.senderDetails.contactNumber || 'N/A'}</div>
+                            <div className={styles.showOnMobile}>
+                              {transfer.senderDetails.storeName}
                             </div>
                           </div>
-                        </td>
-                        <td>
-                          <div className={styles.userInfo}>
-                            <User size={14} />
-                            <div>
-                              <div className={styles.userName}>{transfer.receiverDetails.name}</div>
-                              <div className={styles.userContact}>{transfer.receiverDetails.contactNumber || 'N/A'}</div>
-                              <div className={styles.showOnMobile}>
-                                {transfer.receiverDetails.storeName}
-                              </div>
+                        </div>
+                      </td>
+                      <td>
+                        <div className={styles.userInfo}>
+                          <User size={14} />
+                          <div>
+                            <div className={styles.userName}>{transfer.receiverDetails.name}</div>
+                            <div className={styles.userContact}>{transfer.receiverDetails.contactNumber || 'N/A'}</div>
+                            <div className={styles.showOnMobile}>
+                              {transfer.receiverDetails.storeName}
                             </div>
                           </div>
-                        </td>
-                        <td className={styles.hideOnMobile}>
-                          <span className={styles.itemCount}>
-                            {transfer.stockDetails.length} item(s)
-                          </span>
+                        </div>
+                      </td>
+                      <td className={styles.hideOnMobile}>
+                        <span className={styles.itemCount}>
+                          {transfer.stockDetails.length} item(s)
+                        </span>
+                      </td>
+                    </tr>
+
+                    {expandedRows.has(transfer.transferId) && (
+                      <tr className={styles.childRow}>
+                        <td colSpan="8">
+                          <div className={styles.expandedContent}>
+                            <div className={styles.showOnMobile}>
+                              <div className={styles.mobileDateTime}>
+                                <Calendar size={14} />
+                                {formatDate(transfer.transferDate)} • {transfer.transferTime}
+                              </div>
+                            </div>
+
+                            <div className={styles.detailsGrid}>
+                              {/* Sender Details */}
+                              <div className={styles.detailCard}>
+                                <h4>Sender Details</h4>
+
+                                {transfer.senderDetails?.name && (
+                                  <p>
+                                    <strong>Name:</strong> {transfer.senderDetails.name}
+                                  </p>
+                                )}
+
+                                {transfer.senderDetails?.contactNumber && (
+                                  <p>
+                                    <strong>Contact:</strong> {transfer.senderDetails.contactNumber}
+                                  </p>
+                                )}
+
+                                {transfer.senderDetails?.emailId && (
+                                  <p>
+                                    <strong>Email:</strong> {transfer.senderDetails.emailId}
+                                  </p>
+                                )}
+
+                                {transfer.senderDetails?.role && (
+                                  <p>
+                                    <strong>Role:</strong> {transfer.senderDetails.role}
+                                  </p>
+                                )}
+
+                                {transfer.senderDetails?.storeName && (
+                                  <p>
+                                    <strong>Store/Nursery/Company:</strong>{" "}
+                                    {transfer.senderDetails.storeName}
+                                  </p>
+                                )}
+                              </div>
+
+                              {/* Receiver Details */}
+                              <div className={styles.detailCard}>
+                                <h4>Receiver Details</h4>
+
+                                {transfer.receiverDetails?.name && (
+                                  <p>
+                                    <strong>Name:</strong> {transfer.receiverDetails.name}
+                                  </p>
+                                )}
+
+                                {transfer.receiverDetails?.contactNumber && (
+                                  <p>
+                                    <strong>Contact:</strong> {transfer.receiverDetails.contactNumber}
+                                  </p>
+                                )}
+
+                                {transfer.receiverDetails?.emailId && (
+                                  <p>
+                                    <strong>Email:</strong> {transfer.receiverDetails.emailId}
+                                  </p>
+                                )}
+
+                                {transfer.receiverDetails?.role && (
+                                  <p>
+                                    <strong>Role:</strong> {transfer.receiverDetails.role}
+                                  </p>
+                                )}
+
+                                {transfer.receiverDetails?.storeName && (
+                                  <p>
+                                    <strong>Store/Nursery/Company:</strong>{" "}
+                                    {transfer.receiverDetails.storeName}
+                                  </p>
+                                )}
+                              </div>
+                          </div>
+
+
+                          <div className={styles.stockDetailsSection}>
+                            <h4>Stock Details</h4>
+                            <div className={`${styles.stockTableWrapper} ${transfer.stockDetails.length > 5 ? styles.scrollable : ''}`}>
+                              <table className={styles.stockTable}>
+                                <thead>
+                                  <tr>
+                                    <th>Product</th>
+                                    <th>Packing</th>
+                                    <th className={styles.hideOnMobile}>Current Qty</th>
+                                    <th>{transfer.transferType === 'OUT' ? 'Outgoing' : 'Incoming'}</th>
+                                    <th>Final Qty</th>
+                                    <th className={styles.hideOnMobile}>Bags/Bottles</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {transfer.stockDetails.map((stock, idx) => (
+                                    <React.Fragment key={idx}>
+                                      <tr>
+                                        <td>{stock.productName}</td>
+                                        <td>{stock.packingSize} {formatPackingUnit(stock.packingUnit)}</td>
+                                        <td className={styles.hideOnMobile}>{stock.currentQuantity}</td>
+                                        <td className={styles.highlight}>
+                                          {transfer.transferType === 'OUT'
+                                            ? stock.outgoingQuantity
+                                            : stock.incomingQuantity}{' '}
+                                          {formatPackingUnit(stock.packingUnit)}
+                                        </td>
+                                        <td><strong>{stock.finalRemainingQuantity} {formatPackingUnit(stock.packingUnit)}</strong></td>
+                                        <td className={styles.hideOnMobile}>
+                                          {transfer.transferType === 'OUT'
+                                            ? stock.outgoingBags
+                                            : stock.incomingBags}
+                                        </td>
+                                      </tr>
+                                      {stock.transferMetadata && 
+                                      stock.transferMetadata.transferType === 'weight' && 
+                                      stock.transferMetadata.unit !== stock.packingUnit && (
+                                        <tr className={styles.metadataRow}>
+                                          <td colSpan="6">
+                                            <div className={styles.metadataContent}>
+                                              <span className={styles.metadataLabel}>Transfer Details: </span>
+                                              <span className={styles.metadataValue}>
+                                                {stock.transferMetadata.weight}
+                                              </span>
+                                              <span className={styles.metadataSeparator}> • </span>
+                                              <span className={styles.metadataValue}>
+                                                Unit Transferred: {stock.transferMetadata.unit}
+                                              </span>
+                                            </div>
+                                          </td>
+                                        </tr>
+                                      )}
+                                    </React.Fragment>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+
+                          </div>
                         </td>
                       </tr>
-
-                      {expandedRows.has(transfer.transferId) && (
-                        <tr className={styles.childRow}>
-                          <td colSpan="8">
-                            <div className={styles.expandedContent}>
-                              <div className={styles.showOnMobile}>
-                                <div className={styles.mobileDateTime}>
-                                  <Calendar size={14} />
-                                  {formatDate(transfer.transferDate)} • {transfer.transferTime}
-                                </div>
-                              </div>
-
-                              <div className={styles.detailsGrid}>
-                                <div className={styles.detailCard}>
-                                  <h4>Sender Details</h4>
-                                  <p><strong>Name:</strong> {transfer.senderDetails.name}</p>
-                                  <p><strong>Contact:</strong> {transfer.senderDetails.contactNumber || 'N/A'}</p>
-                                  <p><strong>Email:</strong> {transfer.senderDetails.emailId}</p>
-                                  <p><strong>Role:</strong> {transfer.senderDetails.role}</p>
-                                  <p><strong>Store:</strong> {transfer.senderDetails.storeName}</p>
-                                </div>
-
-                                <div className={styles.detailCard}>
-                                  <h4>Receiver Details</h4>
-                                  <p><strong>Name:</strong> {transfer.receiverDetails.name}</p>
-                                  <p><strong>Contact:</strong> {transfer.receiverDetails.contactNumber || 'N/A'}</p>
-                                  <p><strong>Email:</strong> {transfer.receiverDetails.emailId}</p>
-                                  <p><strong>Role:</strong> {transfer.receiverDetails.role}</p>
-                                  <p><strong>Store:</strong> {transfer.receiverDetails.storeName}</p>
-                                </div>
-                              </div>
-
-                              <div className={styles.stockDetailsSection}>
-                                <h4>Stock Details</h4>
-                                <div className={styles.stockTable}>
-                                  <table>
-                                    <thead>
-                                      <tr>
-                                        <th>Product</th>
-                                        <th>Packing</th>
-                                        <th className={styles.hideOnMobile}>Current Qty</th>
-                                        <th>{transfer.transferType === 'OUT' ? 'Outgoing' : 'Incoming'}</th>
-                                        <th>Final Qty</th>
-                                        <th className={styles.hideOnMobile}>Bags</th>
-                                      </tr>
-                                    </thead>
-                                    <tbody>
-                                      {transfer.stockDetails.map((stock, idx) => (
-                                        <React.Fragment key={idx}>
-                                          <tr>
-                                            <td>{stock.productName}</td>
-                                            <td>{stock.packingSize} {stock.packingUnit}</td>
-                                            <td className={styles.hideOnMobile}>{stock.currentQuantity}</td>
-                                            <td className={styles.highlight}>
-                                              {transfer.transferType === 'OUT'
-                                                ? stock.outgoingQuantity
-                                                : stock.incomingQuantity}
-                                            </td>
-                                            <td><strong>{stock.finalRemainingQuantity}</strong></td>
-                                            <td className={styles.hideOnMobile}>
-                                              {transfer.transferType === 'OUT'
-                                                ? stock.outgoingBags
-                                                : stock.incomingBags}
-                                            </td>
-                                          </tr>
-                                          {stock.transferMetadata && 
-                                           stock.transferMetadata.transferType === 'weight' && 
-                                           stock.transferMetadata.unit !== stock.packingUnit && (
-                                            <tr className={styles.metadataRow}>
-                                              <td colSpan="6">
-                                                <div className={styles.metadataContent}>
-                                                  <span className={styles.metadataLabel}>Transfer Details : </span>
-                                                  <span className={styles.metadataValue}>
-                                                     {stock.transferMetadata.weight}
-                                                  </span>
-                                                  <span className={styles.metadataSeparator}>  •  </span>
-                                                  <span className={styles.metadataValue}>
-                                                    Unit Transferred: {stock.transferMetadata.unit}
-                                                  </span>
-                                                </div>
-                                              </td>
-                                            </tr>
-                                          )}
-                                        </React.Fragment>
-                                      ))}
-                                    </tbody>
-                                  </table>
-                                </div>
-                              </div>
-                            </div>
-                          </td>
-                        </tr>
-                      )}
-                    </React.Fragment>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                    )}
+                  </React.Fragment>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </div>

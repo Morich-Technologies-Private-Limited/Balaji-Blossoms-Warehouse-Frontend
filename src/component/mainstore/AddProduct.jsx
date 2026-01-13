@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styles from './AddProduct.module.css';
 import { addProduct } from '../../api/addProduct';
 import { checkProductAvaliablity } from '../../api/checkProductAvaliablity';
@@ -20,10 +20,14 @@ const AddProduct = () => {
   const [existingPackings, setExistingPackings] = useState([]);
   const [loadingPackings, setLoadingPackings] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
   
   const [packingList, setPackingList] = useState([{ packingSize: '', packingUnit: '' }]);
   const [errors, setErrors] = useState({});
   const [submitStatus, setSubmitStatus] = useState(null);
+
+  const searchInputRef = useRef(null);
+  const dropdownRef = useRef(null);
 
   // Auto-search when user types more than 2 characters
   useEffect(() => {
@@ -33,11 +37,27 @@ const AddProduct = () => {
       } else if (searchKey.trim().length <= 2) {
         setSearchResults([]);
         setShowDropdown(false);
+        setHighlightedIndex(-1);
       }
     }, 300);
 
     return () => clearTimeout(delayDebounce);
-  }, [searchKey]);
+  }, [searchKey, selectedProduct]);
+
+  // Reset highlighted index when search results change
+  useEffect(() => {
+    setHighlightedIndex(-1);
+  }, [searchResults]);
+
+  // Scroll highlighted item into view
+  useEffect(() => {
+    if (highlightedIndex >= 0 && dropdownRef.current) {
+      const highlightedElement = dropdownRef.current.children[highlightedIndex];
+      if (highlightedElement) {
+        highlightedElement.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      }
+    }
+  }, [highlightedIndex]);
 
   const getValidUnits = (selectedCategory) => {
     if (selectedCategory === 'SOLID') {
@@ -182,9 +202,39 @@ const AddProduct = () => {
     setSearchResults([]);
     setSearchKey(product.productName);
     setShowDropdown(false);
+    setHighlightedIndex(-1);
     
     // Call the packing API when product is selected
     await fetchProductPackings(product.productId);
+  };
+
+  const handleKeyDown = (e) => {
+    if (!showDropdown || searchResults.length === 0) return;
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setHighlightedIndex((prev) => 
+          prev < searchResults.length - 1 ? prev + 1 : prev
+        );
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : -1));
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (highlightedIndex >= 0 && highlightedIndex < searchResults.length) {
+          handleSelectProduct(searchResults[highlightedIndex]);
+        }
+        break;
+      case 'Escape':
+        setShowDropdown(false);
+        setHighlightedIndex(-1);
+        break;
+      default:
+        break;
+    }
   };
 
   const validatePacking = (packing, selectedCategory, currentIndex) => {
@@ -389,10 +439,12 @@ const AddProduct = () => {
             <div className={styles.searchWrapper}>
               <div className={styles.searchInputWrapper}>
                 <input
+                  ref={searchInputRef}
                   type="text"
                   className={styles.formControl}
                   value={searchKey}
                   onChange={(e) => setSearchKey(e.target.value)}
+                  onKeyDown={handleKeyDown}
                   placeholder="Type at least 3 characters to search..."
                   onFocus={() => {
                     if (searchResults.length > 0 && searchKey.trim().length > 2) {
@@ -401,12 +453,17 @@ const AddProduct = () => {
                   }}
                 />
                 {showDropdown && searchResults.length > 0 && (
-                  <div className={styles.searchResults}>
-                    {searchResults.map((product) => (
+                  <div className={styles.searchResults} ref={dropdownRef}>
+                    {searchResults.map((product, index) => (
                       <div
                         key={product.productId}
                         className={styles.searchResultItem}
+                        style={index === highlightedIndex ? {
+                          backgroundColor: '#dbeafe',
+                          borderLeft: '3px solid #2a5298'
+                        } : {}}
                         onClick={() => handleSelectProduct(product)}
+                        onMouseEnter={() => setHighlightedIndex(index)}
                       >
                         <div className={styles.productName}>{product.productName}</div>
                         <div className={styles.productCategory}>{product.category}</div>

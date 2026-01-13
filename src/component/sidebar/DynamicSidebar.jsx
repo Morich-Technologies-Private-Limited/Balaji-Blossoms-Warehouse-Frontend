@@ -88,12 +88,10 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
 
   };
 
-  // 🔥 FIX: Backend enum → sidebar key mapping
   const roleKeyMap = {
     ADMIN: 'admin',
     MAIN_STORE_MANAGER: 'mainstore',
     SUB_STORE_MANAGER: 'substore',
-    SUB_STORE_SUPERVISOR: 'substore',
   };
 
   const sidebarKey = roleKeyMap[role] || 'mainstore';

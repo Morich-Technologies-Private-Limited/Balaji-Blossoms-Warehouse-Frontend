@@ -341,7 +341,7 @@ const InventoryView = () => {
               <tr className={styles.subHeader}>
                 <th className={styles.headerCell}>Packing Size</th>
                 <th className={styles.headerCell}>Available Quantity</th>
-                <th className={styles.headerCell}>Available Bags</th>
+                <th className={styles.headerCell}>Available Bags/ Bottles</th>
               </tr>
             </thead>
             <tbody>

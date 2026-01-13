@@ -17,7 +17,7 @@
 
 .header {
   color: white;
-  background: #0d2f96;
+  background: #0f4776;
   padding: 1rem 2rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   justify-content: center;
@@ -57,7 +57,7 @@
   left: 16px;
   top: 50%;
   transform: translateY(-50%);
-  color: #6c757d;
+  color: black;
   z-index: 1;
   pointer-events: none;
 }
@@ -80,7 +80,7 @@
 }
 
 .searchInput::placeholder {
-  color: #adb5bd;
+  color: black;
 }
 
 .storeFilter {

@@ -82,7 +82,6 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
         { icon: 'bi-house-door-fill', text: 'Home', link: '/substore' },
         { icon: 'bi-arrow-up-circle', text: 'Stock Transfer', link: '/substore/transfer' },
         { icon: 'bi-file-text', text: 'Transfer History', link: '/substore/view/tranferHistory' },
-        { icon: 'bi-person-plus-fill', text: 'View Supervisor', link: '/substore/orders' },
         { icon: 'bi-boxes', text: 'Inventory View', link: '/substore/view/inventory' },
       ]
     },

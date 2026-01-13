@@ -146,9 +146,11 @@ const InventoryView = () => {
     <div className={styles.container}>
       <div className={styles.header}>
         <div className={styles.headerContent}>
-          <h1 className={styles.title}>Inventory</h1>
+          <h1 className={styles.title}>Inventory View</h1>
         </div>
       </div>
+
+
       <div className={styles.maincontent}>
         <div className={styles.controls}>
           <div className={styles.searchBox}>

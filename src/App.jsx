@@ -16,6 +16,8 @@ import UnauthorizedPage from "./component/auth/UnauthorizedPage";
 import ShopTransfer from "./component/mainstore/ShopTransfer";
 import StockImport from "./component/mainstore/StockImport";
 import SupervisorTransfer from "./component/mainstore/SupervisorTransfer";
+import Dashboard from "./component/mainstore/Dashboard";
+
 
 /* ================= ROLE ↔ PATH MAP ================= */
 const ROLE_PATH_MAP = {
@@ -128,18 +130,23 @@ function App() {
             }
           />
 
-          {/* ============ MAIN STORE ============ */}
-          <Route
-            path="/mainstore"
+  
+
+
+          {/* ============ 🔥 DYNAMIC COMMON ROUTE (KEY FIX) 🔥 ============ */}
+         
+         
+                 <Route
+            path="/:scope/dashboard"
             element={
-              <ProtectedRoute allowedRoles={["MAIN_STORE_MANAGER", "ADMIN"]}>
-                <h2>Main Store Dashboard</h2>
+              <ProtectedRoute allowedRoles={["MAIN_STORE_MANAGER", "SUB_STORE_MANAGER"]}>
+                <Dashboard />
               </ProtectedRoute>
             }
           />
 
-
-          {/* ============ 🔥 DYNAMIC COMMON ROUTE (KEY FIX) 🔥 ============ */}
+         
+         
           <Route
             path="/:scope/view/tranferHistory"
             element={

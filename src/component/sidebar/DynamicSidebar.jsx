@@ -69,7 +69,7 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
       logo: 'Balaji Blossoms',
       title: 'Main Store',
       navItems: [
-        { icon: 'bi-house-door-fill', text: 'Home', link: '/mainstore' },
+        { icon: 'bi-house-door-fill', text: 'Home', link: '/mainstore/dashboard' },
         { icon: 'bi-clock-history', text: 'In Entry', link: '/mainstore/import' },
         { icon: 'bi-shop', text: 'Out Entry', link: '/mainstore/transfer' },
         { icon: 'bi-box', text: 'Product Master', link: '/mainstore/product/add' },
@@ -82,7 +82,7 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
       logo: 'Balaji Blossoms',
       title: 'Sub Store',
       navItems: [
-        { icon: 'bi-house-door-fill', text: 'Home', link: '/substore' },
+        { icon: 'bi-house-door-fill', text: 'Home', link: '/substore/dashboard' },
         { icon: 'bi-arrow-up-circle', text: 'Stock Transfer', link: '/substore/transfer' },
         { icon: 'bi-arrow-up-circle', text: 'Out Entry', link: '/substore/supervisor/transfer' },
         { icon: 'bi-file-text', text: 'Transfer History', link: '/substore/view/tranferHistory' },

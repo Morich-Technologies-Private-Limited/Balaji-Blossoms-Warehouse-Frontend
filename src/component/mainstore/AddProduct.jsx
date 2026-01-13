@@ -1,13 +1,43 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from './AddProduct.module.css';
 import { addProduct } from '../../api/addProduct';
+import { checkProductAvaliablity } from '../../api/checkProductAvaliablity';
+import { findProducts } from '../../api/findProducts';
+import { addPacking } from '../../api/addPacking';
+import { findProductPackingWithoutInventory } from '../../api/findProductPackingWithoutInventory';
 
 const AddProduct = () => {
+  const [showCreateProductModal, setShowCreateProductModal] = useState(false);
   const [productName, setProductName] = useState('');
   const [category, setCategory] = useState('');
+  const [productNameError, setProductNameError] = useState('');
+  const [categoryError, setCategoryError] = useState('');
+  const [checkingAvailability, setCheckingAvailability] = useState(false);
+  
+  const [searchKey, setSearchKey] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [existingPackings, setExistingPackings] = useState([]);
+  const [loadingPackings, setLoadingPackings] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  
   const [packingList, setPackingList] = useState([{ packingSize: '', packingUnit: '' }]);
   const [errors, setErrors] = useState({});
   const [submitStatus, setSubmitStatus] = useState(null);
+
+  // Auto-search when user types more than 2 characters
+  useEffect(() => {
+    const delayDebounce = setTimeout(() => {
+      if (searchKey.trim().length > 2 && !selectedProduct) {
+        handleSearchProduct();
+      } else if (searchKey.trim().length <= 2) {
+        setSearchResults([]);
+        setShowDropdown(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(delayDebounce);
+  }, [searchKey]);
 
   const getValidUnits = (selectedCategory) => {
     if (selectedCategory === 'SOLID') {
@@ -28,7 +58,140 @@ const AddProduct = () => {
     return `${normalizedSize}${normalizedUnit}`;
   };
 
+  const checkProductAvailability = async (name) => {
+    if (!name.trim()) {
+      setProductNameError('Product name is required');
+      return false;
+    }
+
+    setCheckingAvailability(true);
+    try {
+      const response = await checkProductAvaliablity(name);
+      const data = response.data.payload
+      
+      if (data.status) {
+        setProductNameError('');
+        return true;
+      } else {
+        setProductNameError(data.message || 'Product name not available');
+        return false;
+      }
+    } catch (error) {
+      setProductNameError('Error checking product availability');
+      return false;
+    } finally {
+      setCheckingAvailability(false);
+    }
+  };
+
+  const handleCreateProduct = async () => {
+    let hasError = false;
+
+    if (!productName.trim()) {
+      setProductNameError('Product name is required');
+      hasError = true;
+    }
+
+    if (!category) {
+      setCategoryError('Category is required');
+      hasError = true;
+    }
+
+    if (hasError) return;
+
+    const isAvailable = await checkProductAvailability(productName);
+    if (!isAvailable) return;
+
+    const productData = {
+      productName: productName.trim(),
+      category: category
+    };
+
+    try {
+      const response = await addProduct(productData);
+      if (response.data.status === 'SUCCESS') {
+        setSubmitStatus({
+          type: 'success',
+          message: 'Product created successfully!'
+        });
+        setShowCreateProductModal(false);
+        setProductName('');
+        setCategory('');
+        setProductNameError('');
+        setCategoryError('');
+        setTimeout(() => setSubmitStatus(null), 3000);
+      } else {
+        setSubmitStatus({
+          type: 'error',
+          message: response.data.message || 'Failed to create product'
+        });
+      }
+    } catch (error) {
+      setSubmitStatus({
+        type: 'error',
+        message: 'An error occurred while creating the product'
+      });
+    }
+  };
+
+  const handleSearchProduct = async () => {
+    if (!searchKey.trim() || searchKey.trim().length <= 2) {
+      return;
+    }
+
+    try {
+      const response = await findProducts(searchKey);
+      
+      if (response.data.status === 'SUCCESS' ) {
+        setSearchResults(response.data.payload);
+        setShowDropdown(true);
+      } else {
+        setSearchResults([]);
+        setShowDropdown(false);
+      }
+    } catch (error) {
+      setSearchResults([]);
+      setShowDropdown(false);
+    }
+  };
+
+  const fetchProductPackings = async (productId) => {
+    setLoadingPackings(true);
+    try {
+      const response = await findProductPackingWithoutInventory(productId);
+      
+      if (response.data.status === 'SUCCESS' && response.data.payload) {
+        setExistingPackings(response.data.payload);
+      } else {
+        setExistingPackings([]);
+      }
+    } catch (error) {
+      console.error('Error fetching packings:', error);
+      setExistingPackings([]);
+      setSubmitStatus({
+        type: 'error',
+        message: 'Error loading existing packings'
+      });
+    } finally {
+      setLoadingPackings(false);
+    }
+  };
+
+  const handleSelectProduct = async (product) => {
+    setSelectedProduct(product);
+    setSearchResults([]);
+    setSearchKey(product.productName);
+    setShowDropdown(false);
+    
+    // Call the packing API when product is selected
+    await fetchProductPackings(product.productId);
+  };
+
   const validatePacking = (packing, selectedCategory, currentIndex) => {
+    if (!selectedProduct) {
+      return 'Please select a product first';
+    }
+
     const validUnits = getValidUnits(selectedCategory);
 
     if (!packing.packingUnit) {
@@ -55,6 +218,16 @@ const AddProduct = () => {
     }
 
     const currentNormalized = normalizePacking(packing.packingSize, packing.packingUnit);
+    
+    // Check against existing packings
+    for (const existing of existingPackings) {
+      const existingNormalized = normalizePacking(existing.packingSize, existing.packingUnit);
+      if (currentNormalized === existingNormalized) {
+        return 'This packing already exists for this product';
+      }
+    }
+
+    // Check against current packing list
     for (let i = 0; i < packingList.length; i++) {
       if (i !== currentIndex && packingList[i].packingSize && packingList[i].packingUnit) {
         const otherNormalized = normalizePacking(packingList[i].packingSize, packingList[i].packingUnit);
@@ -128,31 +301,21 @@ const AddProduct = () => {
     }
   };
 
-  const handleCategoryChange = (newCategory) => {
-    setCategory(newCategory);
-    const resetPackingList = packingList.map(packing => ({
-      packingSize: '',
-      packingUnit: ''
-    }));
-    setPackingList(resetPackingList);
-    setErrors({});
-  };
-
-  const handleSubmit = async (e) => {
+  const handleSubmitPacking = async (e) => {
     e.preventDefault();
+
+    if (!selectedProduct) {
+      setSubmitStatus({
+        type: 'error',
+        message: 'Please select a product first'
+      });
+      return;
+    }
 
     const newErrors = {};
 
-    if (!productName.trim()) {
-      newErrors.productName = 'Product name is required';
-    }
-
-    if (!category) {
-      newErrors.category = 'Category is required';
-    }
-
     packingList.forEach((packing, index) => {
-      const error = validatePacking(packing, category, index);
+      const error = validatePacking(packing, selectedProduct.category, index);
       if (error) {
         newErrors[`packing_${index}`] = error;
       }
@@ -169,36 +332,38 @@ const AddProduct = () => {
 
     setErrors({});
 
-    const productData = {
-      productName: productName.trim(),
-      category: category,
+    const packingData = {
+      productId: selectedProduct.productId,
       packingList: packingList.map(p => ({
-        packingSize: parseFloat(p.packingSize),
+        packingSize: parseInt(p.packingSize),
         packingUnit: p.packingUnit
       }))
     };
 
     try {
-      const response = await addProduct(productData);
+      const response = await addPacking(packingData);
+    
       if (response.data.status === 'SUCCESS') {
         setSubmitStatus({
           type: 'success',
-          message: 'Product added successfully!'
+          message: 'Packing added successfully!'
         });
-        setProductName('');
-        setCategory('');
         setPackingList([{ packingSize: '', packingUnit: '' }]);
+        
+        // Refresh existing packings using the API function
+        await fetchProductPackings(selectedProduct.productId);
+        
         setTimeout(() => setSubmitStatus(null), 3000);
       } else {
         setSubmitStatus({
           type: 'error',
-          message: response.data.message || 'Failed to add product'
+          message: response.data.message || 'Failed to add packing'
         });
       }
     } catch (error) {
       setSubmitStatus({
         type: 'error',
-        message: 'An error occurred while adding the product'
+        message: 'An error occurred while adding packing'
       });
     }
   };
@@ -206,7 +371,7 @@ const AddProduct = () => {
   return (
     <div className={styles.pageContainer}>
       <header className={styles.pageHeader}>
-        <h1 className={styles.pageTitle}>Add New Product</h1>
+        <h1 className={styles.pageTitle}>Add Product & Packing</h1>
       </header>
 
       <main className={styles.pageContent}>
@@ -214,50 +379,96 @@ const AddProduct = () => {
           {submitStatus && (
             <div className={`${styles.alert} ${submitStatus.type === 'success' ? styles.alertSuccess : styles.alertDanger}`}>
               {submitStatus.message}
-              <button onClick={() => setSubmitStatus(null)}>×</button>
+              <button onClick={() => setSubmitStatus(null)} className={styles.alertClose}>×</button>
             </div>
           )}
 
-          <form onSubmit={handleSubmit}>
-            <div className={styles.formSection}>
-              <label className={styles.formLabel}>
-                Product Name *
-              </label>
-              <input
-                type="text"
-                className={`${styles.formControl} ${errors.productName ? styles.isInvalid : ''}`}
-                value={productName}
-                onChange={(e) => {
-                  setProductName(e.target.value);
-                  const newErrors = { ...errors };
-                  delete newErrors.productName;
-                  setErrors(newErrors);
-                }}
-                placeholder="Enter product name"
-              />
-              {errors.productName && (
-                <div className={styles.invalidFeedback}>{errors.productName}</div>
-              )}
-              <label className={styles.formLabel}>
-                Category *
-              </label>
-              <select
-                className={`${styles.formSelect} ${errors.category ? styles.isInvalid : ''}`}
-                value={category}
-                onChange={(e) => handleCategoryChange(e.target.value)}
+          {/* Search Product Section with Create Button */}
+          <div className={styles.formSection}>
+            <label className={styles.formLabel}>Search Product</label>
+            <div className={styles.searchWrapper}>
+              <div className={styles.searchInputWrapper}>
+                <input
+                  type="text"
+                  className={styles.formControl}
+                  value={searchKey}
+                  onChange={(e) => setSearchKey(e.target.value)}
+                  placeholder="Type at least 3 characters to search..."
+                  onFocus={() => {
+                    if (searchResults.length > 0 && searchKey.trim().length > 2) {
+                      setShowDropdown(true);
+                    }
+                  }}
+                />
+                {showDropdown && searchResults.length > 0 && (
+                  <div className={styles.searchResults}>
+                    {searchResults.map((product) => (
+                      <div
+                        key={product.productId}
+                        className={styles.searchResultItem}
+                        onClick={() => handleSelectProduct(product)}
+                      >
+                        <div className={styles.productName}>{product.productName}</div>
+                        <div className={styles.productCategory}>{product.category}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <button
+                type="button"
+                className={styles.btnCreateProduct}
+                onClick={() => setShowCreateProductModal(true)}
               >
-                <option value="">Select category</option>
-                <option value="SOLID">Solid</option>
-                <option value="LIQUID">Liquid</option>
-              </select>
-              {errors.category && (
-                <div className={styles.invalidFeedback}>{errors.category}</div>
-              )}
+                + Create New Product
+              </button>
             </div>
 
+            {selectedProduct && (
+              <div className={styles.selectedProductBadge}>
+                <span>Selected: <strong>{selectedProduct.productName}</strong> ({selectedProduct.category})</span>
+                <button
+                  onClick={() => {
+                    setSelectedProduct(null);
+                    setSearchKey('');
+                    setExistingPackings([]);
+                    setPackingList([{ packingSize: '', packingUnit: '' }]);
+                    setErrors({});
+                  }}
+                  className={styles.clearSelection}
+                >
+                  ×
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Loading Packings */}
+          {loadingPackings && (
+            <div className={styles.loadingSection}>
+              <p>Loading existing packings...</p>
+            </div>
+          )}
+
+          {/* Existing Packings */}
+          {selectedProduct && !loadingPackings && existingPackings.length > 0 && (
+            <div className={styles.existingPackingsSection}>
+              <h3 className={styles.sectionTitle}>Existing Packings</h3>
+              <div className={styles.existingPackingsList}>
+                {existingPackings.map((packing, index) => (
+                  <div key={index} className={styles.existingPackingItem}>
+                    {packing.packingSize} {packing.packingUnit}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Add Packing Section */}
+          {selectedProduct && !loadingPackings && (
             <div className={styles.packingSection}>
               <div className={styles.packingHeader}>
-                <h3 className={styles.sectionTitle}>Packing Details</h3>
+                <h3 className={styles.sectionTitle}>Add New Packing</h3>
                 <button
                   type="button"
                   className={styles.btnAddPacking}
@@ -288,10 +499,9 @@ const AddProduct = () => {
                               className={`${styles.tableSelect} ${errors[`packing_${index}`] ? styles.isInvalid : ''}`}
                               value={packing.packingUnit}
                               onChange={(e) => handlePackingChange(index, 'packingUnit', e.target.value)}
-                              disabled={!category}
                             >
                               <option value="">Select unit</option>
-                              {category && getValidUnits(category).map(unit => (
+                              {selectedProduct && getValidUnits(selectedProduct.category).map(unit => (
                                 <option key={unit} value={unit}>{unit}</option>
                               ))}
                             </select>
@@ -329,34 +539,109 @@ const AddProduct = () => {
                 </div>
               </div>
             </div>
-          </form>
+          )}
         </div>
       </main>
 
-      <footer className={styles.pageFooter}>
-        <div className={styles.footerContent}>
-          <button
-            type="submit"
-            className={`btn btn-primary ${styles.btnSubmit}`}
-            onClick={handleSubmit}
-          >
-            Add Product
-          </button>
-          <button
-            type="button"
-            className={`btn btn-secondary ${styles.btnReset}`}
-            onClick={() => {
-              setProductName('');
-              setCategory('');
-              setPackingList([{ packingSize: '', packingUnit: '' }]);
-              setErrors({});
-              setSubmitStatus(null);
-            }}
-          >
-            Reset
-          </button>
+      {selectedProduct && !loadingPackings && (
+        <footer className={styles.pageFooter}>
+          <div className={styles.footerContent}>
+            <button
+              type="submit"
+              className={`btn btn-primary ${styles.btnSubmit}`}
+              onClick={handleSubmitPacking}
+            >
+              Add Packing
+            </button>
+            <button
+              type="button"
+              className={`btn btn-secondary ${styles.btnReset}`}
+              onClick={() => {
+                setPackingList([{ packingSize: '', packingUnit: '' }]);
+                setErrors({});
+              }}
+            >
+              Reset
+            </button>
+          </div>
+        </footer>
+      )}
+
+      {/* Create Product Modal */}
+      {showCreateProductModal && (
+        <div className={styles.modalOverlay} onClick={() => setShowCreateProductModal(false)}>
+          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h2 className={styles.modalTitle}>Create New Product</h2>
+              <button
+                className={styles.modalClose}
+                onClick={() => setShowCreateProductModal(false)}
+              >
+                ×
+              </button>
+            </div>
+            <div className={styles.modalBody}>
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>Product Name *</label>
+                <input
+                  type="text"
+                  className={`${styles.formControl} ${productNameError ? styles.isInvalid : ''}`}
+                  value={productName}
+                  onChange={(e) => {
+                    setProductName(e.target.value);
+                    setProductNameError('');
+                  }}
+                  placeholder="Enter product name"
+                />
+                {productNameError && (
+                  <div className={styles.invalidFeedback}>{productNameError}</div>
+                )}
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>Category *</label>
+                <select
+                  className={`${styles.formSelect} ${categoryError ? styles.isInvalid : ''}`}
+                  value={category}
+                  onChange={(e) => {
+                    setCategory(e.target.value);
+                    setCategoryError('');
+                  }}
+                >
+                  <option value="">Select category</option>
+                  <option value="SOLID">Solid</option>
+                  <option value="LIQUID">Liquid</option>
+                </select>
+                {categoryError && (
+                  <div className={styles.invalidFeedback}>{categoryError}</div>
+                )}
+              </div>
+            </div>
+            <div className={styles.modalFooter}>
+              <button
+                type="button"
+                className={styles.btnModalCancel}
+                onClick={() => {
+                  setShowCreateProductModal(false);
+                  setProductName('');
+                  setCategory('');
+                  setProductNameError('');
+                  setCategoryError('');
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className={styles.btnModalSubmit}
+                onClick={handleCreateProduct}
+                disabled={checkingAvailability}
+              >
+                {checkingAvailability ? 'Checking...' : 'Create Product'}
+              </button>
+            </div>
+          </div>
         </div>
-      </footer>
+      )}
     </div>
   );
 };

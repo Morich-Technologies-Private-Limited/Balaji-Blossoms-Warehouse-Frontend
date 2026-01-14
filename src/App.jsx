@@ -17,6 +17,7 @@ import ShopTransfer from "./component/mainstore/ShopTransfer";
 import StockImport from "./component/mainstore/StockImport";
 import SupervisorTransfer from "./component/mainstore/SupervisorTransfer";
 import Dashboard from "./component/mainstore/Dashboard";
+import CreateStore from "./component/admin/CreateStore";
 
 
 /* ================= ROLE ↔ PATH MAP ================= */
@@ -238,10 +239,10 @@ function App() {
 
           {/* ============ STORE HOUSE ============ */}
           <Route
-            path="/storehouse"
+            path="/admin/create/store"
             element={
-              <ProtectedRoute allowedRoles={["SHOP_MANAGER"]}>
-                <h2>Store House Dashboard</h2>
+              <ProtectedRoute allowedRoles={["ADMIN"]}>
+                <CreateStore />
               </ProtectedRoute>
             }
           />

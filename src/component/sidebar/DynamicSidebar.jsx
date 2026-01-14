@@ -58,7 +58,7 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
       navItems: [
         { icon: 'bi-house-door-fill', text: 'Home', link: '/admin' },
         { icon: 'bi-people', text: 'Create User', link: '/admin/users/register' },
-        { icon: 'bi-shop', text: 'Create Store', link: '/admin/create-store' },
+        { icon: 'bi-shop', text: 'Create Store', link: '/admin/create/store' },
         { icon: 'bi-person-badge', text: 'User Management', link: '/admin/manage/user' },
         { icon: 'bi-boxes', text: 'View Inventory', link: '/admin/view/inventory' },
         { icon: 'bi-clock-history', text: 'Transfer History', link: '/admin/view/tranferHistory' },

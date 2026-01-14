@@ -8,10 +8,7 @@
   overflow: hidden;
 }
 
-* {
-  scrollbar-width: thick;
-  scrollbar-color: #1b5397 #e8ebf1
-}
+
 
 .container {
   flex: 1;

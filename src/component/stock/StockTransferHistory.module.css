@@ -43,59 +43,33 @@
 }
 
 /* Controls Section */
+/* Controls Section */
 .controlsSection {
   flex-shrink: 0;
   margin-bottom: 20px;
-}
-
-.storeSelectWrapper {
   display: flex;
   align-items: center;
-  gap: 12px;
-  background: white;
-  padding: 12px 16px;
-  border-radius: 8px;
-  border: 2px solid #2563eb;
-  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.1);
-  margin-bottom: 16px;
-  max-width: 400px;
+  justify-content: space-between;
+  padding: 0 20px;
+  gap: 20px;
 }
 
-.storeIcon {
-  color: #2563eb;
-  flex-shrink: 0;
-}
-
-.storeSelect {
-  flex: 1;
-  border: none;
-  background: transparent;
-  font-size: 14px;
-  font-weight: 600;
-  color: #1e3a5f;
-  cursor: pointer;
-  outline: none;
-  padding: 4px 8px;
-}
-
-.storeSelect:focus {
-  outline: none;
-}
-
-/* Filter Section */
+/* Left side - Search and Filter */
 .filterSection {
   display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
+  gap: 12px;
+  flex-wrap: nowrap;
+  align-items: center;
+  flex: 1;
+  max-width: 600px;
 }
 
 .searchWrapper {
   position: relative;
   flex: 1;
-  min-width: 250px;
-  margin-left: 20px;
-  
+  min-width: 125%;
 }
+
 
 .searchIcon {
   position: absolute;
@@ -104,6 +78,7 @@
   transform: translateY(-50%);
   color: #6b7280;
   pointer-events: none;
+  z-index: 2;
 }
 
 .searchInput {
@@ -113,8 +88,14 @@
   border-radius: 8px;
   font-size: 14px;
   transition: all 0.2s;
-  color: black !important;
+  color: #1e3a5f !important;
   background: white;
+  height: 46px;
+  box-sizing: border-box;
+}
+
+.searchInput::placeholder {
+  color: #9ca3af;
 }
 
 .searchInput:focus {
@@ -127,8 +108,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 20px;
-  margin-right: 20px;
+  padding: 0 20px;
   border: 1px solid #d1d5db;
   border-radius: 8px;
   background: white;
@@ -138,12 +118,15 @@
   cursor: pointer;
   transition: all 0.2s;
   position: relative;
+  white-space: nowrap;
+  height: 46px;
+  box-sizing: border-box;
 }
 
 .filterButton:hover {
   border-color: #2563eb;
   color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  background: #f9fafb;
 }
 
 .filterActive {
@@ -154,29 +137,103 @@
 
 .filterBadge {
   position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 8px;
-  height: 8px;
+  top: -4px;
+  right: -4px;
+  width: 10px;
+  height: 10px;
   background: #ef4444;
   border-radius: 50%;
   border: 2px solid white;
 }
 
+/* Right side - Store Dropdown and Export */
+.storeSelectWrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: white;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 2px solid #2563eb;
+  height: 46px;
+  box-sizing: border-box;
+  min-width: 200px;
+  
+}
+
+.storeIcon {
+  color: #2563eb;
+  flex-shrink: 0;
+  font-size: 18px;
+}
+
+.storeSelect {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e3a5f;
+  cursor: pointer;
+  outline: none;
+  padding: 0;
+}
+
+.storeSelect:focus {
+  outline: none;
+}
+
+.storeSelect option {
+  padding: 8px;
+  background: white;
+  color: #1e3a5f;
+}
+
 .exportBtn {
-  padding: 12px 20px;
+  padding: 0 24px;
   border: none;
   border-radius: 8px;
-  background: #2563eb;
+  background: #10b981;
   color: white;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
+  white-space: nowrap;
+  height: 46px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: fit-content;
 }
 
 .exportBtn:hover {
-  background: #1d4ed8;
+  background: #059669;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(16, 185, 129, 0.3);
+}
+
+.exportBtn:active {
+  transform: translateY(0);
+}
+
+.exportBtn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.exportBtn:disabled:hover {
+  background: #9ca3af;
+  box-shadow: none;
+  transform: none;
+}
+
+/* Excel icon for export button */
+.exportBtn svg {
+  width: 18px;
+  height: 18px;
 }
 
 /* Modal Styles */

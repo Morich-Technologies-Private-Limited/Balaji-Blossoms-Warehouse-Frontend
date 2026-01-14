@@ -261,23 +261,7 @@ const StockTransferHistory = () => {
         </div>
 
         <div className={styles.controlsSection}>
-          {role === "ADMIN" && (
-            <div className={styles.storeSelectWrapper}>
-              <Store className={styles.storeIcon} size={18} />
-              <select
-                value={selectedStore?.storeId || ''}
-                onChange={handleStoreChange}
-                className={styles.storeSelect}
-              >
-                {allStores.map(store => (
-                  <option key={store.storeId} value={store.storeId}>
-                    {store.storeName} {store.tag === 'DEFAULT' ? '(Default)' : ''}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
+          
           <div className={styles.filterSection}>
             <div className={styles.searchWrapper}>
               <Search className={styles.searchIcon} />
@@ -299,14 +283,32 @@ const StockTransferHistory = () => {
               {hasActiveFilters && <span className={styles.filterBadge}></span>}
             </button>
 
-            {selectedTransfers.size > 0 && (
-              <button
-                className={styles.exportBtn}
-                onClick={handleExport}
+            {role === "ADMIN" && (
+            <div className={styles.storeSelectWrapper}>
+              <Store className={styles.storeIcon} size={18} />
+              <select
+                value={selectedStore?.storeId || ''}
+                onChange={handleStoreChange}
+                className={styles.storeSelect}
               >
-                Export Selected ({selectedTransfers.size})
-              </button>
-            )}
+                {allStores.map(store => (
+                  <option key={store.storeId} value={store.storeId}>
+                    {store.storeName} {store.tag === 'DEFAULT' ? '(Default)' : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+
+      {selectedTransfers.size > 0 && (
+  <button className={styles.exportBtn} onClick={handleExport}>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zM6 20V4h7v5h5v11H6zm2-6h8v2H8v-2zm0-3h8v2H8v-2zm0-3h5v2H8V8z"/>
+    </svg>
+    Export Selected ({selectedTransfers.size})
+  </button>
+)}
           </div>
         </div>
 

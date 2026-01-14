@@ -17,6 +17,7 @@
   margin-left: var(--sidebar-width-closed);
 }
 
+
 /* No sidebar for login/register pages */
 .main-content.no-sidebar {
   margin-left: 0 !important;

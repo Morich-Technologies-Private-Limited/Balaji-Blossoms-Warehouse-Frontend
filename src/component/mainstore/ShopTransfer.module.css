@@ -1,4 +1,3 @@
-/* ShopTransfer.module.css */
 * {
   margin: 0;
   padding: 0;
@@ -12,6 +11,7 @@
   background: #f5f5f5;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   overflow: hidden;
+
 }
 
 /* Header */
@@ -44,7 +44,8 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  overflow-y: auto;
+  overflow: hidden;
+
 }
 
 /* Search Section */
@@ -145,7 +146,7 @@
 /* Selection Row */
 .selectionRow {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 1.5rem;
   background: white;
   padding: 0.5rem;
@@ -424,6 +425,12 @@
 }
 
 /* Responsive Design */
+@media (max-width: 1200px) {
+  .selectionRow {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
 @media (max-width: 1024px) {
   .mainContent {
     padding: 1rem 1.5rem 0 1.5rem;

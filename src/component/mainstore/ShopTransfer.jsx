@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Package, Trash2, Send, Building2, User } from 'lucide-react';
+import { Search, Package, Trash2, Send, Building2, User, Phone } from 'lucide-react';
 import styles from './ShopTransfer.module.css';
 import { fetchStoresWithUserApi } from '../../api/findStoreAndEmployee';
 import { findProducts } from '../../api/findProducts';
@@ -15,10 +15,10 @@ const ShopTransfer = () => {
   const [transferItems, setTransferItems] = useState([]);
   const [selectedDropdownIndex, setSelectedDropdownIndex] = useState(0);
   
-  // Store and User selection
+  // Store and Receiver information
   const [selectedStore, setSelectedStore] = useState('');
-  const [selectedUser, setSelectedUser] = useState('');
-  const [availableUsers, setAvailableUsers] = useState([]);
+  const [receiverName, setReceiverName] = useState('');
+  const [contactNo, setContactNo] = useState('');
   
   const searchInputRef = useRef(null);
   const dropdownRef = useRef(null);
@@ -142,6 +142,15 @@ const ShopTransfer = () => {
       return value;
     }
     return e.target.value.slice(0, -1);
+  };
+
+  // Validate contact number (10 digits)
+  const handleContactNoInput = (e) => {
+    const value = e.target.value;
+    // Allow only digits and limit to 10 characters
+    if (value === '' || /^\d{0,10}$/.test(value)) {
+      setContactNo(value);
+    }
   };
 
   useEffect(() => {
@@ -268,16 +277,7 @@ const ShopTransfer = () => {
 
   // Handle store selection
   const handleStoreSelect = (storeId) => {
-    const store = stores.find(s => s.storeId === parseInt(storeId));
-    if (store) {
-      setSelectedStore(storeId);
-      setAvailableUsers(store.userList || []);
-      setSelectedUser('');
-    } else {
-      setSelectedStore('');
-      setAvailableUsers([]);
-      setSelectedUser('');
-    }
+    setSelectedStore(storeId);
   };
 
   // Update item field
@@ -412,8 +412,18 @@ const ShopTransfer = () => {
         return;
       }
 
-      if (!selectedUser) {
-        alert("Please select a user");
+      if (!receiverName.trim()) {
+        alert("Please enter receiver name");
+        return;
+      }
+
+      if (!contactNo.trim()) {
+        alert("Please enter contact number");
+        return;
+      }
+
+      if (contactNo.length !== 10) {
+        alert("Contact number must be 10 digits");
         return;
       }
 
@@ -444,16 +454,11 @@ const ShopTransfer = () => {
         return;
       }
 
-      // Get selected user details
-      const selectedUserObj = availableUsers.find(
-        user => user.userId === selectedUser
-      );
-
       // Build DTO with transfer metadata
       const transferDto = {
         receiverStoreId: Number(selectedStore),
-        userId: selectedUser,
-        userName: selectedUserObj?.name || "",
+        receiverName: receiverName.trim(),
+        contactNo: contactNo,
         stockList: transferItems.map(item => {
           // Build transfer metadata
           let transferMetadata;
@@ -500,7 +505,8 @@ const ShopTransfer = () => {
         alert(response.data.message || "Stock transferred successfully!");
         setTransferItems([]);
         setSelectedStore("");
-        setSelectedUser("");
+        setReceiverName("");
+        setContactNo("");
       } else {
         alert(response.data.message || "Unable to transfer stock");
       }
@@ -575,12 +581,12 @@ const ShopTransfer = () => {
           </div>
         </div>
 
-        {/* Store and User Selection */}
+        {/* Store and Receiver Information */}
         <div className={styles.selectionRow}>
           <div className={styles.selectGroup}>
             <label className={styles.inputLabel}>
               <Building2 size={16} />
-              Store Name:
+              Store :
             </label>
             <select
               className={styles.selectInput}
@@ -601,19 +607,28 @@ const ShopTransfer = () => {
               <User size={16} />
               Receiver Name:
             </label>
-            <select
+            <input
+              type="text"
               className={styles.selectInput}
-              value={selectedUser}
-              onChange={(e) => setSelectedUser(e.target.value)}
-              disabled={!selectedStore || availableUsers.length === 0}
-            >
-              <option value="">Select a user</option>
-              {availableUsers.map(user => (
-                <option key={user.userId} value={user.userId}>
-                  {user.name} - {user.userRole}
-                </option>
-              ))}
-            </select>
+              placeholder="Enter receiver name"
+              value={receiverName}
+              onChange={(e) => setReceiverName(e.target.value)}
+            />
+          </div>
+
+          <div className={styles.selectGroup}>
+            <label className={styles.inputLabel}>
+              <Phone size={16} />
+              Contact No:
+            </label>
+            <input
+              type="text"
+              className={styles.selectInput}
+              placeholder="Enter 10-digit contact number"
+              value={contactNo}
+              onChange={handleContactNoInput}
+              maxLength={10}
+            />
           </div>
         </div>
 
@@ -622,7 +637,7 @@ const ShopTransfer = () => {
           <table className={styles.table}>
             <thead>
               <tr>
-                <th>Item Code</th>
+                <th>Sno</th>
                 <th>Item Name</th>
                 <th>Packing Size</th>
                 <th>Available</th>
@@ -634,9 +649,10 @@ const ShopTransfer = () => {
             </thead>
             <tbody>
               {transferItems.length > 0 ? (
-                transferItems.map((item) => (
+                transferItems.map((item, index) => (
                   <tr key={item.id}>
-                    <td>{item.productId}</td>
+
+                    <td>{index + 1}</td>
                     <td>{item.productName}</td>
                     <td>
                       <select

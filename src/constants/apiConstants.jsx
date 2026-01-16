@@ -18,8 +18,9 @@ export const FIND_PRODUCT_PACKING_WITHOUT_INVENTORY_URL = `${API_BASE_URL}/produ
 
 export const SEND_PRODUCT_URL = `${API_BASE_URL}/product/transfer-stock`;
 export const SEND_PRODUCT_TO_SUPERVISOR_URL = `${API_BASE_URL}/product/supervisor/transfer-stock`;
-
 export const ADD_INVENROTY_URL = `${API_BASE_URL}/product/add/inventory`;
+export const DELETE_STOCK_TRANSFER_URL = `${API_BASE_URL}/product/transferHistory/delete`;
+
 
 
 export const ADD_PRODUCT_URL = `${API_BASE_URL}/product/add`;

@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ChevronDown, ChevronUp, Search, Package, Calendar, User, Settings, X, Store } from 'lucide-react';
+import { ChevronDown, ChevronUp, Search, Package, Calendar, User, Settings, X, Store, Trash2 } from 'lucide-react';
 import styles from './StockTransferHistory.module.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { findTranfserHistoryStore } from '../../api/findTranfserHistoryStore';
 import { getSessionData } from '../utils/getSessionData';
 import { useStores } from '../../context/StoreContext';
+import { deleteStockTransfer } from '../../api/deleteStockTransfer';
 
 const StockTransferHistory = () => {
   const [transferHistory, setTransferHistory] = useState([]);
@@ -15,6 +16,10 @@ const StockTransferHistory = () => {
   const [loading, setLoading] = useState(true);
   const [selectedTransfers, setSelectedTransfers] = useState(new Set());
   const [showFilterModal, setShowFilterModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteReason, setDeleteReason] = useState('');
+  const [selectedTransferId, setSelectedTransferId] = useState(null);
+  const [isAdminDelete, setIsAdminDelete] = useState(false);
 
   const[allStores,setAllStores]=useState([]);
   const[selectedStore,setSelectedStore]=useState(null);
@@ -177,6 +182,92 @@ const StockTransferHistory = () => {
   }
 };
 
+const isWithinOneHour = (transferDate, transferTime) => {
+  try {
+    // Extract date part from ISO string (ignore time portion)
+    const datePart = transferDate.split("T")[0]; // "2026-01-16"
+
+    // Convert 12h time (hh:mm:ss am/pm) to 24h
+    const [time, meridiem] = transferTime.split(" ");
+    let [hours, minutes, seconds] = time.split(":").map(Number);
+
+    if (meridiem.toLowerCase() === "pm" && hours !== 12) {
+      hours += 12;
+    }
+    if (meridiem.toLowerCase() === "am" && hours === 12) {
+      hours = 0;
+    }
+
+    // Create final ISO datetime string
+    const finalDateTime = new Date(`${datePart}T${String(hours).padStart(2, "0")}:${minutes}:${seconds}`);
+
+    const now = new Date();
+    const diffInHours = (now - finalDateTime) / (1000 * 60 * 60);
+
+    return diffInHours <= 1;
+  } catch (error) {
+    console.error("Error calculating time difference:", error);
+    return false;
+  }
+};
+
+
+  const handleDeleteAdmin = (transferId) => {
+    setSelectedTransferId(transferId);
+    setIsAdminDelete(true);
+    setShowDeleteModal(true);
+  };
+
+  const handleDelete = (transferId) => {
+    setSelectedTransferId(transferId);
+    setIsAdminDelete(false);
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteReason || deleteReason.trim() === '') {
+      alert('Please enter a reason for deletion');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      
+      const response = await deleteStockTransfer(selectedTransferId, deleteReason.trim());
+      
+      if (response.data.status === 'SUCCESS') {
+        alert(isAdminDelete ? 'Transfer deleted successfully' : 'Delete request submitted successfully');
+        
+        // Refresh the transfer history
+        const refreshResponse = await findTranfserHistoryStore(selectedStore.storeId);
+        if (refreshResponse.data.status === "SUCCESS") {
+          const data = refreshResponse.data.payload || [];
+          setTransferHistory(data);
+          setFilteredHistory(data);
+          setSelectedTransfers(new Set());
+        }
+        
+        // Close modal and clear form
+        setShowDeleteModal(false);
+        setDeleteReason('');
+        setSelectedTransferId(null);
+      } else {
+        alert(response.data.message || (isAdminDelete ? 'Failed to delete transfer' : 'Failed to submit delete request'));
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert(error.message || (isAdminDelete ? 'Failed to delete transfer' : 'Failed to submit delete request'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteModal(false);
+    setDeleteReason('');
+    setSelectedTransferId(null);
+  };
+
 
   const toggleRow = (transferId) => {
     const newExpanded = new Set(expandedRows);
@@ -337,10 +428,14 @@ const StockTransferHistory = () => {
                   <th>Sender</th>
                   <th>Receiver</th>
                   <th className={styles.hideOnMobile}>Items</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredHistory.map((transfer) => (
+                {filteredHistory.map((transfer) => {
+                  const canDelete = isWithinOneHour(transfer.transferDate, transfer.transferTime);
+                  
+                  return (
                   <React.Fragment key={transfer.transferId}>
                     <tr className={styles.parentRow}>
                       <td className={styles.checkboxCol}>
@@ -408,11 +503,34 @@ const StockTransferHistory = () => {
                           {transfer.stockDetails.length} item(s)
                         </span>
                       </td>
+                      <td>
+                        {role === "ADMIN" ? (
+                          <button
+                            className={styles.deleteBtn}
+                            onClick={() => handleDeleteAdmin(transfer.transferId)}
+                            disabled={!canDelete}
+                            title={!canDelete ? "Delete only available within 1 hour of transfer" : "Delete Bill"}
+                          >
+                            <Trash2 size={16} />
+                            <span className={styles.deleteBtnText}>Delete Bill</span>
+                          </button>
+                        ) : (
+                          <button
+                            className={styles.requestDeleteBtn}
+                            onClick={() => handleDelete(transfer.transferId)}
+                            disabled={!canDelete}
+                            title={!canDelete ? "Delete request only available within 1 hour of transfer" : "Request Delete"}
+                          >
+                            <Trash2 size={16} />
+                            <span className={styles.deleteBtnText}>Request Delete</span>
+                          </button>
+                        )}
+                      </td>
                     </tr>
 
                     {expandedRows.has(transfer.transferId) && (
                       <tr className={styles.childRow}>
-                        <td colSpan="8">
+                        <td colSpan="9">
                           <div className={styles.expandedContent}>
                             <div className={styles.showOnMobile}>
                               <div className={styles.mobileDateTime}>
@@ -456,6 +574,16 @@ const StockTransferHistory = () => {
                                     {transfer.senderDetails.storeName}
                                   </p>
                                 )}
+
+                                {transfer.senderDetails?.storeType && (
+                                  <p>
+                                    <strong>Store Type:</strong>{" "}
+                                    {transfer.senderDetails.storeType}
+                                  </p>
+                                )}
+
+
+
                               </div>
 
                               {/* Receiver Details */}
@@ -485,6 +613,7 @@ const StockTransferHistory = () => {
                                     <strong>Role:</strong> {transfer.receiverDetails.role}
                                   </p>
                                 )}
+                                
 
                                 {transfer.receiverDetails?.storeName && (
                                   <p>
@@ -492,6 +621,15 @@ const StockTransferHistory = () => {
                                     {transfer.receiverDetails.storeName}
                                   </p>
                                 )}
+
+
+                                {transfer.receiverDetails?.storeType && (
+                                  <p>
+                                     <strong>Store Type:</strong>{" "}
+                                    {transfer.receiverDetails.storeType}
+                                  </p>
+                                )}
+
                               </div>
                           </div>
 
@@ -560,7 +698,7 @@ const StockTransferHistory = () => {
                       </tr>
                     )}
                   </React.Fragment>
-                ))}
+                )})}
               </tbody>
             </table>
           </div>
@@ -648,6 +786,70 @@ const StockTransferHistory = () => {
               </button>
               <button className={styles.applyBtn} onClick={applyFilters}>
                 Apply Filters
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className={styles.modalOverlay} onClick={handleCancelDelete}>
+          <div className={styles.deleteModalContent} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.deleteModalHeader}>
+              <div className={styles.deleteIconWrapper}>
+                <Trash2 size={24} />
+              </div>
+              <h3>{isAdminDelete ? 'Delete Transfer' : 'Request Delete Transfer'}</h3>
+              <p className={styles.deleteModalSubtitle}>
+                {isAdminDelete 
+                  ? 'This action cannot be undone. Please provide a reason for deleting this transfer.'
+                  : 'Please provide a reason for requesting deletion of this transfer.'}
+              </p>
+            </div>
+
+            <div className={styles.deleteModalBody}>
+              <div className={styles.transferIdDisplay}>
+                <span className={styles.transferIdLabel}>Transfer ID:</span>
+                <span className={styles.transferIdValue}>{selectedTransferId}</span>
+              </div>
+
+              <div className={styles.deleteFormGroup}>
+                <label htmlFor="deleteReason">
+                  Reason for {isAdminDelete ? 'Deletion' : 'Delete Request'} <span className={styles.required}>*</span>
+                </label>
+                <textarea
+                  id="deleteReason"
+                  value={deleteReason}
+                  onChange={(e) => setDeleteReason(e.target.value)}
+                  placeholder="Enter the reason here..."
+                  className={styles.deleteReasonTextarea}
+                  rows="4"
+                  maxLength="500"
+                  autoFocus
+                />
+                <div className={styles.charCount}>
+                  {deleteReason.length}/500 characters
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.deleteModalFooter}>
+              <button 
+                className={styles.deleteCancelBtn} 
+                onClick={handleCancelDelete}
+                type="button"
+              >
+                Cancel
+              </button>
+              <button 
+                className={isAdminDelete ? styles.deleteConfirmBtn : styles.requestConfirmBtn}
+                onClick={handleConfirmDelete}
+                disabled={!deleteReason.trim()}
+                type="button"
+              >
+                <Trash2 size={18} />
+                {isAdminDelete ? 'Delete Transfer' : 'Submit Request'}
               </button>
             </div>
           </div>

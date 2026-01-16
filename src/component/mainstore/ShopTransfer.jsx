@@ -7,6 +7,7 @@ import { findProductsPacking } from '../../api/findProductsPacking';
 import { sendProductToStore } from '../../api/sendProductToStore';
 
 const ShopTransfer = () => {
+  
   const [searchKey, setSearchKey] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
   const [filteredProducts, setFilteredProducts] = useState([]);
@@ -62,6 +63,11 @@ const ShopTransfer = () => {
     return typeMap[storeType] || storeType;
   };
 
+  // Check if unit is a smaller unit (GRAM or MILLILITER)
+  const isSmallerUnit = (unit) => {
+    return unit === 'GRAM' || unit === 'MILLILITER';
+  };
+
   // Convert quantity to default unit (KG or L)
   const convertToDefaultUnit = (quantity, fromUnit, defaultUnit) => {
     if (!quantity) return 0;
@@ -111,11 +117,28 @@ const ShopTransfer = () => {
     }
   };
 
-  // Validate numeric input - only allow numbers and decimal point
-  const handleNumericInput = (e) => {
+  // Validate numeric input based on unit and input type
+  const handleNumericInput = (e, item = null, field = null) => {
     const value = e.target.value;
-    // Allow only numbers, one decimal point, and empty string
-    if (value === '' || /^\d*\.?\d*$/.test(value)) {
+    
+    // For bags input - allow decimals up to 2 decimal places
+    if (field === 'noOfBags') {
+      if (value === '' || /^\d*\.?\d{0,2}$/.test(value)) {
+        return value;
+      }
+      return e.target.value.slice(0, -1);
+    }
+    
+    // For direct quantity with smaller units (GRAM/MILLILITER) - only integers allowed
+    if (field === 'directQuantity' && item && isSmallerUnit(item.inputUnit)) {
+      if (value === '' || /^\d+$/.test(value)) {
+        return value;
+      }
+      return e.target.value.slice(0, -1);
+    }
+    
+    // For other cases (KG/LITER) - allow decimals up to 2 decimal places
+    if (value === '' || /^\d*\.?\d{0,2}$/.test(value)) {
       return value;
     }
     return e.target.value.slice(0, -1);
@@ -313,15 +336,18 @@ const ShopTransfer = () => {
       }
 
       if (field === 'noOfBags') {
-        // Only allow integer values for bags
-        const intValue = value === '' ? '' : Math.floor(parseFloat(value) || 0);
+        // Allow decimal values for bags (up to 2 decimal places)
+        const numValue = parseFloat(value) || 0;
         
-        if (intValue > updated.maxBags) {
-          alert(`Maximum ${updated.maxBags} bags available`);
+        // Calculate equivalent bags from available quantity
+        const maxBagsFromQuantity = updated.availableQuantity / parseFloat(updated.packingSize);
+        
+        if (numValue > maxBagsFromQuantity) {
+          alert(`Maximum ${maxBagsFromQuantity.toFixed(2)} bags available`);
           return item;
         }
         
-        updated.noOfBags = intValue === 0 ? '' : intValue.toString();
+        updated.noOfBags = value;
         updated.quantity = calculateQuantity(updated);
       }
 
@@ -342,9 +368,16 @@ const ShopTransfer = () => {
       }
 
       if (field === 'inputUnit') {
+        // Clear directQuantity when switching units to prevent validation issues
+        const previousUnit = item.inputUnit;
         updated.inputUnit = value;
-        // Recalculate quantity with new unit
-        if (updated.directQuantity) {
+        
+        // If switching between units with different decimal rules, clear the input
+        if ((isSmallerUnit(previousUnit) !== isSmallerUnit(value)) && updated.directQuantity) {
+          updated.directQuantity = '';
+          updated.quantity = 0;
+        } else if (updated.directQuantity) {
+          // Recalculate quantity with new unit
           const quantityInDefaultUnit = convertToDefaultUnit(
             parseFloat(updated.directQuantity), 
             value, 
@@ -416,17 +449,47 @@ const ShopTransfer = () => {
         user => user.userId === selectedUser
       );
 
-      // Build DTO - quantity is already in default unit
+      // Build DTO with transfer metadata
       const transferDto = {
         receiverStoreId: Number(selectedStore),
         userId: selectedUser,
         userName: selectedUserObj?.name || "",
-        stockList: transferItems.map(item => ({
-          inventoryId: Number(item.inventoryId),
-          packingId: Number(item.packingId),
-          productId: Number(item.productId),
-          quantityToTransfer: Number(item.quantity), // Already in default unit
-        })),
+        stockList: transferItems.map(item => {
+          // Build transfer metadata
+          let transferMetadata;
+          
+          if (item.inputType === 'bags') {
+            // For bags transfer
+            // unitTransferred = total weight / packing size = number of bags
+            const numberOfBags = item.quantity / parseFloat(item.packingSize);
+            
+            transferMetadata = {
+              transferType: 'bags',
+              transferUnit: item.packingUnit, // User's packing unit selection (KILOGRAM, GRAM, LITER, MILLILITER)
+              weight: `${Number(item.quantity).toFixed(2)} ${item.packingUnit}`,
+              unit: String(numberOfBags.toFixed(2)) // Actual number of bags rounded to 2 decimals
+            };
+          } else {
+            // For weight/quantity transfer
+            // unitTransferred = total weight / packing size = equivalent bags
+            const equivalentBags = item.quantity / parseFloat(item.packingSize);
+            
+            transferMetadata = {
+              transferType: 'weight',
+              transferUnit: item.inputUnit, // User selected unit (KILOGRAM, GRAM, LITER, MILLILITER)
+              weight: `${Number(item.directQuantity).toFixed(2)} ${item.inputUnit}`,
+              unit: String(equivalentBags.toFixed(2)) // Equivalent bags rounded to 2 decimals
+            };
+          }
+
+          return {
+            inventoryId: Number(item.inventoryId),
+            packingId: Number(item.packingId),
+            productId: Number(item.productId),
+            quantityToTransfer: Number(item.quantity), // Already in default unit
+            transferMetadata: transferMetadata
+          };
+        }),
       };
 
       console.log("Transfer DTO:", transferDto);
@@ -463,7 +526,7 @@ const ShopTransfer = () => {
       {/* Header */}
       <div className={styles.header}>
         <div className={styles.headerContent}>
-          <h1 className={styles.title}>Shop Stock Transfer</h1>
+          <h1 className={styles.title}> Stock Transfer</h1>
         </div>
       </div>
 
@@ -619,44 +682,51 @@ const ShopTransfer = () => {
                             placeholder="0"
                             value={item.noOfBags}
                             onChange={(e) => {
-                              const validated = handleNumericInput(e);
+                              const validated = handleNumericInput(e, item, 'noOfBags');
                               updateItem(item.id, 'noOfBags', validated);
                             }}
                             disabled={!item.packingId}
                           />
                           {item.packingId && (
                             <small style={{display: 'block', fontSize: '0.75rem', color: '#666', marginTop: '2px'}}>
-                              Max: {item.maxBags}
+                              Max: {(item.availableQuantity / parseFloat(item.packingSize)).toFixed(2)} bags
                             </small>
                           )}
                         </div>
                       ) : (
-                        <div style={{display: 'flex', gap: '4px'}}>
-                          <input
-                            type="text"
-                            className={styles.tableInput}
-                            placeholder="0"
-                            value={item.directQuantity}
-                            onChange={(e) => {
-                              const validated = handleNumericInput(e);
-                              updateItem(item.id, 'directQuantity', validated);
-                            }}
-                            disabled={!item.packingId}
-                            style={{flex: 1}}
-                          />
-                          <select
-                            className={styles.tableSelect}
-                            value={item.inputUnit}
-                            onChange={(e) => updateItem(item.id, 'inputUnit', e.target.value)}
-                            disabled={!item.packingId}
-                            style={{flex: '0 0 60px', fontSize: '0.85rem'}}
-                          >
-                            {item.defaultUnit && getAvailableUnits(item.defaultUnit).map(unit => (
-                              <option key={unit} value={unit}>
-                                {getUnitDisplay(unit)}
-                              </option>
-                            ))}
-                          </select>
+                        <div style={{display: 'flex', gap: '4px', flexDirection: 'column'}}>
+                          <div style={{display: 'flex', gap: '4px'}}>
+                            <input
+                              type="text"
+                              className={styles.tableInput}
+                              placeholder="0"
+                              value={item.directQuantity}
+                              onChange={(e) => {
+                                const validated = handleNumericInput(e, item, 'directQuantity');
+                                updateItem(item.id, 'directQuantity', validated);
+                              }}
+                              disabled={!item.packingId}
+                              style={{flex: 1}}
+                            />
+                            <select
+                              className={styles.tableSelect}
+                              value={item.inputUnit}
+                              onChange={(e) => updateItem(item.id, 'inputUnit', e.target.value)}
+                              disabled={!item.packingId}
+                              style={{flex: '0 0 60px', fontSize: '0.85rem'}}
+                            >
+                              {item.defaultUnit && getAvailableUnits(item.defaultUnit).map(unit => (
+                                <option key={unit} value={unit}>
+                                  {getUnitDisplay(unit)}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          {item.packingId && isSmallerUnit(item.inputUnit) && (
+                            <small style={{fontSize: '0.7rem', color: '#ff6b00'}}>
+                              Only whole numbers allowed
+                            </small>
+                          )}
                         </div>
                       )}
                     </td>

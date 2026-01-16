@@ -1,28 +1,23 @@
 import axios from "axios";
 import { REGISTER_URL } from "../constants/apiConstants";
+import { getSessionData } from "../component/utils/getSessionData";
 
 export const registerApi = async (userData) => {
   try {
-    const response = await axios.post(REGISTER_URL, userData);
 
-    const data = response.data;
+    const { token } = getSessionData();
+    const response = await axios.post(REGISTER_URL, userData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
 
-    if (data.status === "SUCCESS") {
-      return {
-        success: true,
-        message: data.message || "User registered successfully",
-        payload: data.payload,
-      };
-    } else {
-      return {
-        success: false,
-        message: data.message || "Registration failed",
-      };
-    }
+    return response;
   } catch (error) {
     console.error("Register error:", error);
     return {
-      success: false,
+      status: "FAILED",
       message:
         error.response?.data?.message ||
         "Something went wrong while registering",

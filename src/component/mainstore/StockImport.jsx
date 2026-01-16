@@ -333,18 +333,48 @@ const StockImport = () => {
         return;
       }
 
-      // Build DTO
+      // Build DTO with transfer metadata
       const importDto = {
         senderCompanyName: senderCompanyName.trim(),
         senderName: senderName.trim(),
         email: email.trim(),
         contact: contact.trim(),
         receiverName: receiverName.trim(),
-        stockList: importItems.map(item => ({
-          packingId: Number(item.packingId),
-          productId: Number(item.productId),
-          quantity: Number(item.quantity),
-        })),
+        stockList: importItems.map(item => {
+          // Build transfer metadata
+          let transferMetadata;
+          
+          if (item.inputType === 'bags') {
+            // For bags import
+            // unitTransferred = total weight / packing size = number of bags
+            const numberOfBags = item.quantity / parseFloat(item.packingSize);
+            
+            transferMetadata = {
+              transferType: 'bags',
+              transferUnit: item.packingUnit, // User's packing unit selection (KILOGRAM, GRAM, LITER, MILLILITER)
+              weight: `${Number(item.quantity).toFixed(2)} ${item.packingUnit}`,
+              unit: String(numberOfBags.toFixed(2)) // Actual number of bags rounded to 2 decimals
+            };
+          } else {
+            // For weight/quantity import
+            // unitTransferred = total weight / packing size = equivalent bags
+            const equivalentBags = item.quantity / parseFloat(item.packingSize);
+            
+            transferMetadata = {
+              transferType: 'weight',
+              transferUnit: item.inputUnit, // User selected unit (KILOGRAM, GRAM, LITER, MILLILITER)
+              weight: `${Number(item.directQuantity).toFixed(2)} ${item.inputUnit}`,
+              unit: String(equivalentBags.toFixed(2)) // Equivalent bags rounded to 2 decimals
+            };
+          }
+
+          return {
+            packingId: Number(item.packingId),
+            productId: Number(item.productId),
+            quantityToTransfer: Number(item.quantity),
+            transferMetadata: transferMetadata
+          };
+        }),
       };
 
       console.log("Import DTO:", importDto);

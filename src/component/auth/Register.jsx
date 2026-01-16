@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Eye, EyeOff, Store, MapPin, Phone, Building2, CheckCircle, XCircle } from 'lucide-react';
+import { Eye, EyeOff, Store, MapPin, Phone, Building2, CheckCircle, XCircle, UserCog } from 'lucide-react';
 import styles from './Register.module.css';
 import { registerApi } from '../../api/registerApi';
 import { fetchAllStores } from '../../api/fetchAllStores';
@@ -11,7 +11,8 @@ const Register = () => {
     emailId: '',
     password: '',
     confirmPassword: '',
-    storeId: ''
+    storeId: '',
+    role: ''
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -45,6 +46,21 @@ const Register = () => {
 
     loadStores();
   }, []);
+
+  // Get available roles based on store type
+  const getAvailableRoles = () => {
+    if (!selectedStore) return [];
+    
+    const roles = ['ADMIN'];
+    
+    if (selectedStore.storeType === 'MAIN_STORE') {
+      roles.unshift('MAIN_STORE_MANAGER');
+    } else if (selectedStore.storeType === 'SUB_STORE') {
+      roles.unshift('SUB_STORE_MANAGER');
+    }
+    
+    return roles;
+  };
 
   const validateForm = () => {
     const newErrors = {};
@@ -84,6 +100,10 @@ const Register = () => {
       newErrors.storeId = 'Please select a store';
     }
 
+    if (!formData.role) {
+      newErrors.role = 'Please select a role';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -105,6 +125,11 @@ const Register = () => {
     if (name === 'storeId') {
       const store = stores.find(s => s.storeId === parseInt(value));
       setSelectedStore(store);
+      // Reset role when store changes
+      setFormData(prev => ({
+        ...prev,
+        role: ''
+      }));
     }
   };
 
@@ -123,9 +148,9 @@ const Register = () => {
         emailId: formData.emailId,
         password: formData.password,
         storeId: parseInt(formData.storeId),
+        role: formData.role
       };
 
-      console.log("Submitting user data:", userDto);
 
       const response = await registerApi(userDto);
 
@@ -141,6 +166,7 @@ const Register = () => {
             password: "",
             confirmPassword: "",
             storeId: "",
+            role: ""
           });
           setSelectedStore(null);
           setSubmitStatus(null);
@@ -155,6 +181,8 @@ const Register = () => {
       setIsSubmitting(false);
     }
   };
+
+  const availableRoles = getAvailableRoles();
 
   return (
     <div className={styles.registerContainer}>
@@ -302,6 +330,30 @@ const Register = () => {
                           {errors.storeId && <div className={styles.errorMessage}>{errors.storeId}</div>}
                         </div>
 
+                        <div className="col-12">
+                          <label className={`form-label ${styles.inputLabel}`}>Select Role</label>
+                          <div className={styles.selectWrapper}>
+                            <select
+                              className={`form-select ${styles.storeSelect} ${errors.role ? styles.inputFieldError : ''}`}
+                              name="role"
+                              value={formData.role}
+                              onChange={handleChange}
+                              disabled={!selectedStore}
+                              data-testid="select-role"
+                            >
+                              <option value="">
+                                {!selectedStore ? 'Select a store first...' : 'Choose a role...'}
+                              </option>
+                              {availableRoles.map(role => (
+                                <option key={role} value={role}>
+                                  {role.replace(/_/g, ' ')}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          {errors.role && <div className={styles.errorMessage}>{errors.role}</div>}
+                        </div>
+
                         <div className="col-12 mt-4">
                           <button
                             type="submit"
@@ -367,6 +419,12 @@ const Register = () => {
                               <Building2 size={18} className={styles.storeDetailIcon} />
                               <span className={styles.storeDetailText}>Store ID: {selectedStore.storeId}</span>
                             </div>
+                            {formData.role && (
+                              <div className={styles.storeDetailRow}>
+                                <UserCog size={18} className={styles.storeDetailIcon} />
+                                <span className={styles.storeDetailText}>Role: {formData.role.replace(/_/g, ' ')}</span>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>

@@ -3,6 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import styles from './DynamicSidebar.module.css';
 import { Logout } from '../utils/Logout';
+import Logo2 from "../../assets/logo2.png"
+import Logo3 from "../../assets/logo3.png"
+
 
 const DynamicSidebar = ({ role, onSidebarChange }) => {
   const [isOpen, setIsOpen] = useState(true);
@@ -55,9 +58,8 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
       navItems: [
         { icon: 'bi-house-door-fill', text: 'Home', link: '/admin' },
         { icon: 'bi-people', text: 'Create User', link: '/admin/users/register' },
-        { icon: 'bi-shop', text: 'Create Store', link: '/admin/create-store' },
+        { icon: 'bi-shop', text: 'Create Store', link: '/admin/create/store' },
         { icon: 'bi-person-badge', text: 'User Management', link: '/admin/manage/user' },
-        { icon: 'bi-people', text: 'Assign Supervisor', link: '/admin/assign-supervisor' },
         { icon: 'bi-boxes', text: 'View Inventory', link: '/admin/view/inventory' },
         { icon: 'bi-clock-history', text: 'Transfer History', link: '/admin/view/tranferHistory' },
       ]
@@ -67,13 +69,12 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
       logo: 'Balaji Blossoms',
       title: 'Main Store',
       navItems: [
-        { icon: 'bi-house-door-fill', text: 'Home', link: '/mainstore' },
+        { icon: 'bi-house-door-fill', text: 'Home', link: '/mainstore/dashboard' },
         { icon: 'bi-clock-history', text: 'In Entry', link: '/mainstore/import' },
         { icon: 'bi-shop', text: 'Out Entry', link: '/mainstore/transfer' },
-        { icon: 'bi-arrow-left-right', text: 'Shop Transfer', link: '/mainstore/shop/tranfer' },
         { icon: 'bi-box', text: 'Product Master', link: '/mainstore/product/add' },
         { icon: 'bi-boxes', text: 'Inventory View', link: '/mainstore/view/inventory' },
-        { icon: 'bi-clock-history', text: 'Transfer History', link: '/mainstore/view/tranferHistory' },
+        { icon: 'bi-clock-history', text: 'Transfer History', link: '/mainstore/view/tranferHistory'},
       ]
     },
 
@@ -81,27 +82,15 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
       logo: 'Balaji Blossoms',
       title: 'Sub Store',
       navItems: [
-        { icon: 'bi-house-door-fill', text: 'Home', link: '/substore' },
+        { icon: 'bi-house-door-fill', text: 'Home', link: '/substore/dashboard' },
         { icon: 'bi-arrow-up-circle', text: 'Stock Transfer', link: '/substore/transfer' },
-        { icon: 'bi-file-text', text: 'Transfer History', link: '/substore/products' },
-        { icon: 'bi-person-plus-fill', text: 'View Supervisor', link: '/substore/orders' },
+        { icon: 'bi-arrow-up-circle', text: 'Out Entry', link: '/substore/supervisor/transfer' },
+        { icon: 'bi-file-text', text: 'Transfer History', link: '/substore/view/tranferHistory' },
+        
         { icon: 'bi-boxes', text: 'Inventory View', link: '/substore/view/inventory' },
       ]
     },
 
-    storehouse: {
-      logo: 'Balaji Blossoms',
-      title: 'Warehouse Hub',
-      navItems: [
-        { icon: 'bi-house-door-fill', text: 'Home', link: '/storehouse' },
-        { icon: 'bi-box-seam-fill', text: 'Inventory', link: '/storehouse/inventory' },
-        { icon: 'bi-truck', text: 'Shipments', link: '/storehouse/shipments' },
-        { icon: 'bi-clipboard-check', text: 'Stock Control', link: '/storehouse/stock-control' },
-        { icon: 'bi-arrow-down-up', text: 'Transfers', link: '/storehouse/transfers' },
-        { icon: 'bi-journal-text', text: 'Logs', link: '/storehouse/logs' },
-        { icon: 'bi-gear-fill', text: 'Configuration', link: '/storehouse/configuration' },
-      ]
-    }
   };
 
   // 🔥 FIX: Backend enum → sidebar key mapping
@@ -110,7 +99,6 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
     MAIN_STORE_MANAGER: 'mainstore',
     SUB_STORE_MANAGER: 'substore',
     SUB_STORE_SUPERVISOR: 'substore',
-    SHOP_MANAGER: 'storehouse',
   };
 
   const sidebarKey = roleKeyMap[role] || 'mainstore';
@@ -127,10 +115,12 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
       <div className={`${styles.sidebar} ${isOpen ? styles.open : styles.closed}`}>
         <div className={styles.sidebarHeader}>
           <div className={styles.logo}>
-            <i className="bi bi-building"></i>
-            <span className={styles.logoText}>{config.logo}</span>
+            <img 
+              src={isOpen ? Logo2 : Logo3} 
+              alt="Logo" 
+              className={styles.logoImage} 
+            />
           </div>
-
           {isMobile && (
             <button className={styles.closeBtn} onClick={closeSidebarOnMobile}>
               <i className="bi bi-chevron-left"></i>

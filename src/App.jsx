@@ -9,13 +9,16 @@ import "./App.css";
 import LoginForm from "./component/auth/LoginForm";
 import Register from "./component/auth/Register";
 import DynamicSidebar from "./component/sidebar/DynamicSidebar";
-import MainStoreTransfer from "./component/mainstore/MainStoreTransfer";
 import StockTransferHistory from "./component/stock/StockTransferHistory";
 import InventoryView from "./component/stock/InventoryView";
 import AddProduct from "./component/mainstore/AddProduct";
 import UnauthorizedPage from "./component/auth/UnauthorizedPage";
 import ShopTransfer from "./component/mainstore/ShopTransfer";
 import StockImport from "./component/mainstore/StockImport";
+import SupervisorTransfer from "./component/mainstore/SupervisorTransfer";
+import Dashboard from "./component/mainstore/Dashboard";
+import CreateStore from "./component/admin/CreateStore";
+
 
 /* ================= ROLE ↔ PATH MAP ================= */
 const ROLE_PATH_MAP = {
@@ -128,18 +131,23 @@ function App() {
             }
           />
 
-          {/* ============ MAIN STORE ============ */}
-          <Route
-            path="/mainstore"
+  
+
+
+          {/* ============ 🔥 DYNAMIC COMMON ROUTE (KEY FIX) 🔥 ============ */}
+         
+         
+                 <Route
+            path="/:scope/dashboard"
             element={
-              <ProtectedRoute allowedRoles={["MAIN_STORE_MANAGER", "ADMIN"]}>
-                <h2>Main Store Dashboard</h2>
+              <ProtectedRoute allowedRoles={["MAIN_STORE_MANAGER", "SUB_STORE_MANAGER"]}>
+                <Dashboard />
               </ProtectedRoute>
             }
           />
 
-
-          {/* ============ 🔥 DYNAMIC COMMON ROUTE (KEY FIX) 🔥 ============ */}
+         
+         
           <Route
             path="/:scope/view/tranferHistory"
             element={
@@ -176,7 +184,7 @@ function App() {
             path="/:scope/transfer"
             element={
               <ProtectedRoute allowedRoles={["MAIN_STORE_MANAGER","SUB_STORE_MANAGER"]}>
-                <MainStoreTransfer />
+                <ShopTransfer />
               </ProtectedRoute>
             }
           />
@@ -190,15 +198,15 @@ function App() {
             }
           />
 
-
-                  <Route
-            path="/:scope/shop/tranfer"
+      <Route
+            path="/:scope/supervisor/transfer"
             element={
-              <ProtectedRoute allowedRoles={["MAIN_STORE_MANAGER","SUB_STORE_MANAGER"]}>
-                <ShopTransfer />
+              <ProtectedRoute allowedRoles={["ADMIN","SUB_STORE_MANAGER"]}>
+                <SupervisorTransfer />
               </ProtectedRoute>
             }
-          />
+          /> 
+
 
           <Route
             path="/:scope/product/add"
@@ -231,10 +239,10 @@ function App() {
 
           {/* ============ STORE HOUSE ============ */}
           <Route
-            path="/storehouse"
+            path="/admin/create/store"
             element={
-              <ProtectedRoute allowedRoles={["SHOP_MANAGER"]}>
-                <h2>Store House Dashboard</h2>
+              <ProtectedRoute allowedRoles={["ADMIN"]}>
+                <CreateStore />
               </ProtectedRoute>
             }
           />

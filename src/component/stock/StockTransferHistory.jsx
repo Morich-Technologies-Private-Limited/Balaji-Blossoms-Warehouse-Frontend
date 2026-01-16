@@ -182,34 +182,21 @@ const StockTransferHistory = () => {
   }
 };
 
-const isWithinOneHour = (transferDate, transferTime) => {
+const isWithinOneHour = (transferDate) => {
   try {
-    // Extract date part from ISO string (ignore time portion)
-    const datePart = transferDate.split("T")[0]; // "2026-01-16"
-
-    // Convert 12h time (hh:mm:ss am/pm) to 24h
-    const [time, meridiem] = transferTime.split(" ");
-    let [hours, minutes, seconds] = time.split(":").map(Number);
-
-    if (meridiem.toLowerCase() === "pm" && hours !== 12) {
-      hours += 12;
-    }
-    if (meridiem.toLowerCase() === "am" && hours === 12) {
-      hours = 0;
-    }
-
-    // Create final ISO datetime string
-    const finalDateTime = new Date(`${datePart}T${String(hours).padStart(2, "0")}:${minutes}:${seconds}`);
-
+    const transferDateTime = new Date(transferDate); // ISO → correct UTC handling
     const now = new Date();
-    const diffInHours = (now - finalDateTime) / (1000 * 60 * 60);
 
-    return diffInHours <= 1;
+    const diffInMs = now.getTime() - transferDateTime.getTime();
+    const diffInHours = diffInMs / (1000 * 60 * 60);
+
+    return diffInHours >= 0 && diffInHours <= 1;
   } catch (error) {
     console.error("Error calculating time difference:", error);
     return false;
   }
 };
+
 
 
   const handleDeleteAdmin = (transferId) => {
@@ -433,7 +420,7 @@ const isWithinOneHour = (transferDate, transferTime) => {
               </thead>
               <tbody>
                 {filteredHistory.map((transfer) => {
-                  const canDelete = isWithinOneHour(transfer.transferDate, transfer.transferTime);
+                  const canDelete = isWithinOneHour(transfer.transferDate);
                   
                   return (
                   <React.Fragment key={transfer.transferId}>

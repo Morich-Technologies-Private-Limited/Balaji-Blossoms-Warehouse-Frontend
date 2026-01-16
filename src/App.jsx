@@ -18,6 +18,8 @@ import StockImport from "./component/mainstore/StockImport";
 import SupervisorTransfer from "./component/mainstore/SupervisorTransfer";
 import Dashboard from "./component/mainstore/Dashboard";
 import CreateStore from "./component/admin/CreateStore";
+import RequestView from "./component/admin/RequestView";
+import UserManagement from "./component/admin/UserManagment";
 
 
 /* ================= ROLE ↔ PATH MAP ================= */
@@ -131,7 +133,23 @@ function App() {
             }
           />
 
+          <Route
+            path="/admin/request/view"
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN"]}>
+                <RequestView />
+              </ProtectedRoute>
+            }
+          />
   
+         <Route
+            path="/admin/user/management"
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN"]}>
+                <UserManagement />
+              </ProtectedRoute>
+            }
+          />
 
 
           {/* ============ 🔥 DYNAMIC COMMON ROUTE (KEY FIX) 🔥 ============ */}

@@ -5,6 +5,7 @@ import { fetchStoresWithUserApi } from '../../api/findStoreAndEmployee';
 import { findProducts } from '../../api/findProducts';
 import { findProductsPacking } from '../../api/findProductsPacking';
 import { sendProductToStore } from '../../api/sendProductToStore';
+import { downloadTransferPdf } from '../../api/downloadTransferPdf';
 
 const ShopTransfer = () => {
   
@@ -19,6 +20,11 @@ const ShopTransfer = () => {
   const [selectedStore, setSelectedStore] = useState('');
   const [receiverName, setReceiverName] = useState('');
   const [contactNo, setContactNo] = useState('');
+  const[transferId,setTransferId]=useState('');
+  const [showPdfModal, setShowPdfModal] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState('');
+  const [pdfBlob, setPdfBlob] = useState(null);
+
   
   const searchInputRef = useRef(null);
   const dropdownRef = useRef(null);
@@ -405,6 +411,80 @@ const ShopTransfer = () => {
     }
   };
 
+
+  const handleClosePdfModal = () => {
+  setShowPdfModal(false);
+  
+  // Cleanup blob URL to prevent memory leak
+  if (pdfUrl) {
+    window.URL.revokeObjectURL(pdfUrl);
+  }
+  
+  setPdfUrl('');
+  setPdfBlob(null);
+};
+
+const handlePrintPdf = () => {
+  const iframe = document.getElementById('pdfIframe');
+  if (iframe && iframe.contentWindow) {
+    iframe.contentWindow.focus();
+    iframe.contentWindow.print();
+  }
+};
+
+
+const handleDownloadPdf = () => {
+  if (!pdfBlob || !transferId) {
+    alert('PDF not available for download');
+    return;
+  }
+  
+  try {
+    // Create download link from already fetched blob
+    const url = window.URL.createObjectURL(pdfBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `transfer-invoice-${transferId}.pdf`;
+    
+    // Trigger download
+    document.body.appendChild(link);
+    link.click();
+    
+    // Cleanup
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+    
+  } catch (error) {
+    console.error('Failed to download PDF:', error);
+    alert('Failed to download invoice. Please try again.');
+  }
+};
+
+// Fetch PDF after successful transfer
+const fetchAndShowPdf = async (transferId) => {
+  try {
+    // Call the API to get PDF
+    const response = await downloadTransferPdf(transferId);
+    
+    // Create blob from response
+    const blob = new Blob([response.data], { type: 'application/pdf' });
+    
+    // Store blob for later download
+    setPdfBlob(blob);
+    
+    // Create URL for iframe viewing
+    const url = window.URL.createObjectURL(blob);
+    setPdfUrl(url);
+    
+    // Show modal
+    setShowPdfModal(true);
+    
+  } catch (error) {
+    console.error('Failed to load PDF:', error);
+    alert(error.message || 'Failed to load invoice preview. Please try again.');
+  }
+};
+
   const handleSubmit = async () => {
     try {
       if (!selectedStore) {
@@ -502,11 +582,15 @@ const ShopTransfer = () => {
       const response = await sendProductToStore(transferDto);
 
       if(response.data.status === "SUCCESS") {
-        alert(response.data.message || "Stock transferred successfully!");
+    const newTransferId = response.data.payload;
+  
+
         setTransferItems([]);
         setSelectedStore("");
         setReceiverName("");
-        setContactNo("");
+        setContactNo(""); 
+        fetchAndShowPdf(newTransferId);
+
       } else {
         alert(response.data.message || "Unable to transfer stock");
       }
@@ -803,6 +887,48 @@ const ShopTransfer = () => {
           </button>
         </div>
       </div>
+
+ {showPdfModal && (
+        <div className={styles.modalOverlay} onClick={handleClosePdfModal}>
+          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h2 className={styles.modalTitle}>Transfer Invoice</h2>
+              <button 
+                className={styles.closeButton} 
+                onClick={handleClosePdfModal}
+                title="Close"
+              >
+                ×
+              </button>
+            </div>
+            
+            <div className={styles.modalBody}>
+              <iframe
+                id="pdfIframe"
+                src={pdfUrl}
+                className={styles.pdfIframe}
+                title="Transfer Invoice PDF"
+              />
+            </div>
+            
+            <div className={styles.modalFooter}>
+              <button 
+                className={styles.printButton} 
+                onClick={handlePrintPdf}
+              >
+                Print Invoice
+              </button>
+              <button 
+                className={styles.downloadButton} 
+                onClick={handleDownloadPdf}
+              >
+                Download Invoice
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

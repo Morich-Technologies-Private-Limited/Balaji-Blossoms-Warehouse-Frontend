@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ChevronDown, ChevronUp, Search, Package, Calendar, User, Settings, X, Store, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, Search, Package, Calendar, User, Settings, X, Store, Trash2, Download } from 'lucide-react';
 import styles from './StockTransferHistory.module.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { findTranfserHistoryStore } from '../../api/findTranfserHistoryStore';
 import { getSessionData } from '../utils/getSessionData';
 import { useStores } from '../../context/StoreContext';
 import { deleteStockTransfer } from '../../api/deleteStockTransfer';
+import { downloadTransferPdf } from '../../api/downloadTransferPdf';
 
 const StockTransferHistory = () => {
   const [transferHistory, setTransferHistory] = useState([]);
@@ -20,6 +21,7 @@ const StockTransferHistory = () => {
   const [deleteReason, setDeleteReason] = useState('');
   const [selectedTransferId, setSelectedTransferId] = useState(null);
   const [isAdminDelete, setIsAdminDelete] = useState(false);
+  const [downloadingTransfer, setDownloadingTransfer] = useState(null);
 
   const[allStores,setAllStores]=useState([]);
   const[selectedStore,setSelectedStore]=useState(null);
@@ -197,6 +199,36 @@ const isWithinOneHour = (transferDate) => {
   }
 };
 
+  const handleDownloadPdf = async (transferId) => {
+    try {
+      setDownloadingTransfer(transferId);
+      
+      const response = await downloadTransferPdf(transferId);
+      
+      // Create a blob from the response
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      
+      // Create a temporary URL for the blob
+      const url = window.URL.createObjectURL(blob);
+      
+      // Create a temporary anchor element and trigger download
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Transfer_${transferId}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      
+      // Cleanup
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+      alert(error.message || 'Failed to download PDF');
+    } finally {
+      setDownloadingTransfer(null);
+    }
+  };
 
 
   const handleDeleteAdmin = (transferId) => {
@@ -491,27 +523,41 @@ const isWithinOneHour = (transferDate) => {
                         </span>
                       </td>
                       <td>
-                        {role === "ADMIN" ? (
+                        <div className={styles.actionButtons}>
                           <button
-                            className={styles.deleteBtn}
-                            onClick={() => handleDeleteAdmin(transfer.transferId)}
-                            disabled={!canDelete}
-                            title={!canDelete ? "Delete only available within 1 hour of transfer" : "Delete Bill"}
+                            className={styles.downloadBtn}
+                            onClick={() => handleDownloadPdf(transfer.transferId)}
+                            disabled={downloadingTransfer === transfer.transferId}
+                            title="Download Invoice PDF"
                           >
-                            <Trash2 size={16} />
-                            <span className={styles.deleteBtnText}>Delete Bill</span>
+                            <Download size={16} />
+                            <span className={styles.actionBtnText}>
+                              {downloadingTransfer === transfer.transferId ? 'Downloading...' : 'PDF'}
+                            </span>
                           </button>
-                        ) : (
-                          <button
-                            className={styles.requestDeleteBtn}
-                            onClick={() => handleDelete(transfer.transferId)}
-                            disabled={!canDelete}
-                            title={!canDelete ? "Delete request only available within 1 hour of transfer" : "Request Delete"}
-                          >
-                            <Trash2 size={16} />
-                            <span className={styles.deleteBtnText}>Request Delete</span>
-                          </button>
-                        )}
+                          
+                          {role === "ADMIN" ? (
+                            <button
+                              className={styles.deleteBtn}
+                              onClick={() => handleDeleteAdmin(transfer.transferId)}
+                              disabled={!canDelete}
+                              title={!canDelete ? "Delete only available within 1 hour of transfer" : "Delete Bill"}
+                            >
+                              <Trash2 size={16} />
+                              <span className={styles.deleteBtnText}>Delete</span>
+                            </button>
+                          ) : (
+                            <button
+                              className={styles.requestDeleteBtn}
+                              onClick={() => handleDelete(transfer.transferId)}
+                              disabled={!canDelete}
+                              title={!canDelete ? "Delete request only available within 1 hour of transfer" : "Request Delete"}
+                            >
+                              <Trash2 size={16} />
+                              <span className={styles.deleteBtnText}>Request</span>
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
 

@@ -18,6 +18,7 @@ export const FIND_ALL_STORE_USER_URL = `${API_BASE_URL}/store/find/all-store/use
 export const FIND_TRANSFER_HISTORY_URL = `${API_BASE_URL}/store/find/transfer-history`;
 export const FETCH_STORE_INVENTORY_URL = `${API_BASE_URL}/store/inventory`;
 
+export const VIEW_PDF_URL = `${API_BASE_URL}/product/view/pdf`;
 
 
 export const FIND_PRODUCT_SEARCH_URL = `${API_BASE_URL}/product/search`;

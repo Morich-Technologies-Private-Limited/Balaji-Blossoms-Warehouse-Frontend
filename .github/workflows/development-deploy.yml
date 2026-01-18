@@ -1,9 +1,9 @@
-name: Frontend Build & Deploy (Vite)
+name: Frontend Development Deploy (Vite)
 
 on:
   push:
     branches:
-      - main
+      - development
 
 jobs:
   build-and-deploy:
@@ -22,34 +22,33 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Build Vite frontend
-        run: npm run build
+      - name: Build Vite frontend (DEVELOPMENT)
+        run: npm run build:dev
 
-      - name: Remove old frontend files on VPS
+      - name: Remove old frontend files (DEV)
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            rm -rf /var/www/balaji-blossoms-frontend/*
+            rm -rf /var/www/balaji-blossoms-frontend-dev/*
 
-      - name: Upload new build files to VPS
+      - name: Upload new DEV build files
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           source: "dist/."
-          target: /var/www/balaji-blossoms-frontend/
+          target: /var/www/balaji-blossoms-frontend-dev/
 
-      # ✅ EXTRA COMMAND (as requested)
-      - name: Move dist content to root and delete dist folder
+      - name: Move dist content to root (DEV)
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            mv /var/www/balaji-blossoms-frontend/dist/* /var/www/balaji-blossoms-frontend/
-            rm -rf /var/www/balaji-blossoms-frontend/dist
+            mv /var/www/balaji-blossoms-frontend-dev/dist/* /var/www/balaji-blossoms-frontend-dev/
+            rm -rf /var/www/balaji-blossoms-frontend-dev/dist

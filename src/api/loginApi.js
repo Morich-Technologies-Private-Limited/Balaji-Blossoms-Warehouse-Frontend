@@ -71,6 +71,8 @@ export const devModeLogin = (role) => {
 
   sessionStorage.setItem("token", user.token);
   sessionStorage.setItem("storeId", user.storeId);
+  sessionStorage.setItem("userRole", user.userRole);
+  
 
   return {
     success: true,
@@ -98,6 +100,8 @@ export const loginApi = async (userId, password) => {
 
       sessionStorage.setItem("token", user.token);
       sessionStorage.setItem("storeId", data.payload.storeId);
+      sessionStorage.setItem("role", data.payload.userRole);
+  
 
       return {
         success: true,

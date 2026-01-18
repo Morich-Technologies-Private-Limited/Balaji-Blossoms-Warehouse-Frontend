@@ -17,9 +17,33 @@
   margin-left: var(--sidebar-width-closed);
 }
 
+
 /* No sidebar for login/register pages */
 .main-content.no-sidebar {
   margin-left: 0 !important;
+}
+
+* {
+  scrollbar-width: thick;
+  /* scrollbar-color: #1b5397 #e8ebf1 */
+}
+
+/* Hide scrollbar arrows */
+::-webkit-scrollbar-button {
+  display: none;
+}
+
+/* Optional: keep your existing scrollbar styling */
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #1b5397;
+}
+
+::-webkit-scrollbar-track {
+  background-color: #e8ebf1;
 }
 
 /* Medium devices (tablets, 768px to 991px) */

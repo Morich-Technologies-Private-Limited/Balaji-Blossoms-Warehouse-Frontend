@@ -1,8 +1,8 @@
 import axios from "axios";
-import { FETCH_STORE_INVENTORY_URL } from "../constants/apiConstants";
-import { getSessionData } from "../utils/getSessionData";
+import { SEND_PRODUCT_TO_SUPERVISOR_URL } from "../constants/apiConstants";
+import { getSessionData } from "../component/utils/getSessionData";
 
-export const findStoreInventory = async (storeId) => {
+export const sendProductToSupervisor = async (transferDetails) => {
   try {
     const { token } = getSessionData();
 
@@ -10,31 +10,32 @@ export const findStoreInventory = async (storeId) => {
       throw new Error("Authentication token not found");
     }
 
-    const response = await axios.get(FETCH_STORE_INVENTORY_URL, {
-      params: { storeId },
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const response = await axios.post(
+      SEND_PRODUCT_TO_SUPERVISOR_URL,
+      transferDetails,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
-
-    return response; 
+    return response;
 
   } catch (error) {
     if (axios.isAxiosError(error)) {
       if (error.response) {
         console.error("API Error:", error.response.data);
         throw new Error(
-          error.response.data?.message || "Failed to fetch store users"
+          error.response.data?.message || "Failed to transfer product"
         );
       } else if (error.request) {
-        // Request made but no response
         console.error("No response from server");
         throw new Error("Server not responding. Please try again later.");
       }
     }
 
-    // Generic JS error
     console.error("Unexpected Error:", error);
     throw new Error(error.message || "Something went wrong");
   }

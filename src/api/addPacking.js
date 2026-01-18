@@ -1,8 +1,8 @@
 import axios from "axios";
-import { FIND_ALL_STORE_URL } from "../constants/apiConstants";
-import { getSessionData } from "../utils/getSessionData";
+import { ADD_PACKING_URL } from "../constants/apiConstants";
+import { getSessionData } from "../component/utils/getSessionData";
 
-export const fetchAllStores = async () => {
+export const addPacking = async (packing) => {
   try {
     const { token } = getSessionData();
 
@@ -10,29 +10,31 @@ export const fetchAllStores = async () => {
       throw new Error("Authentication token not found");
     }
 
-    const response = await axios.get(FIND_ALL_STORE_URL, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    return response; 
-
+    console.log(packing);
+    const response = await axios.post(
+      ADD_PACKING_URL,
+        JSON.stringify(packing),
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response;
   } catch (error) {
     if (axios.isAxiosError(error)) {
       if (error.response) {
         console.error("API Error:", error.response.data);
         throw new Error(
-          error.response.data?.message || "Failed to fetch store users"
+          error.response.data?.message || "Failed to add product"
         );
       } else if (error.request) {
-        // Request made but no response
         console.error("No response from server");
         throw new Error("Server not responding. Please try again later.");
       }
     }
 
-    // Generic JS error
     console.error("Unexpected Error:", error);
     throw new Error(error.message || "Something went wrong");
   }

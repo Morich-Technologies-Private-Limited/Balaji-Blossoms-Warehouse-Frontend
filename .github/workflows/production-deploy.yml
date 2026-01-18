@@ -1,4 +1,4 @@
-name: Frontend Production Deploy (Vite)
+name: Production Deployment Action
 
 on:
   workflow_dispatch:   # 👈 ONLY manual trigger

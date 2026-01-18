@@ -32,9 +32,9 @@ const AddProduct = () => {
   // Auto-search when user types more than 2 characters
   useEffect(() => {
     const delayDebounce = setTimeout(() => {
-      if (searchKey.trim().length > 2 && !selectedProduct) {
+      if (searchKey.trim().length > 1 && !selectedProduct) {
         handleSearchProduct();
-      } else if (searchKey.trim().length <= 2) {
+      } else if (searchKey.trim().length <= 1) {
         setSearchResults([]);
         setShowDropdown(false);
         setHighlightedIndex(-1);
@@ -155,7 +155,7 @@ const AddProduct = () => {
   };
 
   const handleSearchProduct = async () => {
-    if (!searchKey.trim() || searchKey.trim().length <= 2) {
+    if (!searchKey.trim() || searchKey.trim().length <= 1) {
       return;
     }
 
@@ -445,7 +445,7 @@ const AddProduct = () => {
                   value={searchKey}
                   onChange={(e) => setSearchKey(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  placeholder="Type at least 3 characters to search..."
+                  placeholder="Type at least 2 characters to search..."
                   onFocus={() => {
                     if (searchResults.length > 0 && searchKey.trim().length > 2) {
                       setShowDropdown(true);
@@ -466,7 +466,8 @@ const AddProduct = () => {
                         onMouseEnter={() => setHighlightedIndex(index)}
                       >
                         <div className={styles.productName}>{product.productName}</div>
-                        <div className={styles.productCategory}>{product.category}</div>
+                      <div className={styles.productCategory}>{product.category === 'SOLID' ? 'Powder' : product.category}</div>
+
                       </div>
                     ))}
                   </div>
@@ -665,7 +666,7 @@ const AddProduct = () => {
                   }}
                 >
                   <option value="">Select category</option>
-                  <option value="SOLID">Solid</option>
+                  <option value="SOLID">Powder</option>
                   <option value="LIQUID">Liquid</option>
                 </select>
                 {categoryError && (

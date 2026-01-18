@@ -62,11 +62,7 @@ function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
 
-  /* ================= RESPONSIVE SIDEBAR ================= */
-
-
-  console.log( 'ENV:', import.meta.env.MODE,import.meta.env.VITE_API_BASE_URL);
-
+  
 
   useEffect(() => {
     const checkMobile = () => {

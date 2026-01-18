@@ -57,12 +57,9 @@ const ProtectedRoute = ({ allowedRoles, children }) => {
 function App() {
   const location = useLocation();
   const pathname = location.pathname;
-
   const [userRole, setUserRole] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
-
-  
 
   useEffect(() => {
     const checkMobile = () => {

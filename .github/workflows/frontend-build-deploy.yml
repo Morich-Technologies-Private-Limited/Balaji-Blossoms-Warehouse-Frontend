@@ -43,7 +43,6 @@ jobs:
           source: "dist/."
           target: /var/www/balaji-blossoms-frontend/
 
-      # ✅ EXTRA COMMAND (as requested)
       - name: Move dist content to root and delete dist folder
         uses: appleboy/ssh-action@v1.0.3
         with:

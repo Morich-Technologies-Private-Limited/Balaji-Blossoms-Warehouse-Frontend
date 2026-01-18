@@ -25,20 +25,20 @@ jobs:
       - name: Build Vite frontend
         run: npm run build
 
-      - name: Remove old frontend files on VPS
+      - name: Clean frontend directory on VPS
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
+            mkdir -p /var/www/balaji-blossoms-frontend
             rm -rf /var/www/balaji-blossoms-frontend/*
 
-      - name: Upload new build files to VPS
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          source: "dist/."
-          target: /var/www/balaji-blossoms-frontend/
+      - name: Upload dist contents to VPS (NO dist folder)
+        run: |
+          tar -C dist -czf dist.tar.gz .
+          ssh -o StrictHostKeyChecking=no \
+              -i <(echo "${{ secrets.VPS_SSH_KEY }}") \
+              ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} \
+              "tar -xzf - -C /var/www/balaji-blossoms-frontend" < dist.tar.gz

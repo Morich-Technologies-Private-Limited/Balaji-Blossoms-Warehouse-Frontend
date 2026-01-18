@@ -1,9 +1,7 @@
 name: Frontend Production Deploy (Vite)
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:   # 👈 ONLY manual trigger
 
 jobs:
   build-and-deploy:

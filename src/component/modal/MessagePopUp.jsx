@@ -38,6 +38,12 @@ const statusConfig = {
     iconClass: styles.errorIcon,
     title: 'Error',
     color: '#dc2626'
+  },
+  VALIDATION_ERROR: {
+    icon: '⚠',
+    iconClass: styles.validationErrorIcon,
+    title: 'Validation Error',
+    color: '#f59e0b'
   }
 };
 

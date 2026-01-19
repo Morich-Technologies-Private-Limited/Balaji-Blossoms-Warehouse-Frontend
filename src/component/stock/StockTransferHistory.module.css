@@ -153,7 +153,7 @@
   border: 2px solid #2563eb;
   height: 46px;
   box-sizing: border-box;
-  min-width: 200px;
+  min-width: 250px;
 }
 
 .storeIcon {
@@ -409,14 +409,16 @@
   background: #1d4ed8;
 }
 
-/* Table Container */
+/* Table Container - FIXED */
 .tableContainer {
   flex: 1;
   background: white;
   border-radius: 8px;
   margin-left: 20px;
+  margin-right: 20px; /* Added right margin */
   margin-bottom: 20px;
   overflow: hidden;
+  display: flex;
   flex-direction: column;
   min-height: 0;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -426,7 +428,7 @@
   width: 100%;
   border-collapse: collapse;
   display: block;
-  overflow: auto;
+  overflow-x: auto; /* Allow horizontal scroll if needed */
   height: 100%;
 }
 
@@ -437,6 +439,13 @@
   top: 0;
   z-index: 10;
   display: table;
+  width: 100%;
+  table-layout: fixed;
+}
+
+.table tbody {
+  display: block;
+  overflow-y: auto;
   width: 100%;
 }
 
@@ -453,6 +462,62 @@
   font-size: 13px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+
+/* Specific column widths to prevent cutting */
+.table th:nth-child(1), /* Checkbox */
+.table td:nth-child(1) {
+  width: 50px;
+  min-width: 50px;
+}
+
+.table th:nth-child(2), /* Expand */
+.table td:nth-child(2) {
+  width: 50px;
+  min-width: 50px;
+}
+
+.table th:nth-child(3), /* Transfer ID */
+.table td:nth-child(3) {
+  width: 130px;
+  min-width: 130px;
+}
+
+.table th:nth-child(4), /* Type */
+.table td:nth-child(4) {
+  width: 90px;
+  min-width: 90px;
+}
+
+.table th:nth-child(5), /* Date & Time */
+.table td:nth-child(5) {
+  width: 200px;
+  min-width: 200px;
+}
+
+.table th:nth-child(6), /* Sender */
+.table td:nth-child(6) {
+  width: 200px;
+  min-width: 180px;
+}
+
+.table th:nth-child(7), /* Receiver */
+.table td:nth-child(7) {
+  width: 180px;
+  min-width: 180px;
+}
+
+.table th:nth-child(8), /* Items */
+.table td:nth-child(8) {
+  width: 100px;
+  min-width: 100px;
+}
+
+.table th:nth-child(9), /* Actions - MOST IMPORTANT FIX */
+.table td:nth-child(9) {
+  width: 220px;
+  min-width: 220px;
+  padding-right: 16px; /* Extra padding on right */
 }
 
 .checkboxCol {
@@ -556,6 +621,9 @@
   font-weight: 600;
   color: #1e3a5f;
   margin-bottom: 2px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
 }
 
 .userContact {
@@ -754,6 +822,48 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
+/* Action buttons container - FIXED */
+.actionButtons {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+}
+
+/* Download button */
+.downloadBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.downloadBtn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.downloadBtn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.downloadBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: linear-gradient(135deg, #999 0%, #777 100%);
+}
+
 /* Delete button styles for Admin */
 .deleteBtn {
   display: flex;
@@ -764,11 +874,12 @@
   color: white;
   border: none;
   border-radius: 6px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .deleteBtn:hover:not(:disabled) {
@@ -797,11 +908,12 @@
   color: white;
   border: none;
   border-radius: 6px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .requestDeleteBtn:hover:not(:disabled) {
@@ -818,6 +930,11 @@
   background-color: #6c757d;
   cursor: not-allowed;
   opacity: 0.6;
+}
+
+.actionBtnText,
+.deleteBtnText {
+  display: inline;
 }
 
 /* Delete Modal Styles */
@@ -1098,6 +1215,9 @@
     font-size: 11px;
     color: #6b7280;
     margin-top: 2px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
   }
 
   .mobileDateTime {
@@ -1168,21 +1288,41 @@
 
   .table th,
   .table td {
-    padding: 12px 8px;
-    font-size: 13px;
+    padding: 10px 6px;
+    font-size: 12px;
+  }
+
+  /* Remove fixed widths on mobile */
+  .table th,
+  .table td {
+    width: auto !important;
+    min-width: auto !important;
   }
 
   .userInfo {
     flex-direction: row;
     gap: 6px;
+    align-items: flex-start;
+    max-width: 100%;
+  }
+
+  .userInfo > div {
+    flex: 1;
+    min-width: 0;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
   }
 
   .userName {
-    font-size: 13px;
+    font-size: 12px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
+    line-height: 1.3;
   }
 
   .userContact {
-    font-size: 11px;
+    font-size: 10px;
   }
 
   .expandedContent {
@@ -1219,18 +1359,28 @@
 
   .tableContainer {
     margin-left: 0;
+    margin-right: 0;
   }
 
-  /* Delete buttons mobile */
-  .deleteBtnText {
-    display: none;
+  /* Action buttons stacked vertically on mobile */
+  .actionButtons {
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
   }
-  
+
+  .downloadBtn,
   .deleteBtn,
   .requestDeleteBtn {
-    padding: 8px;
-    min-width: 36px;
+    width: 100%;
     justify-content: center;
+    font-size: 11px;
+    padding: 8px 10px;
+  }
+
+  .actionBtnText,
+  .deleteBtnText {
+    display: inline;
   }
 
   /* Delete modal mobile */
@@ -1297,8 +1447,8 @@
 
   .table th,
   .table td {
-    padding: 10px 6px;
-    font-size: 12px;
+    padding: 8px 4px;
+    font-size: 11px;
   }
 
   .badge {
@@ -1308,7 +1458,7 @@
 
   .expandCol,
   .checkboxCol {
-    width: 40px;
+    width: 35px;
   }
 
   .modalHeader {
@@ -1328,141 +1478,38 @@
   .applyBtn {
     width: 100%;
   }
+
+  .userName {
+    font-size: 11px;
+  }
+
+  .userContact {
+    font-size: 9px;
+  }
+
+  .actionButtons {
+    gap: 4px;
+  }
+
+  .downloadBtn,
+  .deleteBtn,
+  .requestDeleteBtn {
+    font-size: 10px;
+    padding: 6px 8px;
+  }
+
+  .actionBtnText,
+  .deleteBtnText {
+    font-size: 10px;
+  }
 }
 
 @media (min-width: 769px) {
   .deleteBtnText {
     display: inline;
   }
-}
-
-
-/* Add these styles to your existing StockTransferHistory.module.css */
-
-/* Action buttons container */
-.actionButtons {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-/* Download button */
-.downloadBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-}
-
-.downloadBtn:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-}
-
-.downloadBtn:active:not(:disabled) {
-  transform: translateY(0);
-}
-
-.downloadBtn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  background: linear-gradient(135deg, #999 0%, #777 100%);
-}
-
-/* Update delete button to work alongside download */
-.deleteBtn,
-.requestDeleteBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border: none;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-}
-
-.deleteBtn {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-  color: white;
-}
-
-.deleteBtn:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
-}
-
-.requestDeleteBtn {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  color: white;
-}
-
-.requestDeleteBtn:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
-}
-
-.deleteBtn:disabled,
-.requestDeleteBtn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-  background: linear-gradient(135deg, #ccc 0%, #999 100%);
-}
-
-.actionBtnText,
-.deleteBtnText {
-  display: inline;
-}
-
-/* Mobile responsive */
-@media (max-width: 768px) {
-  .actionButtons {
-    flex-direction: column;
-    gap: 6px;
-    width: 100%;
-  }
-
-  .downloadBtn,
-  .deleteBtn,
-  .requestDeleteBtn {
-    width: 100%;
-    justify-content: center;
-    font-size: 12px;
-    padding: 8px 12px;
-  }
-
+  
   .actionBtnText {
     display: inline;
-  }
-
-  .deleteBtnText {
-    display: inline;
-  }
-}
-
-@media (max-width: 480px) {
-  .actionBtnText,
-  .deleteBtnText {
-    display: none;
-  }
-
-  .downloadBtn,
-  .deleteBtn,
-  .requestDeleteBtn {
-    width: auto;
-    padding: 8px;
   }
 }

@@ -412,7 +412,7 @@ const isWithinOneHour = (transferDate) => {
 
 
       {selectedTransfers.size > 0 && (
-  <button className={styles.exportBtn} onClick={handleExport}>
+    <button className={styles.exportBtn} onClick={handleExport}>
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
       <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zM6 20V4h7v5h5v11H6zm2-6h8v2H8v-2zm0-3h8v2H8v-2zm0-3h5v2H8V8z"/>
     </svg>
@@ -498,10 +498,7 @@ const isWithinOneHour = (transferDate) => {
                           <User size={14} />
                           <div>
                             <div className={styles.userName}>{transfer.senderDetails.name}</div>
-                            <div className={styles.userContact}>{transfer.senderDetails.contactNumber || 'N/A'}</div>
-                            <div className={styles.showOnMobile}>
                               {transfer.senderDetails.storeName}
-                            </div>
                           </div>
                         </div>
                       </td>
@@ -510,10 +507,7 @@ const isWithinOneHour = (transferDate) => {
                           <User size={14} />
                           <div>
                             <div className={styles.userName}>{transfer.receiverDetails.name}</div>
-                            <div className={styles.userContact}>{transfer.receiverDetails.contactNumber || 'N/A'}</div>
-                            <div className={styles.showOnMobile}>
                               {transfer.receiverDetails.storeName}
-                            </div>
                           </div>
                         </div>
                       </td>
@@ -531,9 +525,14 @@ const isWithinOneHour = (transferDate) => {
                             title="Download Invoice PDF"
                           >
                             <Download size={16} />
-                            <span className={styles.actionBtnText}>
-                              {downloadingTransfer === transfer.transferId ? 'Downloading...' : 'PDF'}
-                            </span>
+                            
+                            <div className={styles.hideOnMobile}>
+                              <span className={styles.actionBtnText}>
+                                {downloadingTransfer === transfer.transferId ? 'Downloading...' : 'PDF'}
+                              </span>
+                            </div>
+
+                           
                           </button>
                           
                           {role === "ADMIN" ? (
@@ -544,7 +543,9 @@ const isWithinOneHour = (transferDate) => {
                               title={!canDelete ? "Delete only available within 1 hour of transfer" : "Delete Bill"}
                             >
                               <Trash2 size={16} />
+                            <div className={styles.hideOnMobile}>
                               <span className={styles.deleteBtnText}>Delete</span>
+                            </div>
                             </button>
                           ) : (
                             <button
@@ -553,8 +554,10 @@ const isWithinOneHour = (transferDate) => {
                               disabled={!canDelete}
                               title={!canDelete ? "Delete request only available within 1 hour of transfer" : "Request Delete"}
                             >
+                               <div className={styles.hideOnMobile}>
                               <Trash2 size={16} />
                               <span className={styles.deleteBtnText}>Request</span>
+                              </div>
                             </button>
                           )}
                         </div>
@@ -615,10 +618,7 @@ const isWithinOneHour = (transferDate) => {
                                   </p>
                                 )}
 
-
-
                               </div>
-
                               {/* Receiver Details */}
                               <div className={styles.detailCard}>
                                 <h4>Receiver Details</h4>
@@ -647,7 +647,6 @@ const isWithinOneHour = (transferDate) => {
                                   </p>
                                 )}
                                 
-
                                 {transfer.receiverDetails?.storeName && (
                                   <p>
                                     <strong>Store/Nursery/Company:</strong>{" "}

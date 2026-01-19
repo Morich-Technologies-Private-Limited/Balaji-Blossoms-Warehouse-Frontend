@@ -75,6 +75,7 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
       navItems: [
         { icon: 'bi-house-door-fill', text: 'Home', link: '/mainstore/dashboard' },
         { icon: 'bi-clock-history', text: 'In Entry', link: '/mainstore/import' },
+
         { icon: 'bi-shop', text: 'Out Entry', link: '/mainstore/transfer' },
         { icon: 'bi-box', text: 'Product Master', link: '/mainstore/product/add' },
         { icon: 'bi-boxes', text: 'Inventory View', link: '/mainstore/view/inventory' },
@@ -88,6 +89,8 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
       navItems: [
         { icon: 'bi-house-door-fill', text: 'Home', link: '/substore/dashboard' },
         { icon: 'bi-arrow-up-circle', text: 'Stock Transfer', link: '/substore/transfer' },
+        { icon: 'bi-clock-history', text: 'In Entry', link: '/substore/import' },
+        
         { icon: 'bi-arrow-up-circle', text: 'Out Entry', link: '/substore/supervisor/transfer' },
         { icon: 'bi-file-text', text: 'Transfer History', link: '/substore/view/tranferHistory' },
         

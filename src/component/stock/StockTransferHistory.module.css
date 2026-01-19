@@ -471,50 +471,45 @@
   min-width: 50px;
 }
 
-.table th:nth-child(2), /* Expand */
-.table td:nth-child(2) {
-  width: 50px;
-  min-width: 50px;
-}
 
-.table th:nth-child(3), /* Transfer ID */
-.table td:nth-child(3) {
+.table th:nth-child(2), /* Transfer ID */
+.table td:nth-child(2) {
   width: 130px;
   min-width: 130px;
 }
 
-.table th:nth-child(4), /* Type */
-.table td:nth-child(4) {
+.table th:nth-child(3), /* Type */
+.table td:nth-child(3) {
   width: 90px;
   min-width: 90px;
 }
 
-.table th:nth-child(5), /* Date & Time */
-.table td:nth-child(5) {
+.table th:nth-child(4), /* Date & Time */
+.table td:nth-child(4) {
   width: 200px;
   min-width: 200px;
 }
 
-.table th:nth-child(6), /* Sender */
-.table td:nth-child(6) {
+.table th:nth-child(5), /* Sender */
+.table td:nth-child(5) {
   width: 200px;
   min-width: 180px;
 }
 
-.table th:nth-child(7), /* Receiver */
-.table td:nth-child(7) {
+.table th:nth-child(6), /* Receiver */
+.table td:nth-child(6) {
   width: 180px;
   min-width: 180px;
 }
 
-.table th:nth-child(8), /* Items */
-.table td:nth-child(8) {
+.table th:nth-child(7), /* Items */
+.table td:nth-child(7) {
   width: 100px;
   min-width: 100px;
 }
 
-.table th:nth-child(9), /* Actions - MOST IMPORTANT FIX */
-.table td:nth-child(9) {
+.table th:nth-child(8), /* Actions - MOST IMPORTANT FIX */
+.table td:nth-child(8) {
   width: 220px;
   min-width: 220px;
   padding-right: 16px; /* Extra padding on right */

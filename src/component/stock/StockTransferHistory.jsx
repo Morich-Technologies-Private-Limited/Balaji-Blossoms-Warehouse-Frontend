@@ -440,7 +440,7 @@ const isWithinOneHour = (transferDate) => {
                       onChange={handleSelectAll}
                     />
                   </th>
-                  <th className={styles.expandCol}></th>
+            
                   <th>Transfer ID</th>
                   <th>Type</th>
                   <th className={styles.hideOnMobile}>Date & Time</th>
@@ -465,19 +465,18 @@ const isWithinOneHour = (transferDate) => {
                           onChange={() => handleCheckboxChange(transfer.transferId)}
                           onClick={(e) => e.stopPropagation()}
                         />
-                      </td>
-                      <td className={styles.expandCol}>
                         <button
-                          className={styles.expandBtn}
+                          className={`${styles.expandBtn} ${styles.mobileExpandBtn}`}
                           onClick={() => toggleRow(transfer.transferId)}
                         >
                           {expandedRows.has(transfer.transferId) ? (
-                            <ChevronUp size={18} />
+                            <ChevronUp size={16} />
                           ) : (
-                            <ChevronDown size={18} />
+                            <ChevronDown size={16} />
                           )}
                         </button>
                       </td>
+                    
                       <td>
                         <span className={styles.transferId}>{transfer.transferId}</span>
                       </td>
@@ -498,7 +497,7 @@ const isWithinOneHour = (transferDate) => {
                           <User size={14} />
                           <div>
                             <div className={styles.userName}>{transfer.senderDetails.name}</div>
-                              {transfer.senderDetails.storeName}
+                            <div className={styles.userContact}>{transfer.senderDetails.storeName}</div>
                           </div>
                         </div>
                       </td>
@@ -507,7 +506,7 @@ const isWithinOneHour = (transferDate) => {
                           <User size={14} />
                           <div>
                             <div className={styles.userName}>{transfer.receiverDetails.name}</div>
-                              {transfer.receiverDetails.storeName}
+                            <div className={styles.userContact}>{transfer.receiverDetails.storeName}</div>
                           </div>
                         </div>
                       </td>
@@ -889,6 +888,7 @@ const isWithinOneHour = (transferDate) => {
       )}
     </div>
   );
+
 };
 
 export default StockTransferHistory;

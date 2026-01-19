@@ -20,6 +20,7 @@ import Dashboard from "./component/mainstore/Dashboard";
 import CreateStore from "./component/admin/CreateStore";
 import RequestView from "./component/admin/RequestView";
 import UserManagement from "./component/admin/UserManagment";
+import MessagePopUp from "./component/modal/MessagePopUp";
 
 
 /* ================= ROLE ↔ PATH MAP ================= */
@@ -89,6 +90,8 @@ function App() {
 
   return (
     <>
+    <MessagePopUp />
+
       {showSidebar && (
         <DynamicSidebar
           role={userRole}
@@ -267,7 +270,9 @@ function App() {
            <Route path="/unauthorized" element={<UnauthorizedPage />} />
      
         </Routes>
+
       </div>
+       
     </>
   );
 }

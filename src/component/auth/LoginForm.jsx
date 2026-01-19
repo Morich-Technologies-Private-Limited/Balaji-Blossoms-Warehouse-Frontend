@@ -4,6 +4,7 @@ import logo from "../../assets/logo.png";
 import { loginApi, devModeLogin } from '../../api/loginApi';
 import { useNavigate } from 'react-router-dom';
 import { useStores } from '../../context/StoreContext';
+import { showMessagePopUp } from '../modal/MessagePopUp';
 
 const LoginForm = () => {  
   const [email, setEmail] = useState('');
@@ -28,14 +29,15 @@ const LoginForm = () => {
         const result = await loginApi(email, password);
         
         if (result.success) {
-          alert(`Login successful for: ${email}`);
           loadStores();
           navigate(result.navLink);
         } else {
-          alert(result.message || 'Login failed');
+          console.log("sddcs")
+          showMessagePopUp("FAILED",result.message);
+        
         }
       } catch (error) {
-        alert('An error occurred during login');
+         showMessagePopUp("FAILED","An error occurred during login");
       } finally {
         setIsLoading(false);
       }

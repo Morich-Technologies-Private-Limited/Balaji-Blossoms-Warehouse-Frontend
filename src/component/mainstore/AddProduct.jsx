@@ -666,7 +666,7 @@ const AddProduct = () => {
                   }}
                 >
                   <option value="">Select category</option>
-                  <option value="SOLID">Powder</option>
+                  <option value="POWDER">Powder</option>
                   <option value="LIQUID">Liquid</option>
                 </select>
                 {categoryError && (

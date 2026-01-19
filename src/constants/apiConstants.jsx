@@ -5,6 +5,8 @@ export const LOGIN_URL = `${API_BASE_URL}/auth/login`;
 export const REGISTER_URL = `${API_BASE_URL}/admin/register`;
 export const STORE_CREATE_URL = `${API_BASE_URL}/admin/create-store`;
 export const FIND_ALL_USER_URL = `${API_BASE_URL}/admin/find/allUsers`;
+export const CREATE_GRAPH_URL = `${API_BASE_URL}/admin/createProductGraph`;
+
 
 export const UPDATE_USER_STATUS_URL = `${API_BASE_URL}/admin/update/user/status`;
 export const UPDATE_USER_STORE_URL = `${API_BASE_URL}/admin/update/user/store`;
@@ -36,5 +38,6 @@ export const DELETE_STOCK_TRANSFER_URL = `${API_BASE_URL}/product/transferHistor
 
 export const ADD_PRODUCT_URL = `${API_BASE_URL}/product/add`;
 export const ADD_PACKING_URL = `${API_BASE_URL}/product/add/packing`;
+
 
 export const CHECK_PRODUCT_AVAILABILITY_URL = `${API_BASE_URL}/product/productName/check-availability`;

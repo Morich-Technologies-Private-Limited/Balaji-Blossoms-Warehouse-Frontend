@@ -22,6 +22,7 @@ import RequestView from "./component/admin/RequestView";
 import UserManagement from "./component/admin/UserManagment";
 import MessagePopUp from "./component/modal/MessagePopUp";
 import StockImportSubstore from "./component/mainstore/StockImportSubstore";
+import AdminDashboard from "./component/admin/AdminDashboard";
 
 
 /* ================= ROLE ↔ PATH MAP ================= */
@@ -122,7 +123,7 @@ function App() {
             path="/admin"
             element={
               <ProtectedRoute allowedRoles={["ADMIN"]}>
-                <h2>Admin Dashboard</h2>
+                <AdminDashboard />
               </ProtectedRoute>
             }
           />

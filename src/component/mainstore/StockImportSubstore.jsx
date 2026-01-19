@@ -199,6 +199,7 @@ const StockImportSubstore = () => {
       packingSize: '',
       packingUnit: '',
       quantity: 0,
+      inventoryId: '', // Initialize inventoryId
       packingOptions: packingOptions
     };
 
@@ -237,6 +238,11 @@ const StockImportSubstore = () => {
           updated.noOfBags = '';
           updated.directQuantity = '';
           updated.quantity = 0;
+          
+          // Set inventoryId from the first inventory in the list
+          if (packing.inventoryList && packing.inventoryList.length > 0) {
+            updated.inventoryId = packing.inventoryList[0].inventoryId;
+          }
         }
       }
 
@@ -293,6 +299,7 @@ const StockImportSubstore = () => {
 
       const invalidItems = importItems.filter(item =>
         !item.packingId ||
+        !item.inventoryId ||
         !item.quantity ||
         Number(item.quantity) <= 0
       );
@@ -335,6 +342,7 @@ const StockImportSubstore = () => {
           return {
             packingId: Number(item.packingId),
             productId: Number(item.productId),
+            inventoryId: Number(item.inventoryId),
             quantityToTransfer: Number(item.quantity),
             transferMetadata: transferMetadata
           };

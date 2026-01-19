@@ -21,6 +21,7 @@ import CreateStore from "./component/admin/CreateStore";
 import RequestView from "./component/admin/RequestView";
 import UserManagement from "./component/admin/UserManagment";
 import MessagePopUp from "./component/modal/MessagePopUp";
+import StockImportSubstore from "./component/mainstore/StockImportSubstore";
 
 
 /* ================= ROLE ↔ PATH MAP ================= */
@@ -114,6 +115,7 @@ function App() {
           <Route path="/" element={<LoginForm />} />
           <Route path="/login" element={<LoginForm />} />
           
+          
 
           {/* ============ ADMIN ============ */}
           <Route
@@ -153,10 +155,34 @@ function App() {
           />
 
 
-          {/* ============ 🔥 DYNAMIC COMMON ROUTE (KEY FIX) 🔥 ============ */}
+
+           <Route
+            path="/mainstore/import"
+            element={
+              <ProtectedRoute allowedRoles={["MAIN_STORE_MANAGER"]}>
+                <StockImport />
+              </ProtectedRoute>
+            }
+            />
+
+
+            {/* ============ Temporary routes need to remove in Production ============ */}
+         
+          <Route
+            path="/substore/import"
+            element={
+              <ProtectedRoute allowedRoles={["SUB_STORE_MANAGER"]}>
+                <StockImportSubstore />
+              </ProtectedRoute>
+            }
+            />
+
+
+
+          {/* ============  COMMON ROUTE  ============ */}
          
          
-                 <Route
+          <Route
             path="/:scope/dashboard"
             element={
               <ProtectedRoute allowedRoles={["MAIN_STORE_MANAGER", "SUB_STORE_MANAGER"]}>
@@ -208,14 +234,7 @@ function App() {
             }
           />
 
-          <Route
-            path="/:scope/import"
-            element={
-              <ProtectedRoute allowedRoles={["MAIN_STORE_MANAGER","SUB_STORE_MANAGER"]}>
-                <StockImport />
-              </ProtectedRoute>
-            }
-          />
+    
 
       <Route
             path="/:scope/supervisor/transfer"

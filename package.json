@@ -3,8 +3,8 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
- "scripts": {
-    "dev": "vite --mode dev",   
+  "scripts": {
+    "dev": "vite --mode dev",
     "build": "vite build --mode production",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
@@ -19,7 +19,8 @@
     "react-bootstrap": "^2.10.10",
     "react-bootstrap-icons": "^1.11.6",
     "react-dom": "^19.2.0",
-    "react-router-dom": "^7.11.0"
+    "react-router-dom": "^7.11.0",
+    "recharts": "^3.6.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",

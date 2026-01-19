@@ -20,6 +20,7 @@ import Dashboard from "./component/mainstore/Dashboard";
 import CreateStore from "./component/admin/CreateStore";
 import RequestView from "./component/admin/RequestView";
 import UserManagement from "./component/admin/UserManagment";
+import MessagePopUp from "./component/modal/MessagePopUp";
 
 
 /* ================= ROLE ↔ PATH MAP ================= */
@@ -57,12 +58,9 @@ const ProtectedRoute = ({ allowedRoles, children }) => {
 function App() {
   const location = useLocation();
   const pathname = location.pathname;
-
   const [userRole, setUserRole] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
-
-  
 
   useEffect(() => {
     const checkMobile = () => {
@@ -92,6 +90,8 @@ function App() {
 
   return (
     <>
+    <MessagePopUp />
+
       {showSidebar && (
         <DynamicSidebar
           role={userRole}
@@ -270,7 +270,9 @@ function App() {
            <Route path="/unauthorized" element={<UnauthorizedPage />} />
      
         </Routes>
+
       </div>
+       
     </>
   );
 }

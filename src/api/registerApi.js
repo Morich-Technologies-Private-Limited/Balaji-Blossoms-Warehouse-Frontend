@@ -15,12 +15,17 @@ export const registerApi = async (userData) => {
 
     return response;
   } catch (error) {
-    console.error("Register error:", error);
-    return {
-      status: "FAILED",
-      message:
-        error.response?.data?.message ||
-        "Something went wrong while registering",
-    };
+    const httpStatus = error.response?.status;
+    const apiError = error.response?.data;
+      return {
+        status: apiError?.status || (httpStatus >= 500 ? "ERROR" : "FAILED"),
+        payload: null,
+        message:
+          apiError?.message ||
+          (httpStatus
+            ? `Request failed with status ${httpStatus}`
+            : "Network error or server not reachable"),
+        errorList: apiError?.errorList || [],
+      };
   }
 };

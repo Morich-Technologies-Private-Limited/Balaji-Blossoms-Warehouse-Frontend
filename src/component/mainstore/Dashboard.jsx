@@ -4,6 +4,7 @@ import styles from './Dashboard.module.css';
 import { useStores } from "../../context/StoreContext";
 import { getSessionData } from '../utils/getSessionData';
 import { findStoreInventory } from '../../api/findStoreInventory';
+import { showMessagePopUp } from '../modal/MessagePopUp';
 
 const Dashboard = () => {
   const { stores } = useStores();
@@ -56,10 +57,10 @@ const Dashboard = () => {
       if (response.data.status === "SUCCESS") {
         setProducts(response.data.payload);
       } else {
-        alert(response.data.message || "Unable to fetch inventory");
+        showMessagePopUp(response.data.status,response.data.message);
       }
     } catch (err) {
-      alert(err.message || "Error fetching inventory");
+      showMessagePopUp("FAILED",err.message || "Error fetching inventory");
     } finally {
       setIsLoading(false);
     }

@@ -47,9 +47,9 @@ const AdminDashboard = () => {
 
     const allProducts = response.data.payload;
     
-    // Extract product IDs from fetched data
-    const ids = allProducts.map(product => product.productId);
-    setProductIds(ids);
+    // Extract product IDs from fetched data and ensure uniqueness
+    const uniqueIds = [...new Set(allProducts.map(product => product.productId))];
+    setProductIds(uniqueIds);
     
     // Reset pagination when fetching new product list
     setCurrentBatchIndex(0);
@@ -67,7 +67,7 @@ const AdminDashboard = () => {
       id => !productsData[id] && !fetchingProductIds.has(id)
     );
 
-    if (newProductIds.length === 0) return;
+    if (newProductIds.length === 0) return 0;
 
     // Mark these products as being fetched
     setFetchingProductIds(prev => {
@@ -99,8 +99,12 @@ const AdminDashboard = () => {
     // Update products data
     setProductsData(prev => ({ ...prev, ...dataMap }));
     
-    // Add valid products to the list of products with data
-    setProductsWithData(prev => [...prev, ...validProductIds]);
+    // Add valid products to the list of products with data (prevent duplicates)
+    setProductsWithData(prev => {
+      const existingIds = new Set(prev);
+      const uniqueNewIds = validProductIds.filter(id => !existingIds.has(id));
+      return [...prev, ...uniqueNewIds];
+    });
     
     // Remove from fetching set
     setFetchingProductIds(prev => {
@@ -541,8 +545,8 @@ const AdminDashboard = () => {
 
   const filteredProductIds = getFilteredProductIds();
   
-  // Get products with data that match the search query
-  const displayedProductIds = productsWithData
+  // Get products with data that match the search query (ensuring uniqueness)
+  const displayedProductIds = [...new Set(productsWithData)]
     .filter(id => {
       if (!searchQuery) return true;
       const productData = productsData[id];
@@ -611,8 +615,8 @@ const AdminDashboard = () => {
 
       <div className={styles.mainContent}>
         <div className={styles.productsContainer}>
-          {displayedProductIds.map((productId, index) => (
-            <div key={`${productId}-${index}`}>
+          {displayedProductIds.map((productId) => (
+            <div key={productId}>
               {renderProductCard(productId)}
             </div>
           ))}

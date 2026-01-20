@@ -60,7 +60,7 @@ const AddProduct = () => {
   }, [highlightedIndex]);
 
   const getValidUnits = (selectedCategory) => {
-    if (selectedCategory === 'SOLID') {
+    if (selectedCategory === 'POWDER') {
       return ['KILOGRAM', 'GRAM'];
     } else if (selectedCategory === 'LIQUID') {
       return ['LITER', 'MILLILITER'];
@@ -466,7 +466,7 @@ const AddProduct = () => {
                         onMouseEnter={() => setHighlightedIndex(index)}
                       >
                         <div className={styles.productName}>{product.productName}</div>
-                      <div className={styles.productCategory}>{product.category === 'SOLID' ? 'Powder' : product.category}</div>
+                       <div className={styles.productCategory}>{product.category}</div>
 
                       </div>
                     ))}

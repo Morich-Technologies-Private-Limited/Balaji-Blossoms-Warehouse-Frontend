@@ -176,13 +176,23 @@ function App() {
                 <StockImportSubstore />
               </ProtectedRoute>
             }
-            />
+          />
+
 
 
 
           {/* ============  COMMON ROUTE  ============ */}
          
          
+            <Route
+            path="/:scope/"
+            element={
+              <ProtectedRoute allowedRoles={["MAIN_STORE_MANAGER", "SUB_STORE_MANAGER"]}>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+
           <Route
             path="/:scope/dashboard"
             element={
@@ -264,17 +274,7 @@ function App() {
 
 
 
-          {/* ============ SUB STORE ============ */}
-          <Route
-            path="/substore"
-            element={
-              <ProtectedRoute
-                allowedRoles={["SUB_STORE_MANAGER", "SUB_STORE_SUPERVISOR"]}
-              >
-                <h2>Sub Store Dashboard</h2>
-              </ProtectedRoute>
-            }
-          />
+  
 
           {/* ============ STORE HOUSE ============ */}
           <Route

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   BarChart,
   Bar,
@@ -11,14 +11,24 @@ import {
 } from 'recharts';
 import styles from './AdminDashboard.module.css';
 import { createProductGraph } from '../../api/createProductGraph';
+import { findAllProducts } from '../../api/findAllProducts';
 
 const AdminDashboard = () => {
-  const [productIds] = useState([9]);
+  const [productIds, setProductIds] = useState([]);
   const [viewLayout, setViewLayout] = useState('grid');
   const [productsData, setProductsData] = useState({});
   const [loading, setLoading] = useState(true);
   const [scaleSettings, setScaleSettings] = useState({});
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Pagination state
+  const [currentBatchIndex, setCurrentBatchIndex] = useState(0);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [fetchingProductIds, setFetchingProductIds] = useState(new Set());
+  const [productsWithData, setProductsWithData] = useState([]);
+  
+  const observerTarget = useRef(null);
+  const PRODUCTS_TO_DISPLAY = 5;
 
   useEffect(() => {
     fetchAllProducts();
@@ -26,22 +36,215 @@ const AdminDashboard = () => {
 
   const fetchAllProducts = async () => {
     setLoading(true);
-    const dataMap = {};
     
-    for (const productId of productIds) {
+    const response = await findAllProducts();
+
+    if(response.data.status!=="SUCCESS"){
+     alert(response.data.message);
+     setLoading(false);
+     return;
+    }
+
+    const allProducts = response.data.payload;
+    
+    // Extract product IDs from fetched data
+    const ids = allProducts.map(product => product.productId);
+    setProductIds(ids);
+    
+    // Reset pagination when fetching new product list
+    setCurrentBatchIndex(0);
+    setProductsData({});
+    setFetchingProductIds(new Set());
+    setProductsWithData([]);
+    
+    setLoading(false);
+  };
+
+  // Fetch product graph data and filter only products with data
+  const fetchProductGraphData = useCallback(async (productIdsToFetch) => {
+    // Filter out already fetched or currently fetching products
+    const newProductIds = productIdsToFetch.filter(
+      id => !productsData[id] && !fetchingProductIds.has(id)
+    );
+
+    if (newProductIds.length === 0) return;
+
+    // Mark these products as being fetched
+    setFetchingProductIds(prev => {
+      const newSet = new Set(prev);
+      newProductIds.forEach(id => newSet.add(id));
+      return newSet;
+    });
+
+    const dataMap = {};
+    const validProductIds = [];
+    
+    for (const productId of newProductIds) {
       try {
         const response = await createProductGraph(productId);
         if (response.data.status === "SUCCESS") {
-          dataMap[productId] = response.data.payload;
+          const productData = response.data.payload;
+          
+          // Check if product has valid data (has packing list)
+          if (productData?.product?.packingList && productData.product.packingList.length > 0) {
+            dataMap[productId] = productData;
+            validProductIds.push(productId);
+          }
         }
       } catch (err) {
         console.error(`Error fetching product ${productId}:`, err);
       }
     }
     
-    setProductsData(dataMap);
-    setLoading(false);
-  };
+    // Update products data
+    setProductsData(prev => ({ ...prev, ...dataMap }));
+    
+    // Add valid products to the list of products with data
+    setProductsWithData(prev => [...prev, ...validProductIds]);
+    
+    // Remove from fetching set
+    setFetchingProductIds(prev => {
+      const newSet = new Set(prev);
+      newProductIds.forEach(id => newSet.delete(id));
+      return newSet;
+    });
+    
+    return validProductIds.length;
+  }, [productsData, fetchingProductIds]);
+
+  // Get filtered product IDs based on search
+  const getFilteredProductIds = useCallback(() => {
+    return productIds.filter(productId => {
+      if (!searchQuery) return true;
+      const productData = productsData[productId];
+      if (!productData) return true; // Include unfetched products to load them
+      return productData.product.productName.toLowerCase().includes(searchQuery.toLowerCase());
+    });
+  }, [productIds, searchQuery, productsData]);
+
+  // Fetch products in batches until we have enough with valid data
+  const fetchNextBatch = useCallback(async () => {
+    if (loadingMore) return;
+    
+    const filteredIds = getFilteredProductIds();
+    const allProcessedIds = Object.keys(productsData);
+    
+    // Filter only products that match search and have data
+    const filteredProductsWithData = productsWithData.filter(id => {
+      if (!searchQuery) return true;
+      const productData = productsData[id];
+      return productData?.product?.productName.toLowerCase().includes(searchQuery.toLowerCase());
+    });
+    
+    // Check if we already have enough products with data
+    if (filteredProductsWithData.length >= PRODUCTS_TO_DISPLAY) {
+      return;
+    }
+    
+    // Check if there are more products to fetch
+    if (currentBatchIndex >= filteredIds.length) {
+      return;
+    }
+    
+    setLoadingMore(true);
+    
+    const BATCH_SIZE = 5;
+    let productsFound = 0;
+    let batchIndex = currentBatchIndex;
+    
+    // Keep fetching batches until we have enough products with data
+    while (
+      filteredProductsWithData.length + productsFound < PRODUCTS_TO_DISPLAY && 
+      batchIndex < filteredIds.length
+    ) {
+      const batchStart = batchIndex;
+      const batchEnd = Math.min(batchIndex + BATCH_SIZE, filteredIds.length);
+      const batchIds = filteredIds.slice(batchStart, batchEnd);
+      
+      // Fetch this batch
+      const foundCount = await fetchProductGraphData(batchIds);
+      if (foundCount) {
+        productsFound += foundCount;
+      }
+      
+      batchIndex = batchEnd;
+      
+      // If we've processed all products, stop
+      if (batchIndex >= filteredIds.length) {
+        break;
+      }
+    }
+    
+    setCurrentBatchIndex(batchIndex);
+    setLoadingMore(false);
+  }, [
+    loadingMore, 
+    getFilteredProductIds, 
+    productsData, 
+    productsWithData, 
+    searchQuery, 
+    currentBatchIndex, 
+    fetchProductGraphData
+  ]);
+
+  // Initial fetch when component loads or search changes
+  useEffect(() => {
+    if (productIds.length > 0 && !loading) {
+      fetchNextBatch();
+    }
+  }, [productIds, searchQuery]);
+
+  // Reset when search changes
+  useEffect(() => {
+    setCurrentBatchIndex(0);
+  }, [searchQuery]);
+
+  // Intersection Observer for infinite scroll
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !loadingMore && !loading) {
+          const filteredIds = getFilteredProductIds();
+          
+          // Filter products with data that match search
+          const filteredProductsWithData = productsWithData.filter(id => {
+            if (!searchQuery) return true;
+            const productData = productsData[id];
+            return productData?.product?.productName.toLowerCase().includes(searchQuery.toLowerCase());
+          });
+          
+          // Load more if we don't have enough products or haven't fetched all
+          if (
+            filteredProductsWithData.length < PRODUCTS_TO_DISPLAY && 
+            currentBatchIndex < filteredIds.length
+          ) {
+            fetchNextBatch();
+          }
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    const currentTarget = observerTarget.current;
+    if (currentTarget) {
+      observer.observe(currentTarget);
+    }
+
+    return () => {
+      if (currentTarget) {
+        observer.unobserve(currentTarget);
+      }
+    };
+  }, [
+    loadingMore, 
+    loading, 
+    getFilteredProductIds, 
+    productsWithData, 
+    searchQuery, 
+    productsData, 
+    currentBatchIndex, 
+    fetchNextBatch
+  ]);
 
   const getColorHex = (colorName) => {
     const colorMap = {
@@ -336,13 +539,18 @@ const AdminDashboard = () => {
     );
   };
 
-  // Filter products based on search query
-  const filteredProductIds = productIds.filter(productId => {
-    if (!searchQuery) return true;
-    const productData = productsData[productId];
-    if (!productData) return false;
-    return productData.product.productName.toLowerCase().includes(searchQuery.toLowerCase());
-  });
+  const filteredProductIds = getFilteredProductIds();
+  
+  // Get products with data that match the search query
+  const displayedProductIds = productsWithData
+    .filter(id => {
+      if (!searchQuery) return true;
+      const productData = productsData[id];
+      return productData?.product?.productName.toLowerCase().includes(searchQuery.toLowerCase());
+    })
+    .slice(0, PRODUCTS_TO_DISPLAY);
+  
+  const hasMoreToFetch = currentBatchIndex < filteredProductIds.length;
 
   return (
     <div className={styles.adminContainer}>
@@ -403,18 +611,47 @@ const AdminDashboard = () => {
 
       <div className={styles.mainContent}>
         <div className={styles.productsContainer}>
-          {filteredProductIds.map((productId, index) => (
+          {displayedProductIds.map((productId, index) => (
             <div key={`${productId}-${index}`}>
               {renderProductCard(productId)}
             </div>
           ))}
+          
+          {/* Loading indicator for pagination */}
+          {loadingMore && (
+            <div className={styles.loadingCard}>
+              <div className={styles.spinner} />
+              <p className={styles.loadingText}>Scanning for products with data...</p>
+            </div>
+          )}
+          
+          {/* Intersection observer target */}
+          {(hasMoreToFetch || displayedProductIds.length < PRODUCTS_TO_DISPLAY) && (
+            <div ref={observerTarget} style={{ height: '20px', margin: '20px 0' }} />
+          )}
         </div>
 
-        {filteredProductIds.length === 0 && !loading && (
+        {filteredProductIds.length === 0 && !loading && productIds.length > 0 && (
           <div className={styles.emptyState}>
             <i className="bi bi-inbox" />
-            <h3>{searchQuery ? 'No Products Found' : 'No Products Available'}</h3>
-            <p>{searchQuery ? 'Try adjusting your search query.' : 'Try adjusting your filters or add new products to get started.'}</p>
+            <h3>No Products Found</h3>
+            <p>Try adjusting your search query.</p>
+          </div>
+        )}
+        
+        {displayedProductIds.length === 0 && !loading && !loadingMore && productIds.length > 0 && filteredProductIds.length > 0 && (
+          <div className={styles.emptyState}>
+            <i className="bi bi-inbox" />
+            <h3>No Products with Data Found</h3>
+            <p>Scanned products but none have inventory data available.</p>
+          </div>
+        )}
+        
+        {productIds.length === 0 && !loading && (
+          <div className={styles.emptyState}>
+            <i className="bi bi-inbox" />
+            <h3>No Products Available</h3>
+            <p>Add new products to get started.</p>
           </div>
         )}
       </div>

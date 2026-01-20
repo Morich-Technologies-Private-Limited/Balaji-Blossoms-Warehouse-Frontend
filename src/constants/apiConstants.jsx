@@ -23,6 +23,7 @@ export const FETCH_STORE_INVENTORY_URL = `${API_BASE_URL}/store/inventory`;
 export const VIEW_PDF_URL = `${API_BASE_URL}/product/view/pdf`;
 
 
+export const FIND_ALL_PRODUCT_URL = `${API_BASE_URL}/product/findAll`;
 export const FIND_PRODUCT_SEARCH_URL = `${API_BASE_URL}/product/search`;
 export const FIND_PRODUCT_PACKING_URL = `${API_BASE_URL}/product/find/packing`;
 export const FIND_PRODUCT_PACKING_WITHOUT_INVENTORY_URL = `${API_BASE_URL}/product/findProductPackingWithoutInventory`;

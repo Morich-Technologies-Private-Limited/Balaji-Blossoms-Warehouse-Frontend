@@ -441,7 +441,12 @@ const isWithinOneHour = (transferDate) => {
                     />
                   </th>
             
-                  <th>Transfer ID</th>
+
+                  <th>
+                    <span className={styles.showOnMobileTable}>TID</span>
+                    <span className={styles.hideOnMobile}>Transfer ID</span>
+                  </th>
+
                   <th>Type</th>
                   <th className={styles.hideOnMobile}>Date & Time</th>
                   <th>Sender</th>

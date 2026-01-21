@@ -9,7 +9,6 @@ import { showMessagePopUp } from '../modal/MessagePopUp';
 const LoginForm = () => {  
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [remember, setRemember] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedRole, setSelectedRole] = useState('');
@@ -32,17 +31,15 @@ const LoginForm = () => {
           loadStores();
           navigate(result.navLink);
         } else {
-          console.log("sddcs")
-          showMessagePopUp("FAILED",result.message);
-        
+          showMessagePopUp("FAILED", result.message);
         }
       } catch (error) {
-         showMessagePopUp("FAILED","An error occurred during login");
+        showMessagePopUp("FAILED", "An error occurred during login");
       } finally {
         setIsLoading(false);
       }
     } else {
-      alert('Please fill in all fields');
+      showMessagePopUp("FAILED", "Please fill in all fields");
     }
   };
 
@@ -66,7 +63,7 @@ const LoginForm = () => {
         {/* Left Side - Branding (Desktop Only) */}
         <div className={`col-lg-6 ${styles.brandingSide} d-none d-lg-flex align-items-center justify-content-center p-5 text-white position-relative overflow-hidden`}>
           <div className={`${styles.brandingContent} text-center position-relative z-1`}>
-            <img src={logo} className="img-fluid d-block mx-auto" alt="Responsive"/>
+            <img src={logo} className="img-fluid d-block mx-auto mb-4" alt="Logo" style={{ maxWidth: '200px' }} />
             <p className="lead mb-4" style={{ opacity: 0.9 }}>The Home of Interior Plants</p>
             <div className={`${styles.featureList} mt-5`}>
               <div className={styles.featureItem}>
@@ -90,7 +87,7 @@ const LoginForm = () => {
           <div className={`${styles.formContainer} w-100`} style={{ maxWidth: '440px' }}>
             {/* Mobile Logo Header */}
             <div className={`${styles.mobileHeader} d-lg-none text-center mb-4`}>
-              <img src={logo} className="img-fluid d-block mx-auto" alt="Responsive"/>
+              <img src={logo} className="img-fluid d-block mx-auto" alt="Logo" style={{ maxWidth: '150px' }} />
             </div>
 
             <div className={`${styles.formCard} bg-white p-4 p-md-5 rounded-4 shadow-sm`}>
@@ -174,16 +171,17 @@ const LoginForm = () => {
                 // Production Mode: Normal Login Form
                 <form onSubmit={handleSubmit}>
                   <div className="mb-3">
-                    <label className="form-label text-secondary small fw-semibold mb-2">Email Address</label>
+                    <label className="form-label text-secondary small fw-semibold mb-2">Email or User ID</label>
                     <div className={styles.inputWrapper}>
-                      <i className="bi bi-envelope"></i>
+                      <i className={`bi bi-envelope ${styles.inputIcon}`}></i>
                       <input
-                        type="email"
-                        className="form-control"
-                        placeholder="your.email@example.com"
+                        type="text"
+                        className={`form-control ${styles.inputField}`}
+                        placeholder="Enter email or userId"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
+                        disabled={isLoading}
                       />
                     </div>
                   </div>
@@ -191,45 +189,48 @@ const LoginForm = () => {
                   <div className="mb-3">
                     <label className="form-label text-secondary small fw-semibold mb-2">Password</label>
                     <div className={styles.inputWrapper}>
-                      <i className="bi bi-lock"></i>
+                      <i className={`bi bi-lock ${styles.inputIcon}`}></i>
                       <input
                         type={showPassword ? "text" : "password"}
-                        className="form-control"
+                        className={`form-control ${styles.inputField}`}
                         placeholder="Enter your password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
+                        disabled={isLoading}
                       />
                       <button 
                         type="button"
                         className={styles.togglePassword}
                         onClick={() => setShowPassword(!showPassword)}
                         aria-label="Toggle password visibility"
+                        disabled={isLoading}
                       >
-                        <i id='eye-icon' className={`bi ${showPassword ? 'bi-eye-slash' : 'bi-eye'}`}></i>
+                        <i className={`bi ${showPassword ? 'bi-eye-slash' : 'bi-eye'}`}></i>
                       </button>
                     </div>
                   </div>
 
-                  <div className="d-flex justify-content-between align-items-center mb-4">
-                    <div className="form-check">
-                      <input
-                        className="form-check-input"
-                        type="checkbox"
-                        checked={remember}
-                        onChange={(e) => setRemember(e.target.checked)}
-                        id="rememberMe"
-                      />
-                      <label className="form-check-label small text-muted" htmlFor="rememberMe">
-                        Remember me
-                      </label>
-                    </div>
+                  <div className="d-flex justify-content-end align-items-center mb-4">
                     <a href="#" className={`small ${styles.linkPrimary}`}>Forgot password?</a>
                   </div>
 
-                  <button type="submit" className={`btn ${styles.btnPrimary} w-100 py-3 fw-semibold mb-4`}>
-                    Sign In
-                    <i className="bi bi-arrow-right ms-2"></i>
+                  <button 
+                    type="submit" 
+                    className={`btn ${styles.btnPrimary} w-100 py-3 fw-semibold mb-4`}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <>
+                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        Signing In...
+                      </>
+                    ) : (
+                      <>
+                        Sign In
+                        <i className="bi bi-arrow-right ms-2"></i>
+                      </>
+                    )}
                   </button>
                 </form>
               )}

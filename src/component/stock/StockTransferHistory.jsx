@@ -50,7 +50,6 @@ const StockTransferHistory = () => {
   }, [contextStores]);
 
 
-
   
   useEffect(() => {
     if (!selectedStore) return;
@@ -66,7 +65,7 @@ const StockTransferHistory = () => {
         const response = await findTranfserHistoryStore(selectedStore.storeId);
 
         if (response.data.status != "SUCCESS") {
-          alert(response.data.message || "Unable to find tranfer");
+          showMessagePopUp(response.data.status ||"FAILED", response.data.message || "Unable to import stock", response.data.errorList || []);
           return;
         }
 

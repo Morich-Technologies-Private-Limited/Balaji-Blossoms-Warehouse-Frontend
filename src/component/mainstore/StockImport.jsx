@@ -287,50 +287,50 @@ const StockImport = () => {
   const handleSubmit = async () => {
     try {
       
-      var isValidationError= false;
-      var errorList= "";
+      var isValidationError = false;
+      var errorList = []; // Change to array
 
       if (!senderCompanyName.trim()) {
-        errorList += "Please enter sender company name.\n";
-        isValidationError= true;
+        errorList.push("Please enter sender company name.");
+        isValidationError = true;
       }
 
       if (!senderName.trim()) {
-        errorList += "Please enter sender name.\n";
-        isValidationError= true;
+        errorList.push("Please enter sender name.");
+        isValidationError = true;
       }
 
       if (!email.trim()) {
-        errorList += "Please enter email address.\n";
-        isValidationError= true;
+        errorList.push("Please enter email address.");
+        isValidationError = true;
       }
 
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
-        errorList += "Please enter a valid email address.\n";
-        isValidationError= true;
+        errorList.push("Please enter a valid email address.");
+        isValidationError = true;
       }
 
       if (!contact.trim()) {
-        errorList += "Please enter contact number.\n";
-        isValidationError= true;
+        errorList.push("Please enter contact number.");
+        isValidationError = true;
       }
 
       if (!receiverName.trim()) {
-        errorList += "Please enter receiver name.\n";
-        isValidationError= true;
-     
+        errorList.push("Please enter receiver name.");
+        isValidationError = true;
       }
 
       if (importItems.length === 0) {
-        errorList += "No items added to import.\n";
-        isValidationError= true;
+        errorList.push("No items added to import.");
+        isValidationError = true;
       }
 
-      if(isValidationError){
+      if (isValidationError) {
         showMessagePopUp("FAILED", "Validation Error", errorList);
         return;
       }
+  
 
       const invalidItems = importItems.filter(item =>
         !item.packingId ||

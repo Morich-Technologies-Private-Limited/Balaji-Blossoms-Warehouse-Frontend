@@ -20,7 +20,7 @@ const ShopTransfer = () => {
   const [selectedStore, setSelectedStore] = useState('');
   const [receiverName, setReceiverName] = useState('');
   const [contactNo, setContactNo] = useState('');
-  const [transferId,setTransferId]=useState('');
+  const[transferId,setTransferId]=useState('');
   const [showPdfModal, setShowPdfModal] = useState(false);
   const [pdfUrl, setPdfUrl] = useState('');
   const [pdfBlob, setPdfBlob] = useState(null);
@@ -250,7 +250,7 @@ const ShopTransfer = () => {
     const packingOptions = await fetchPackingForProduct(product.productId);
     
     if (packingOptions.length === 0) {
-      alert('No packing options available for this product');
+      showMessagePopUp("NOT_FOUND", "No packing options available for this product", []);
       setShowDropdown(false);
       setSearchKey('');
       return;
@@ -487,34 +487,29 @@ const fetchAndShowPdf = async (transferId) => {
 
   const handleSubmit = async () => {
     try {
-
-      var isValidationError = false;
-      var errorList = []; // Change to array
-
       if (!selectedStore) {
-        errorList.push("Please select a store");
-        isValidationError = true;
+        alert("Please select a store to transfer to");
+        return;
       }
 
       if (!receiverName.trim()) {
-        errorList.push("Please enter receiver name");
-        isValidationError = true;
+        alert("Please enter receiver name");
+        return;
       }
-      
 
       if (!contactNo.trim()) {
-        errorList.push("Please enter contact number");
-        isValidationError = true;
-      } 
+        alert("Please enter contact number");
+        return;
+      }
 
       if (contactNo.length !== 10) {
-        errorList.push("Contact number must be 10 digits");
-        isValidationError = true;
+        alert("Contact number must be 10 digits");
+        return;
       }
 
       if (transferItems.length === 0) {
-        errorList.push("Please add at least one item to transfer");
-        isValidationError = true;
+        alert("Please add at least one item to transfer");
+        return;
       }
 
       // Validate items
@@ -587,9 +582,8 @@ const fetchAndShowPdf = async (transferId) => {
       const response = await sendProductToStore(transferDto);
 
       if(response.data.status === "SUCCESS") {
-    const newTransferId = response.data.payload;
-  
-
+        
+        const newTransferId = response.data.payload;
         setTransferItems([]);
         setSelectedStore("");
         setReceiverName("");
@@ -597,12 +591,13 @@ const fetchAndShowPdf = async (transferId) => {
         fetchAndShowPdf(newTransferId);
 
       } else {
-        alert(response.data.message || "Unable to transfer stock");
+        showMessagePopUp(response.data.status ||"FAILED", response.data.message || "Unable to transfer stock", response.data.errorList || []);
       }
 
     } catch (error) {
       console.error("Transfer failed:", error);
-      alert(error.message || "Stock transfer failed");
+      showMessagePopUp("FAILED", error.message || "Stock transfer failed", []);
+ 
     }
   };
 

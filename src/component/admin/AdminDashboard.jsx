@@ -21,6 +21,7 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [scaleSettings, setScaleSettings] = useState({});
   const [searchQuery, setSearchQuery] = useState('');
+  const [isMobile, setIsMobile] = useState(false);
   
   // Pagination state
   const [currentBatchIndex, setCurrentBatchIndex] = useState(0);
@@ -30,6 +31,18 @@ const AdminDashboard = () => {
   
   const observerTarget = useRef(null);
   const PRODUCTS_TO_DISPLAY = 5;
+
+  // Detect mobile device
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     fetchAllProducts();
@@ -42,7 +55,6 @@ const AdminDashboard = () => {
 
     
     if(response.data.status!=="SUCCESS"){
-      
      showMessagePopUp(response.data.status, response.data.message,response.data.errorList || []);
      setLoading(false);
      return;
@@ -408,6 +420,12 @@ const AdminDashboard = () => {
     const currentScale = scaleSettings[`${productId}-${unitGroup.unit}`] || { mode: 'auto', value: null };
     const maxValue = getYAxisMax(productId, unitGroup.unit, chartData, storeList);
 
+    // Responsive chart configuration
+    const chartHeight = isMobile ? 350 : 300;
+    const chartMargin = isMobile 
+      ? { top: 20, right: 10, left: 0, bottom: 80 }
+      : { top: 20, right: 30, left: 20, bottom: 60 };
+
     return (
       <div key={unitGroup.unit} className={styles.unitGraphCard}>
         <div className={styles.graphSectionHeader}>
@@ -440,40 +458,47 @@ const AdminDashboard = () => {
         </div>
 
         <div className={styles.chartContainer}>
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={chartHeight}>
             <BarChart
               data={chartData}
-              margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+              margin={chartMargin}
             >
               <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
               <XAxis
                 dataKey="packingName"
-                tick={{ fill: '#555', fontSize: 11 }}
-                label={{
+                tick={{ fill: '#555', fontSize: isMobile ? 9 : 11 }}
+                angle={isMobile ? -45 : 0}
+                textAnchor={isMobile ? 'end' : 'middle'}
+                height={isMobile ? 80 : 60}
+                interval={0}
+                label={!isMobile ? {
                   value: 'Packing Size',
                   position: 'insideBottom',
                   offset: -10,
                   style: { fontSize: 12, fill: '#555', fontWeight: 600 }
-                }}
+                } : undefined}
               />
               <YAxis
                 domain={[0, maxValue]}
-                tick={{ fill: '#555', fontSize: 11 }}
+                tick={{ fill: '#555', fontSize: isMobile ? 9 : 11 }}
+                width={isMobile ? 35 : 60}
                 label={{
                   value: 'Quantity',
                   angle: -90,
                   position: 'insideLeft',
-                  style: { fontSize: 12, fill: '#555' }
+                  style: { fontSize: isMobile ? 10 : 12, fill: '#555' }
                 }}
               />
               <Tooltip 
                 content={<CustomTooltip />}
                 cursor={{ fill: 'rgba(74, 144, 226, 0.1)' }}
               />
-              <Legend 
-                wrapperStyle={{ paddingTop: '20px' }}
-                iconType="rect"
-              />
+              {!isMobile && (
+                <Legend 
+                  wrapperStyle={{ paddingTop: '20px' }}
+                  iconType="rect"
+                />
+              )}
               {storeList.map((store, storeIndex) => (
                 <Bar
                   key={storeIndex}
@@ -481,6 +506,7 @@ const AdminDashboard = () => {
                   fill={getColorHex(store.color)}
                   radius={[8, 8, 0, 0]}
                   animationDuration={800}
+                  barSize={isMobile ? 20 : undefined}
                 />
               ))}
             </BarChart>

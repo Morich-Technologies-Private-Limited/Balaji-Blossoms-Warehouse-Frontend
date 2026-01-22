@@ -7,6 +7,7 @@ import { getSessionData } from '../utils/getSessionData';
 import { useStores } from '../../context/StoreContext';
 import { deleteStockTransfer } from '../../api/deleteStockTransfer';
 import { downloadTransferPdf } from '../../api/downloadTransferPdf';
+import { showMessagePopUp } from '../modal/MessagePopUp';
 
 const StockTransferHistory = () => {
   const [transferHistory, setTransferHistory] = useState([]);

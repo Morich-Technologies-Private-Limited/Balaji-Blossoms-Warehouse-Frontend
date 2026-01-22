@@ -4,6 +4,7 @@ import styles from './StockImport.module.css';
 import { findProducts } from '../../api/findProducts';
 import { findProductsPacking } from '../../api/findProductsPacking';
 import { importProduct } from '../../api/importProduct';
+import { showMessagePopUp } from '../modal/MessagePopUp';
 
 const StockImport = () => {
   const [searchKey, setSearchKey] = useState('');
@@ -285,40 +286,49 @@ const StockImport = () => {
 
   const handleSubmit = async () => {
     try {
-      // Validation
+      
+      var isValidationError= false;
+      var errorList= "";
+
       if (!senderCompanyName.trim()) {
-        alert("Please enter sender company name");
-        return;
+        errorList += "Please enter sender company name.\n";
+        isValidationError= true;
       }
 
       if (!senderName.trim()) {
-        alert("Please enter sender name");
-        return;
+        errorList += "Please enter sender name.\n";
+        isValidationError= true;
       }
 
       if (!email.trim()) {
-        alert("Please enter email");
-        return;
+        errorList += "Please enter email address.\n";
+        isValidationError= true;
       }
 
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
-        alert("Please enter a valid email address");
-        return;
+        errorList += "Please enter a valid email address.\n";
+        isValidationError= true;
       }
 
       if (!contact.trim()) {
-        alert("Please enter contact number");
-        return;
+        errorList += "Please enter contact number.\n";
+        isValidationError= true;
       }
 
       if (!receiverName.trim()) {
-        alert("Please enter receiver name");
-        return;
+        errorList += "Please enter receiver name.\n";
+        isValidationError= true;
+     
       }
 
       if (importItems.length === 0) {
-        alert("Please add at least one item to import");
+        errorList += "No items added to import.\n";
+        isValidationError= true;
+      }
+
+      if(isValidationError){
+        showMessagePopUp("FAILED", "Validation Error", errorList);
         return;
       }
 
@@ -382,7 +392,7 @@ const StockImport = () => {
       const response = await importProduct(importDto);
 
       if (response.data.status === "SUCCESS") {
-        alert(response.data.message || "Stock imported successfully!");
+         showMessagePopUp(response.data.status, response.data.message, response.data.errorList || []);
         // Reset form
         setImportItems([]);
         setSenderCompanyName('');
@@ -391,12 +401,12 @@ const StockImport = () => {
         setContact('');
         setReceiverName('');
       } else {
-        alert(response.data.message || "Unable to import stock");
+        showMessagePopUp(response.data.status ||"FAILED", response.data.message || "Unable to import stock", response.data.errorList || []);
       }
 
     } catch (error) {
       console.error("Import failed:", error);
-      alert(error.message || "Stock import failed");
+      showMessagePopUp("FAILED", error.message || "Stock import failed", []);
     }
   };
 

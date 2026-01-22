@@ -250,7 +250,7 @@ const ShopTransfer = () => {
     const packingOptions = await fetchPackingForProduct(product.productId);
     
     if (packingOptions.length === 0) {
-      alert('No packing options available for this product');
+      showMessagePopUp("NOT_FOUND", "No packing options available for this product", []);
       setShowDropdown(false);
       setSearchKey('');
       return;
@@ -582,9 +582,8 @@ const fetchAndShowPdf = async (transferId) => {
       const response = await sendProductToStore(transferDto);
 
       if(response.data.status === "SUCCESS") {
-    const newTransferId = response.data.payload;
-  
-
+        
+        const newTransferId = response.data.payload;
         setTransferItems([]);
         setSelectedStore("");
         setReceiverName("");
@@ -592,12 +591,13 @@ const fetchAndShowPdf = async (transferId) => {
         fetchAndShowPdf(newTransferId);
 
       } else {
-        alert(response.data.message || "Unable to transfer stock");
+        showMessagePopUp(response.data.status ||"FAILED", response.data.message || "Unable to transfer stock", response.data.errorList || []);
       }
 
     } catch (error) {
       console.error("Transfer failed:", error);
-      alert(error.message || "Stock transfer failed");
+      showMessagePopUp("FAILED", error.message || "Stock transfer failed", []);
+ 
     }
   };
 

@@ -4,7 +4,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { useStores } from "../../context/StoreContext";
 import { getSessionData } from '../utils/getSessionData';
 import { findStoreInventory } from '../../api/findStoreInventory';
-
+import { showMessagePopUp } from '../modal/MessagePopUp';
 
 const InventoryView = () => {
   const {stores} = useStores();
@@ -61,10 +61,10 @@ const InventoryView = () => {
       if (response.data.status === "SUCCESS") {
         setProducts(response.data.payload);
       } else {
-        alert(response.data.message || "Unable to fetch inventory");
+        showMessagePopUp("ERROR", response.data.message || "Unable to fetch inventory", []);
       }
     } catch (err) {
-      alert(err.message || "Error fetching inventory");
+      showMessagePopUp("ERROR", err.message || "Error fetching inventory", []);
     } finally {
       setIsLoading(false);
     }

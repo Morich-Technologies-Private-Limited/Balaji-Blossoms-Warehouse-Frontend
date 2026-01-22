@@ -6,6 +6,7 @@ import { findProducts } from '../../api/findProducts';
 import { findProductsPacking } from '../../api/findProductsPacking';
 import { sendProductToSupervisor } from '../../api/sendProductToSupervisor';
 import { downloadTransferPdf } from '../../api/downloadTransferPdf';
+import { showMessagePopUp } from '../modal/MessagePopUp';
 
 const SupervisorTransfer = () => {
   const [searchKey, setSearchKey] = useState('');
@@ -240,7 +241,7 @@ const SupervisorTransfer = () => {
     const packingOptions = await fetchPackingForProduct(product.productId);
     
     if (packingOptions.length === 0) {
-      alert('No packing options available for this product');
+      showMessagePopUp("ERROR", "No packing options available for this product", []);
       setShowDropdown(false);
       setSearchKey('');
       return;
@@ -288,7 +289,7 @@ const SupervisorTransfer = () => {
         );
 
         if (duplicateExists) {
-          alert('This product with the same packing size is already added to the transfer list');
+          showMessagePopUp("ERROR", "This product with the same packing size is already added to the transfer list", []);
           return item;
         }
 
@@ -299,7 +300,7 @@ const SupervisorTransfer = () => {
             : null;
           
           if (!inventory) {
-            alert('No inventory available for this packing');
+            showMessagePopUp("ERROR", "No inventory available for this packing", []);
             return item;
           }
 
@@ -419,7 +420,7 @@ const SupervisorTransfer = () => {
   
   const handleDownloadPdf = () => {
     if (!pdfBlob || !transferId) {
-      alert('PDF not available for download');
+      showMessagePopUp("ERROR", "PDF not available for download", []);
       return;
     }
     
@@ -440,7 +441,7 @@ const SupervisorTransfer = () => {
       
     } catch (error) {
       console.error('Failed to download PDF:', error);
-      alert('Failed to download invoice. Please try again.');
+      showMessagePopUp("ERROR", "Failed to download invoice. Please try again.", []);
     }
   };
   
@@ -465,7 +466,7 @@ const SupervisorTransfer = () => {
       
     } catch (error) {
       console.error('Failed to load PDF:', error);
-      alert(error.message || 'Failed to load invoice preview. Please try again.');
+      showMessagePopUp("ERROR", error.message || 'Failed to load invoice preview. Please try again.', []);
     }
   };
   
@@ -474,18 +475,29 @@ const SupervisorTransfer = () => {
   const handleSubmit = async () => {
     try {
   
+
+      var isValidationError = false;
+      var errorList = []; // Change to array
+
+
       if (!mobileNo.trim()) {
-        alert("Please enter mobile number");
-        return;
+        errorList.push("Please enter mobile number");
+        isValidationError = true;
       }
 
       if (!supervisorName.trim()) {
-        alert("Please enter supervisor name");
-        return;
+        errorList.push("Please enter supervisor name");
+        isValidationError = true;
       }
 
       if (transferItems.length === 0) {
-        alert("Please add at least one item to transfer");
+        errorList.push("Please add at least one item to transfer");
+        isValidationError = true;
+      }
+
+      if(isValidationError)
+      {
+        showMessagePopUp("ERROR","Validation Error",errorList);
         return;
       }
 
@@ -497,7 +509,7 @@ const SupervisorTransfer = () => {
       );
 
       if (invalidItems.length > 0) {
-        alert("Please fill all required fields for all items");
+        showMessagePopUp("ERROR", "Please fill all required fields for all items", []);
         return;
       }
 
@@ -507,7 +519,7 @@ const SupervisorTransfer = () => {
       );
 
       if (exceededItems.length > 0) {
-        alert("Some items exceed available quantity");
+        showMessagePopUp("ERROR", "Some items exceed available quantity", []);
         return;
       }
 
@@ -555,19 +567,19 @@ const SupervisorTransfer = () => {
       if(response.data.status === "SUCCESS") {
         const newTransferId = response.data.payload;
 
-        alert(response.data.message || "Stock transferred successfully!");
+        showMessagePopUp("SUCCESS", response.data.message || "Stock transferred successfully!", []);
         setTransferItems([]);
         setStoreName("");
         setMobileNo("");
         setSupervisorName("");
         fetchAndShowPdf(newTransferId);
       } else {
-        alert(response.data.message || "Unable to transfer stock");
+        showMessagePopUp(response.data.status || "ERROR", response.data.message || "Unable to transfer stock", response.data.errorList || []);
       }
 
     } catch (error) {
       console.error("Transfer failed:", error);
-      alert(error.message || "Stock transfer failed");
+      showMessagePopUp("ERROR", error.message || "Stock transfer failed", []);
     }
   };
 

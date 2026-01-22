@@ -331,7 +331,6 @@ const StockImport = () => {
         return;
       }
   
-
       const invalidItems = importItems.filter(item =>
         !item.packingId ||
         !item.quantity ||
@@ -386,8 +385,6 @@ const StockImport = () => {
           };
         }),
       };
-
-      console.log("Import DTO:", importDto);
 
       const response = await importProduct(importDto);
 

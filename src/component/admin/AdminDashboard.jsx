@@ -12,6 +12,7 @@ import {
 import styles from './AdminDashboard.module.css';
 import { createProductGraph } from '../../api/createProductGraph';
 import { findAllProducts } from '../../api/findAllProducts';
+import { showMessagePopUp } from '../modal/MessagePopUp';
 
 const AdminDashboard = () => {
   const [productIds, setProductIds] = useState([]);
@@ -39,8 +40,10 @@ const AdminDashboard = () => {
     
     const response = await findAllProducts();
 
+    
     if(response.data.status!=="SUCCESS"){
-     alert(response.data.message);
+      
+     showMessagePopUp(response.data.status, response.data.message,response.data.errorList || []);
      setLoading(false);
      return;
     }

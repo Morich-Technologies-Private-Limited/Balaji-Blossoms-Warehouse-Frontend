@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styles from './RequestView.module.css';
 import { findRequestByStatus } from '../../api/findRequestByStatus';
 import { deleteRequestApi } from '../../api/deleteRequestApi';
+import { showMessagePopUp } from '../modal/MessagePopUp';
 
 export const RequestView = () => {
   const [requests, setRequests] = useState([]);
@@ -32,7 +33,7 @@ export const RequestView = () => {
       if (response.data.status === 'SUCCESS') {
         setRequests(response.data.payload || []);
       } else {
-        setError(response.data.message || 'Failed to fetch requests');
+        showMessagePopUp(response.data.status ||"NOT_FOUND", response.data.message|| "No Pending Request",response.data.errorList || []);
       }
     } catch (err) {
       setError('No request found');

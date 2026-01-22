@@ -23,20 +23,26 @@ export const importProductSubStore = async (transferDetails) => {
 
     return response;
 
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      if (error.response) {
-        console.error("API Error:", error.response.data);
-        throw new Error(
-          error.response.data?.message || "Failed to transfer product"
-        );
-      } else if (error.request) {
-        console.error("No response from server");
-        throw new Error("Server not responding. Please try again later.");
-      }
-    }
+  }  catch (error) {
+    const httpStatus = error.response?.status || 500;
+    const apiError = error.response?.data;
 
-    console.error("Unexpected Error:", error);
-    throw new Error(error.message || "Something went wrong");
+    return {
+      data: {
+        status: apiError?.status || "ERROR",
+        payload: null,
+        message:
+          apiError?.message ||
+          (error.response
+            ? `Request failed with status ${httpStatus}`
+            : "Network error or server not reachable"),
+        errorList: apiError?.errorList || [],
+      },
+      status: httpStatus,
+      statusText: error.response?.statusText || "Error",
+      headers: error.response?.headers || {},
+      config: error.config || {},
+    };
   }
+
 };

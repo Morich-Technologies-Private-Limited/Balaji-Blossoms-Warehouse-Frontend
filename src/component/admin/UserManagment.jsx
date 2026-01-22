@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styles from './UserManagement.module.css';
 import { fetchAllUser } from '../../api/fetchAllUser';
 import { updateUserStatus } from '../../api/updateUserStatus';
 import { updateUserStore } from '../../api/updateUserStore';
 import { fetchAllStores } from '../../api/fetchAllStores';
+import { showMessagePopUp } from '../modal/MessagePopUp';
 
 export const UserManagement = () => {
   const [users, setUsers] = useState([]);
@@ -20,11 +21,20 @@ export const UserManagement = () => {
   const [submitting, setSubmitting] = useState(false);
 
   const statusOptions = ['ALL', 'ACTIVE', 'BLOCKED'];
+  const hasFetched = useRef(false);
 
-  useEffect(() => {
-    fetchUsers();
-    fetchStores();
-  }, []);
+useEffect(() => {
+  if (hasFetched.current) return;
+  hasFetched.current = true;
+
+  const loadData = async () => {
+    await fetchStores();   
+    await fetchUsers();
+  };
+
+  loadData();
+}, []);
+
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -68,14 +78,13 @@ export const UserManagement = () => {
       const response = await updateUserStatus(user.userId, newStatus);
 
       if (response.data.status === 'SUCCESS') {
-        alert(`User ${newStatus === 'BLOCKED' ? 'blocked' : 'unblocked'} successfully`);
         fetchUsers();
-      } else {
-        alert(response.data.message || 'Status update failed');
       }
+
+      showMessagePopUp(response.data.status, response.data.message,response.data.errorList || []);
+
     } catch (err) {
-      alert(err.message || 'Network error occurred');
-      console.error('Error updating status:', err);
+      showMessagePopUp('ERROR', err.message || 'Network error occurred', []);
     } finally {
       setSubmitting(false);
     }
@@ -94,13 +103,13 @@ export const UserManagement = () => {
     try {
       const response = await updateUserStore(storeForm.userId, storeForm.storeId);
 
-      if (response.data.status === 'SUCCESS') {
-        alert('User store updated successfully');
-        closeStoreModal();
+       if (response.data.status === 'SUCCESS') {
         fetchUsers();
-      } else {
-        alert(response.data.message || 'Store update failed');
+        closeStoreModal();
       }
+
+      showMessagePopUp(response.data.status, response.data.message,response.data.errorList || []);
+    
     } catch (err) {
       alert(err.message || 'Network error occurred');
       console.error('Error updating store:', err);

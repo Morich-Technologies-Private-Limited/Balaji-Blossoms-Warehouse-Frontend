@@ -4,6 +4,7 @@ import styles from './StockImport.module.css';
 import { findProducts } from '../../api/findProducts';
 import { findProductsPacking } from '../../api/findProductsPacking';
 import { importProduct } from '../../api/importProduct';
+import { showMessagePopUp } from '../modal/MessagePopUp';
 
 const StockImport = () => {
   const [searchKey, setSearchKey] = useState('');
@@ -285,43 +286,51 @@ const StockImport = () => {
 
   const handleSubmit = async () => {
     try {
-      // Validation
+      
+      var isValidationError = false;
+      var errorList = []; // Change to array
+
       if (!senderCompanyName.trim()) {
-        alert("Please enter sender company name");
-        return;
+        errorList.push("Please enter sender company name.");
+        isValidationError = true;
       }
 
       if (!senderName.trim()) {
-        alert("Please enter sender name");
-        return;
+        errorList.push("Please enter sender name.");
+        isValidationError = true;
       }
 
       if (!email.trim()) {
-        alert("Please enter email");
-        return;
+        errorList.push("Please enter email address.");
+        isValidationError = true;
       }
 
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
-        alert("Please enter a valid email address");
-        return;
+        errorList.push("Please enter a valid email address.");
+        isValidationError = true;
       }
 
       if (!contact.trim()) {
-        alert("Please enter contact number");
-        return;
+        errorList.push("Please enter contact number.");
+        isValidationError = true;
       }
 
       if (!receiverName.trim()) {
-        alert("Please enter receiver name");
-        return;
+        errorList.push("Please enter receiver name.");
+        isValidationError = true;
       }
 
       if (importItems.length === 0) {
-        alert("Please add at least one item to import");
-        return;
+        errorList.push("No items added to import.");
+        isValidationError = true;
       }
 
+      if (isValidationError) {
+        showMessagePopUp("FAILED", "Validation Error", errorList);
+        return;
+      }
+  
       const invalidItems = importItems.filter(item =>
         !item.packingId ||
         !item.quantity ||
@@ -377,12 +386,10 @@ const StockImport = () => {
         }),
       };
 
-      console.log("Import DTO:", importDto);
-
       const response = await importProduct(importDto);
 
       if (response.data.status === "SUCCESS") {
-        alert(response.data.message || "Stock imported successfully!");
+         showMessagePopUp(response.data.status, response.data.message, response.data.errorList || []);
         // Reset form
         setImportItems([]);
         setSenderCompanyName('');
@@ -391,12 +398,12 @@ const StockImport = () => {
         setContact('');
         setReceiverName('');
       } else {
-        alert(response.data.message || "Unable to import stock");
+        showMessagePopUp(response.data.status ||"FAILED", response.data.message || "Unable to import stock", response.data.errorList || []);
       }
 
     } catch (error) {
       console.error("Import failed:", error);
-      alert(error.message || "Stock import failed");
+      showMessagePopUp("FAILED", error.message || "Stock import failed", []);
     }
   };
 

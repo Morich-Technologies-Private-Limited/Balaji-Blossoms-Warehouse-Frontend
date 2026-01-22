@@ -57,7 +57,7 @@ const Dashboard = () => {
       if (response.data.status === "SUCCESS") {
         setProducts(response.data.payload);
       } else {
-        showMessagePopUp(response.data.status,response.data.message);
+       showMessagePopUp(response.data.status, response.data.message, response.data.errorList || []);
       }
     } catch (err) {
       showMessagePopUp("FAILED",err.message || "Error fetching inventory");

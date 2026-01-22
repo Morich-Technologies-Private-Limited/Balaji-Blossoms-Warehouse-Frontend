@@ -7,6 +7,7 @@ import { getSessionData } from '../utils/getSessionData';
 import { useStores } from '../../context/StoreContext';
 import { deleteStockTransfer } from '../../api/deleteStockTransfer';
 import { downloadTransferPdf } from '../../api/downloadTransferPdf';
+import { showMessagePopUp } from '../modal/MessagePopUp';
 
 const StockTransferHistory = () => {
   const [transferHistory, setTransferHistory] = useState([]);
@@ -50,22 +51,18 @@ const StockTransferHistory = () => {
 
 
 
-  
-  useEffect(() => {
-    if (!selectedStore) return;
-
     const fetchTransferHistory = async () => {
       try {
+         if (!selectedStore) return;
         setLoading(true);
         setTransferHistory([]);
         setFilteredHistory([]);
         setStores([]);
-
         
         const response = await findTranfserHistoryStore(selectedStore.storeId);
 
         if (response.data.status != "SUCCESS") {
-          alert(response.data.message || "Unable to find tranfer");
+          showMessagePopUp(response.data.status ||"FAILED", response.data.message || "Unable to import stock", response.data.errorList || []);
           return;
         }
 
@@ -105,6 +102,9 @@ const StockTransferHistory = () => {
       }
     };
 
+
+  
+  useEffect(() => {
     fetchTransferHistory();
   }, [selectedStore]);
 
@@ -224,7 +224,7 @@ const isWithinOneHour = (transferDate) => {
       
     } catch (error) {
       console.error('Error downloading PDF:', error);
-      alert(error.message || 'Failed to download PDF');
+      showMessagePopUp("ERROR", error.message || 'Failed to download PDF', []);
     } finally {
       setDownloadingTransfer(null);
     }
@@ -255,27 +255,18 @@ const isWithinOneHour = (transferDate) => {
       const response = await deleteStockTransfer(selectedTransferId, deleteReason.trim());
       
       if (response.data.status === 'SUCCESS') {
-        alert(isAdminDelete ? 'Transfer deleted successfully' : 'Delete request submitted successfully');
-        
-        // Refresh the transfer history
-        const refreshResponse = await findTranfserHistoryStore(selectedStore.storeId);
-        if (refreshResponse.data.status === "SUCCESS") {
-          const data = refreshResponse.data.payload || [];
-          setTransferHistory(data);
-          setFilteredHistory(data);
-          setSelectedTransfers(new Set());
-        }
-        
-        // Close modal and clear form
+       
+        showMessagePopUp('SUCCESS', isAdminDelete ? 'Transfer deleted successfully' : 'Delete request submitted successfully', []);  
         setShowDeleteModal(false);
         setDeleteReason('');
         setSelectedTransferId(null);
+        fetchTransferHistory();
       } else {
-        alert(response.data.message || (isAdminDelete ? 'Failed to delete transfer' : 'Failed to submit delete request'));
+        showMessagePopUp(response.data.status || "FAILED", response.data.message || (isAdminDelete ? 'Failed to delete transfer' : 'Failed to submit delete request'), response.data.errorList || []);
       }
     } catch (error) {
       console.error('Error:', error);
-      alert(error.message || (isAdminDelete ? 'Failed to delete transfer' : 'Failed to submit delete request'));
+      showMessagePopUp("ERROR", error.message || (isAdminDelete ? 'Failed to delete transfer' : 'Failed to submit delete request'), []);
     } finally {
       setLoading(false);
     }
@@ -333,8 +324,7 @@ const isWithinOneHour = (transferDate) => {
 
   const handleExport = () => {
     const selectedIds = Array.from(selectedTransfers);
-    console.log('Selected Transfer IDs for export:', selectedIds);
-    alert(`Selected ${selectedIds.length} transfers for export: ${selectedIds.join(', ')}`);
+    showMessagePopUp("INFO", `Selected ${selectedIds.length} transfers for export: ${selectedIds.join(', ')}`, []);
   };
 
   const clearFilters = () => {

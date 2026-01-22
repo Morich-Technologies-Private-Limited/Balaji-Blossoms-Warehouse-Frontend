@@ -179,7 +179,8 @@ const StockImportSubstore = () => {
     const packingOptions = await fetchPackingForProduct(product.productId);
     
     if (packingOptions.length === 0) {
-      alert('No packing options available for this product');
+     
+      alert('No packing options available for this product'); 
       setShowDropdown(false);
       setSearchKey('');
       return;
@@ -293,7 +294,7 @@ const StockImportSubstore = () => {
     try {
     
       if (importItems.length === 0) {
-        alert("Please add at least one item to import");
+        showMessagePopUp("FAILED", "Please add at least one item to import", []);
         return;
       }
 
@@ -305,7 +306,7 @@ const StockImportSubstore = () => {
       );
 
       if (invalidItems.length > 0) {
-        alert("Please fill all required fields for all items");
+        showMessagePopUp("FAILED", "Please fill all required fields for all items", []);
         return;
       }
 

@@ -26,16 +26,25 @@ export const updateUserStatus = async (userId, status) => {
 
     return response;
   } catch (error) {
-    if (axios.isAxiosError(error)) {
-      if (error.response) {
-        console.error("API Error:", error.response.data);
-        throw new Error(
-          error.response.data?.message || "Failed to update user status"
-        );
-      } else if (error.request) {
-        throw new Error("Server not responding. Please try again later.");
-      }
-    }
-    throw new Error(error.message || "Something went wrong");
+    const httpStatus = error.response?.status || 500;
+    const apiError = error.response?.data;
+
+    return {
+      data: {
+        status: apiError?.status || "ERROR",
+        payload: null,
+        message:
+          apiError?.message ||
+          (error.response
+            ? `Request failed with status ${httpStatus}`
+            : "Network error or server not reachable"),
+        errorList: apiError?.errorList || [],
+      },
+      status: httpStatus,
+      statusText: error.response?.statusText || "Error",
+      headers: error.response?.headers || {},
+      config: error.config || {},
+    };
   }
+
 };

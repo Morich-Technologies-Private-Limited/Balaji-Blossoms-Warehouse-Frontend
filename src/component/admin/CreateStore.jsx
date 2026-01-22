@@ -5,7 +5,8 @@ import { createStore } from '../../api/createStore';
 const CreateStore = () => {
   const [formData, setFormData] = useState({
     storeName: '',
-    address: '',
+    addressLine1: '',
+    addressLine2: '',
     contactNo: '',
     storeType: ''
   });
@@ -22,8 +23,8 @@ const CreateStore = () => {
       newErrors.storeName = 'Store name is required';
     }
     
-    if (!formData.address.trim()) {
-      newErrors.address = 'Address is required';
+    if (!formData.addressLine1.trim()) {
+      newErrors.addressLine1 = 'Address Line 1 is required';
     }
     
     const phoneRegex = /^[0-9+\-\s()]{10,15}$/;
@@ -63,18 +64,18 @@ const CreateStore = () => {
     try {
       const response = await createStore(formData);
       
-      if (response.status === 200 || response.status === 201) {
+      if (response.data.status === "SUCCESS") {
         setSubmitStatus('success');
         setFormData({
           storeName: '',
-          address: '',
+          addressLine1: '',
+          addressLine2: '',
           contactNo: '',
           storeType: ''
         });
         setErrors({});
       } else {
-        setSubmitStatus('error');
-        setErrors({ general: response.data?.message || 'Failed to create store' });
+        showMessagePopUp(response.data.status, response.data.message, response.data.errorList || []);
       }
     } catch (error) {
       setSubmitStatus('error');
@@ -87,7 +88,8 @@ const CreateStore = () => {
   const handleReset = () => {
     setFormData({
       storeName: '',
-      address: '',
+      addressLine1: '',
+      addressLine2: '',
       contactNo: '',
       storeType: ''
     });
@@ -95,20 +97,22 @@ const CreateStore = () => {
     setSubmitStatus(null);
   };
 
-  return (
-    <div className={styles.container}>
-      {/* Header */}
-      <div className={styles.header}>
-        <div className={styles.headerContent}>
-          <h1 className={styles.headerTitle}>Create New Store</h1>
-        </div>
+ return (
+  <div className={styles.container}>
+    {/* Header */}
+    <div className={styles.header}>
+      <div className={styles.headerContent}>
+        <h1 className={styles.headerTitle}>Create New Store</h1>
       </div>
+    </div>
 
-      <div className={styles.mainContent}>
-        <div className={styles.formCard}>
+    <div className={styles.mainContent}>
+      <div className={styles.contentWrapper}>
+        {/* Left Column - Form */}
+        <div className={styles.formSection}>
           <div className={styles.formHeader}>
-          
-            <h2 className={styles.title}>Store Information</h2>
+            <h2 className={styles.title}>Store Registration</h2>
+            <p className={styles.subtitle}>Add a new store to your network</p>
           </div>
           
           <form onSubmit={handleSubmit} className={styles.form}>
@@ -132,93 +136,81 @@ const CreateStore = () => {
               </div>
             )}
 
+            <div className={styles.inputRow}>
+              <div className={styles.inputGroup}>
+                <label className={styles.label}>
+                  Store Name <span className={styles.required}>*</span>
+                </label>
+                <input
+                  type="text"
+                  name="storeName"
+                  value={formData.storeName}
+                  onChange={handleChange}
+                  className={`${styles.input} ${errors.storeName ? styles.inputError : ''}`}
+                  placeholder="Enter store name"
+                />
+                {errors.storeName && (
+                  <span className={styles.errorText}>
+                    {errors.storeName}
+                  </span>
+                )}
+              </div>
+
+              <div className={styles.inputGroup}>
+                <label className={styles.label}>
+                  Contact Number <span className={styles.required}>*</span>
+                </label>
+                <input
+                  type="tel"
+                  name="contactNo"
+                  value={formData.contactNo}
+                  onChange={handleChange}
+                  className={`${styles.input} ${errors.contactNo ? styles.inputError : ''}`}
+                  placeholder="e.g., +1-234-567-8900"
+                />
+                {errors.contactNo && (
+                  <span className={styles.errorText}>
+                    {errors.contactNo}
+                  </span>
+                )}
+              </div>
+            </div>
+
             <div className={styles.inputGroup}>
               <label className={styles.label}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-                </svg>
-                Store Name <span className={styles.required}>*</span>
+                Address Line 1 <span className={styles.required}>*</span>
               </label>
               <input
                 type="text"
-                name="storeName"
-                value={formData.storeName}
+                name="addressLine1"
+                value={formData.addressLine1}
                 onChange={handleChange}
-                className={`${styles.input} ${errors.storeName ? styles.inputError : ''}`}
-                placeholder="Enter store name"
+                className={`${styles.input} ${errors.addressLine1 ? styles.inputError : ''}`}
+                placeholder="Street address, P.O. box"
               />
-              {errors.storeName && (
+              {errors.addressLine1 && (
                 <span className={styles.errorText}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="12" cy="12" r="10"/>
-                    <line x1="12" y1="8" x2="12" y2="12"/>
-                    <line x1="12" y1="16" x2="12.01" y2="16"/>
-                  </svg>
-                  {errors.storeName}
+                  {errors.addressLine1}
                 </span>
               )}
             </div>
 
             <div className={styles.inputGroup}>
               <label className={styles.label}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                  <circle cx="12" cy="10" r="3"/>
-                </svg>
-                Address <span className={styles.required}>*</span>
-              </label>
-              <textarea
-                name="address"
-                value={formData.address}
-                onChange={handleChange}
-                className={`${styles.textarea} ${errors.address ? styles.inputError : ''}`}
-                placeholder="Enter complete address"
-                rows="2"
-              />
-              {errors.address && (
-                <span className={styles.errorText}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="12" cy="12" r="10"/>
-                    <line x1="12" y1="8" x2="12" y2="12"/>
-                    <line x1="12" y1="16" x2="12.01" y2="16"/>
-                  </svg>
-                  {errors.address}
-                </span>
-              )}
-            </div>
-
-            <div className={styles.inputGroup}>
-              <label className={styles.label}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
-                </svg>
-                Contact Number <span className={styles.required}>*</span>
+                Address Line 2
               </label>
               <input
-                type="tel"
-                name="contactNo"
-                value={formData.contactNo}
+                type="text"
+                name="addressLine2"
+                value={formData.addressLine2}
                 onChange={handleChange}
-                className={`${styles.input} ${errors.contactNo ? styles.inputError : ''}`}
-                placeholder="e.g., +1-234-567-8900"
+                className={styles.input}
+                placeholder="Apartment, suite, unit, building, floor, etc."
               />
-              {errors.contactNo && (
-                <span className={styles.errorText}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="12" cy="12" r="10"/>
-                    <line x1="12" y1="8" x2="12" y2="12"/>
-                    <line x1="12" y1="16" x2="12.01" y2="16"/>
-                  </svg>
-                  {errors.contactNo}
-                </span>
-              )}
             </div>
 
             <div className={styles.inputGroup}>
               <label className={styles.label}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M3 6h18M7 12h10M10 18h4"/>
-                </svg>
                 Store Type <span className={styles.required}>*</span>
               </label>
               <div className={styles.selectWrapper}>
@@ -239,11 +231,6 @@ const CreateStore = () => {
               </div>
               {errors.storeType && (
                 <span className={styles.errorText}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="12" cy="12" r="10"/>
-                    <line x1="12" y1="8" x2="12" y2="12"/>
-                    <line x1="12" y1="16" x2="12.01" y2="16"/>
-                  </svg>
                   {errors.storeType}
                 </span>
               )}
@@ -284,9 +271,61 @@ const CreateStore = () => {
             </div>
           </form>
         </div>
+
+        {/* Right Column - Info Panel */}
+        <div className={styles.infoPanel}>
+          <div className={styles.infoPanelContent}>
+            <div className={styles.iconWrapper}>
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                <polyline points="9 22 9 12 15 12 15 22"/>
+              </svg>
+            </div>
+            
+            <h3 className={styles.infoPanelTitle}>Store Information</h3>
+            <p className={styles.infoPanelText}>
+              Register your store to expand your network and manage operations efficiently.
+            </p>
+
+            <div className={styles.infoPanelBox}>
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+              </svg>
+              <p className={styles.infoPanelBoxText}>
+                Fill in the store details to get started with centralized management and support.
+              </p>
+            </div>
+
+            <div className={styles.infoPanelFeatures}>
+              <h4 className={styles.featuresTitle}>What you'll get:</h4>
+              <ul className={styles.featuresList}>
+                <li>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                  Centralized inventory management
+                </li>
+                <li>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                  Real-time sales tracking
+                </li>
+                <li>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                  Multi-location support
+                </li>
+           
+              </ul>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-  );
+  </div>
+);
 };
 
 export default CreateStore;

@@ -75,8 +75,9 @@ const ForgotPassword = () => {
         newPassword: newPassword,
       };
 
+      
       const response = await forgotPassowordOtpValidationApi(passwordData);
-            
+
       if (response.data.status === 'SUCCESS') {
         showMessagePopUp("SUCCESS", response.data.message || "Password reset successfully");
         setTimeout(() => {

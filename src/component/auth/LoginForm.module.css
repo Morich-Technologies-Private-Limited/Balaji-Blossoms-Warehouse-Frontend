@@ -238,6 +238,8 @@
 /* Links */
 .linkPrimary {
   color: #2196F3;
+  background-color: white;
+  border: none;
   text-decoration: none;
   font-weight: 600;
   transition: color 0.2s ease;

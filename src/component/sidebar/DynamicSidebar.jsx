@@ -67,11 +67,7 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
     try {
       const response = await createBackupApi();
       
-      if (response.data.status === 'SUCCESS') {
-        showMessagePopUp(response.data.status, response.data.message, response.data.errorList || []);
-      } else {
-        showMessagePopUp(response.data.status || "FAILED", response.data.message || "BACKUP FAILED", response.data.errorList || []);
-      }
+        showMessagePopUp("INFO", response.data, response.data.errorList || []);   
     } catch (error) {
       console.error('Backup creation error:', error);
       showMessagePopUp("ERROR", `❌ Error creating backup: ${error.message || 'Server error'}`, []);

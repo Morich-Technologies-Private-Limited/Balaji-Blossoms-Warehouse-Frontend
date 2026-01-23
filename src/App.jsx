@@ -23,6 +23,7 @@ import UserManagement from "./component/admin/UserManagment";
 import MessagePopUp from "./component/modal/MessagePopUp";
 import StockImportSubstore from "./component/mainstore/StockImportSubstore";
 import AdminDashboard from "./component/admin/AdminDashboard";
+import ForgotPassword from "./component/auth/ForgotPassword";
 
 
 /* ================= ROLE ↔ PATH MAP ================= */
@@ -115,6 +116,8 @@ function App() {
           {/* ============ PUBLIC ============ */}
           <Route path="/" element={<LoginForm />} />
           <Route path="/login" element={<LoginForm />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          
           
           
 

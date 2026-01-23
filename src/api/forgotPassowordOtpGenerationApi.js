@@ -1,26 +1,13 @@
 import axios from "axios";
-import { ADD_PRODUCT_URL } from "../constants/apiConstants";
-import { getSessionData } from "../component/utils/getSessionData";
+import { GENERATE_OTP_URL } from "../constants/apiConstants";
 
-export const forgotPassowordOtp = async (product) => {
+export const forgotPassowordOtpGenerationApi = async (userId) => {
   try {
-    const { token } = getSessionData();
 
-    if (!token) {
-      throw new Error("Authentication token not found");
-    }
-
-    console.log(product);
-    const response = await axios.post(
-      ADD_PRODUCT_URL,
-        JSON.stringify(product),
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const response = await axios.get(GENERATE_OTP_URL,{
+      params: {userId},
+    });
+    
     return response;
   } catch (error) {
     const httpStatus = error.response?.status || 500;

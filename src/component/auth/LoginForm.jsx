@@ -5,6 +5,7 @@ import { loginApi, devModeLogin } from '../../api/loginApi';
 import { useNavigate } from 'react-router-dom';
 import { useStores } from '../../context/StoreContext';
 import { showMessagePopUp } from '../modal/MessagePopUp';
+import { Button } from 'bootstrap/dist/js/bootstrap.bundle.min';
 
 const LoginForm = () => {  
   const [email, setEmail] = useState('');
@@ -212,7 +213,8 @@ const LoginForm = () => {
                   </div>
 
                   <div className="d-flex justify-content-end align-items-center mb-4">
-                    <a href="#" className={`small ${styles.linkPrimary}`}>Forgot password?</a>
+                    <button onClick={() => navigate('/forgot-password')} className={`small ${styles.linkPrimary}`}>Forgot password?</button>
+
                   </div>
 
                   <button 

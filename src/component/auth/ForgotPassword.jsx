@@ -3,6 +3,9 @@ import styles from './ForgotPassword.module.css';
 import logo from "../../assets/logo.png";
 import { useNavigate } from 'react-router-dom';
 import { showMessagePopUp } from '../modal/MessagePopUp';
+import { forgotPassowordOtpGenerationApi } from '../../api/forgotPassowordOtpGenerationApi';
+import { forgotPassowordOtpValidationApi } from '../../api/forgotPassowordOtpValidationApi';
+
 
 const ForgotPassword = () => {  
   const [step, setStep] = useState(1); // 1: Email, 2: OTP & Password
@@ -28,29 +31,17 @@ const ForgotPassword = () => {
     setIsLoading(true);
     
     try {
-      const response = await fetch(`/api/auth/generate-otp?userId=${encodeURIComponent(email)}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      const result = await response.json();
-      
-      if (result.status === 'SUCCESS') {
-        setRequestId(result.data);
-        // Extract masked email from message if available
-        const emailMatch = result.message.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/);
-        if (emailMatch) {
-          setMaskedEmail(emailMatch[1]);
-        }
-        showMessagePopUp("SUCCESS", result.message);
+      const response = await forgotPassowordOtpGenerationApi(email);
+      if (response.data.status === 'SUCCESS') {
+        setRequestId(response.data.payload);
+        setMaskedEmail(response.data.message);
         setStep(2);
       } else {
-        showMessagePopUp("FAILED", result.message);
+        showMessagePopUp(response.data.status ||"FAILED", response.data.message || "Failed to generate OTP",response.data.errorList || []);
       }
     } catch (error) {
       showMessagePopUp("FAILED", "An error occurred while generating OTP");
+
     } finally {
       setIsLoading(false);
     }
@@ -77,27 +68,23 @@ const ForgotPassword = () => {
     setIsLoading(true);
     
     try {
-      const response = await fetch('/api/auth/validate-otp', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          requestId: requestId,
-          otp: otp,
-          newPassword: newPassword,
-        }),
-      });
 
-      const result = await response.json();
+      const passwordData = {
+        requestId: requestId,
+        otp: otp,
+        newPassword: newPassword,
+      };
+
+      const response = await forgotPassowordOtpValidationApi(passwordData);
+
       
-      if (result.status === 'SUCCESS') {
-        showMessagePopUp("SUCCESS", result.message || "Password reset successfully");
+      if (response.data.status === 'SUCCESS') {
+        showMessagePopUp("SUCCESS", response.data.message || "Password reset successfully");
         setTimeout(() => {
           navigate('/login');
         }, 2000);
       } else {
-        showMessagePopUp("FAILED", result.message);
+        showMessagePopUp(response.data.status || "FAILED", response.data.message || "Failed to reset password", response.data.errorList || []);
       }
     } catch (error) {
       showMessagePopUp("FAILED", "An error occurred while resetting password");

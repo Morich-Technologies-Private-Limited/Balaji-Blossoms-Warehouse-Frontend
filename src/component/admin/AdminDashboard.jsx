@@ -493,12 +493,12 @@ const AdminDashboard = () => {
                 content={<CustomTooltip />}
                 cursor={{ fill: 'rgba(74, 144, 226, 0.1)' }}
               />
-              {!isMobile && (
+              {/* {!isMobile && (
                 <Legend 
                   wrapperStyle={{ paddingTop: '20px' }}
                   iconType="rect"
                 />
-              )}
+              )} */}
               {storeList.map((store, storeIndex) => (
                 <Bar
                   key={storeIndex}

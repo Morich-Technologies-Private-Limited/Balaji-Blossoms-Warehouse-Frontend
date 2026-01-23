@@ -9,7 +9,7 @@ export const REGISTER_URL = `${API_BASE_URL}/admin/register`;
 export const STORE_CREATE_URL = `${API_BASE_URL}/admin/create-store`;
 export const FIND_ALL_USER_URL = `${API_BASE_URL}/admin/find/allUsers`;
 export const CREATE_GRAPH_URL = `${API_BASE_URL}/admin/createProductGraph`;
-
+export const CREATE_BACKUP_URL = `${API_BASE_URL}/store/create/backup`;
 
 export const UPDATE_USER_STATUS_URL = `${API_BASE_URL}/admin/update/user/status`;
 export const UPDATE_USER_STORE_URL = `${API_BASE_URL}/admin/update/user/store`;

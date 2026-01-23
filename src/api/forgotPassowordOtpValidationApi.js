@@ -1,15 +1,13 @@
 import axios from "axios";
-import { GENERATE_OTP_URL } from "../constants/apiConstants";
+import { VALIDATE_OTP_URL } from "../constants/apiConstants";
 
 export const forgotPassowordOtpValidationApi = async (passwordData) => {
   try {
 
-    const response = await axios.post(GENERATE_OTP_URL,{
-      params: {userId},
-    });
-    
+    const response = await axios.post(VALIDATE_OTP_URL, passwordData);
     return response;
   } catch (error) {
+    console.log(error);
     const httpStatus = error.response?.status || 500;
     const apiError = error.response?.data;
 

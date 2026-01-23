@@ -76,8 +76,7 @@ const ForgotPassword = () => {
       };
 
       const response = await forgotPassowordOtpValidationApi(passwordData);
-
-      
+            
       if (response.data.status === 'SUCCESS') {
         showMessagePopUp("SUCCESS", response.data.message || "Password reset successfully");
         setTimeout(() => {
@@ -87,6 +86,7 @@ const ForgotPassword = () => {
         showMessagePopUp(response.data.status || "FAILED", response.data.message || "Failed to reset password", response.data.errorList || []);
       }
     } catch (error) {
+      console.log("Error:", error);
       showMessagePopUp("FAILED", "An error occurred while resetting password");
     } finally {
       setIsLoading(false);

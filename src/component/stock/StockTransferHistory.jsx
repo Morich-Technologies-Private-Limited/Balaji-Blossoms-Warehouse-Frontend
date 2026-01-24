@@ -8,6 +8,7 @@ import { useStores } from '../../context/StoreContext';
 import { deleteStockTransfer } from '../../api/deleteStockTransfer';
 import { downloadTransferPdf } from '../../api/downloadTransferPdf';
 import { showMessagePopUp } from '../modal/MessagePopUp';
+import { exportTransferHistory } from '../../api/exportTransferHistory';
 
 const StockTransferHistory = () => {
   const [transferHistory, setTransferHistory] = useState([]);
@@ -322,11 +323,61 @@ const isWithinOneHour = (transferDate) => {
     return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
   };
 
-  const handleExport = () => {
-    const selectedIds = Array.from(selectedTransfers);
-    showMessagePopUp("INFO", `Selected ${selectedIds.length} transfers for export: ${selectedIds.join(', ')}`, []);
-  };
 
+    const handleExport = async () => {
+  
+       const selectedIds = Array.from(selectedTransfers);
+  
+      if (!selectedStore) {
+        showMessagePopUp("ERROR", "Please select a store", []);
+        return;
+      }
+  
+      try {
+        const response = await exportTransferHistory(selectedStore,selectedIds);
+  
+        if (response.status === 200) {
+          // Create a blob from the response data
+          const blob = new Blob([response.data], {
+            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+          });
+  
+          // Create a download link
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          
+          // Get filename from Content-Disposition header or use default
+          const contentDisposition = response.headers['content-disposition'];
+          let filename = 'inventory.xlsx';
+          
+          if (contentDisposition) {
+            const filenameMatch = contentDisposition.match(/filename="?(.+)"?/i);
+            if (filenameMatch && filenameMatch[1]) {
+              filename = filenameMatch[1];
+            }
+          }
+          
+          link.setAttribute('download', filename);
+          document.body.appendChild(link);
+          link.click();
+          
+          // Cleanup
+          link.remove();
+          window.URL.revokeObjectURL(url);
+        } else if (response.status === 204) {
+          showMessagePopUp("INFO", "No inventory data available to export", []);
+        } else {
+          showMessagePopUp("ERROR", response.data?.message || "Failed to export inventory", []);
+        }
+      } catch (err) {
+        console.error("Export error:", err);
+        showMessagePopUp("ERROR", err.message || "Error exporting inventory", []);
+      } finally {
+  
+      }
+    };
+  
   const clearFilters = () => {
     setDateFrom('');
     setDateTo('');

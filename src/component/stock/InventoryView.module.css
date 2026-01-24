@@ -637,6 +637,23 @@ tr {
   cursor: not-allowed;
 }
 
+
+.exportButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: 1px solid #08b355;
+  background-color: #08b355;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+
+
+
 .spinning {
   animation: spin 1s linear infinite;
 }

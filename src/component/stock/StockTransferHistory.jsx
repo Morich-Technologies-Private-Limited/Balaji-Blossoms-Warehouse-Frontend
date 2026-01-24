@@ -111,63 +111,69 @@ const StockTransferHistory = () => {
 
   // Filter logic
   useEffect(() => {
-    let filtered = transferHistory;
+  let filtered = transferHistory;
 
-    // Filter by search term
-    if (searchTerm) {
-      filtered = filtered.filter(item =>
-        item.transferId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.senderDetails.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.senderDetails.contactNumber?.includes(searchTerm) ||
-        item.receiverDetails.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.receiverDetails.contactNumber?.includes(searchTerm) ||
-        item.senderDetails.storeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.receiverDetails.storeName.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
+  // Filter by search term
+  if (searchTerm) {
+    const term = searchTerm.toLowerCase();
+    filtered = filtered.filter(item =>
+      item.transferId.toLowerCase().includes(term) ||
+      item.senderDetails.name.toLowerCase().includes(term) ||
+      item.senderDetails.contactNumber?.includes(searchTerm) ||
+      item.receiverDetails.name.toLowerCase().includes(term) ||
+      item.receiverDetails.contactNumber?.includes(searchTerm) ||
+      item.senderDetails.storeName.toLowerCase().includes(term) ||
+      item.receiverDetails.storeName.toLowerCase().includes(term)
+    );
+  }
 
-    // Filter by date range
-    if (dateFrom) {
-      filtered = filtered.filter(item => {
-        const transferDate = new Date(item.transferDate);
-        const fromDate = new Date(dateFrom);
-        return transferDate >= fromDate;
-      });
-    }
+  // ✅ Inclusive date range filter
+  if (dateFrom && dateTo) {
+    const fromDate = new Date(dateFrom);
+    fromDate.setHours(0, 0, 0, 0);
 
-    if (dateTo) {
-      filtered = filtered.filter(item => {
-        const transferDate = new Date(item.transferDate);
-        const toDate = new Date(dateTo);
-        return transferDate <= toDate;
-      });
-    }
+    const toDate = new Date(dateTo);
+    toDate.setHours(23, 59, 59, 999);
 
-    // Filter by sender store
-    if (senderStore !== 'all') {
-      const storeIdNum = parseInt(senderStore);
-      filtered = filtered.filter(item =>
-        item.senderDetails.storeId === storeIdNum
-      );
-    }
+    filtered = filtered.filter(item => {
+      const transferDate = new Date(item.transferDate);
+      return transferDate >= fromDate && transferDate <= toDate;
+    });
+  }
 
-    // Filter by receiver store
-    if (receiverStore !== 'all') {
-      const storeIdNum = parseInt(receiverStore);
-      filtered = filtered.filter(item =>
-        item.receiverDetails.storeId === storeIdNum
-      );
-    }
+  // Sender store filter
+  if (senderStore !== 'all') {
+    const storeIdNum = parseInt(senderStore);
+    filtered = filtered.filter(
+      item => item.senderDetails.storeId === storeIdNum
+    );
+  }
 
-    // Filter by transfer type
-    if (transferType !== 'all') {
-      filtered = filtered.filter(item =>
-        item.transferType === transferType
-      );
-    }
+  // Receiver store filter
+  if (receiverStore !== 'all') {
+    const storeIdNum = parseInt(receiverStore);
+    filtered = filtered.filter(
+      item => item.receiverDetails.storeId === storeIdNum
+    );
+  }
 
-    setFilteredHistory(filtered);
-  }, [searchTerm, dateFrom, dateTo, senderStore, receiverStore, transferType, transferHistory]);
+  // Transfer type filter
+  if (transferType !== 'all') {
+    filtered = filtered.filter(
+      item => item.transferType === transferType
+    );
+  }
+
+  setFilteredHistory(filtered);
+}, [
+  searchTerm,
+  dateFrom,
+  dateTo,
+  senderStore,
+  receiverStore,
+  transferType,
+  transferHistory
+]);
 
 
   const formatPackingUnit = (unit) => {

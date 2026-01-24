@@ -2,7 +2,7 @@ import axios from "axios";
 import { UPDATE_USER_STORE_URL } from "../constants/apiConstants";
 import { getSessionData } from "../component/utils/getSessionData";
 
-export const updateUserStore = async (userId, storeId) => {
+export const updateUserStore = async (userId, designation,storeId) => {
   try {
     const { token } = getSessionData();
 
@@ -16,6 +16,7 @@ export const updateUserStore = async (userId, storeId) => {
       {
         params: {
           userId: userId,
+          designation: designation,
           storeId: storeId,
         },
         headers: {
@@ -46,5 +47,4 @@ export const updateUserStore = async (userId, storeId) => {
       config: error.config || {},
     };
   }
-
 };

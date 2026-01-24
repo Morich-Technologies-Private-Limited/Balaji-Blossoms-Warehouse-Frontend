@@ -16,25 +16,30 @@ export const UserManagement = () => {
   const [storeModal, setStoreModal] = useState(false);
   const [storeForm, setStoreForm] = useState({
     userId: null,
-    storeId: ''
+    storeId: '',
+    designation: ''
   });
   const [submitting, setSubmitting] = useState(false);
 
   const statusOptions = ['ALL', 'ACTIVE', 'BLOCKED'];
+  const designationOptions = [
+    { value: 'ADMIN', label: 'Admin' },
+    { value: 'MANAGER', label: 'Manager' }
+  ];
+  
   const hasFetched = useRef(false);
 
-useEffect(() => {
-  if (hasFetched.current) return;
-  hasFetched.current = true;
+  useEffect(() => {
+    if (hasFetched.current) return;
+    hasFetched.current = true;
 
-  const loadData = async () => {
-    await fetchStores();   
-    await fetchUsers();
-  };
+    const loadData = async () => {
+      await fetchStores();   
+      await fetchUsers();
+    };
 
-  loadData();
-}, []);
-
+    loadData();
+  }, []);
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -81,7 +86,7 @@ useEffect(() => {
         fetchUsers();
       }
 
-      showMessagePopUp(response.data.status, response.data.message,response.data.errorList || []);
+      showMessagePopUp(response.data.status, response.data.message, response.data.errorList || []);
 
     } catch (err) {
       showMessagePopUp('ERROR', err.message || 'Network error occurred', []);
@@ -98,17 +103,26 @@ useEffect(() => {
       return;
     }
 
+    if (!storeForm.designation) {
+      alert('Please select a designation');
+      return;
+    }
+
     setSubmitting(true);
 
     try {
-      const response = await updateUserStore(storeForm.userId, storeForm.storeId);
+      const response = await updateUserStore(
+        storeForm.userId, 
+        storeForm.designation,
+        storeForm.storeId
+      );
 
-       if (response.data.status === 'SUCCESS') {
+      if (response.data.status === 'SUCCESS') {
         fetchUsers();
         closeStoreModal();
       }
 
-      showMessagePopUp(response.data.status, response.data.message,response.data.errorList || []);
+      showMessagePopUp(response.data.status, response.data.message, response.data.errorList || []);
     
     } catch (err) {
       alert(err.message || 'Network error occurred');
@@ -118,11 +132,22 @@ useEffect(() => {
     }
   };
 
+  const getUserDesignation = (user) => {
+    // Map role to designation
+    if (user.role === 'ADMIN') {
+      return 'ADMIN';
+    } else if (user.role === 'MAIN_STORE_MANAGER' || user.role === 'SUB_STORE_MANAGER') {
+      return 'MANAGER';
+    }
+    return '';
+  };
+
   const openStoreModal = (user) => {
     setSelectedUser(user);
     setStoreForm({
       userId: user.userId,
-      storeId: user.storeId || ''
+      storeId: user.storeId || '',
+      designation: getUserDesignation(user)
     });
     setStoreModal(true);
   };
@@ -132,7 +157,8 @@ useEffect(() => {
     setSelectedUser(null);
     setStoreForm({
       userId: null,
-      storeId: ''
+      storeId: '',
+      designation: ''
     });
   };
 
@@ -339,6 +365,10 @@ useEffect(() => {
                     <span className={styles.userInfoValue}>{selectedUser.name}</span>
                   </div>
                   <div className={styles.userInfoItem}>
+                    <span className={styles.userInfoLabel}>Current Role:</span>
+                    <span className={styles.userInfoValue}>{selectedUser.role}</span>
+                  </div>
+                  <div className={styles.userInfoItem}>
                     <span className={styles.userInfoLabel}>Current Store ID:</span>
                     <span className={styles.userInfoValue}>{selectedUser.storeId || 'Not Assigned'}</span>
                   </div>
@@ -350,6 +380,26 @@ useEffect(() => {
               </div>
 
               <form onSubmit={handleStoreSubmit} className={styles.actionForm}>
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel} htmlFor="designation">
+                    Designation <span className={styles.required}>*</span>
+                  </label>
+                  <select
+                    id="designation"
+                    className={styles.storeDropdown}
+                    value={storeForm.designation}
+                    onChange={(e) => setStoreForm({...storeForm, designation: e.target.value})}
+                    required
+                  >
+                    <option value="">Select Designation</option>
+                    {designationOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
                 <div className={styles.formGroup}>
                   <label className={styles.formLabel} htmlFor="storeId">
                     Select Store <span className={styles.required}>*</span>
@@ -382,7 +432,7 @@ useEffect(() => {
                   <button 
                     type="submit" 
                     className={styles.submitBtn}
-                    disabled={!storeForm.storeId || submitting}
+                    disabled={!storeForm.storeId || !storeForm.designation || submitting}
                   >
                     {submitting ? (
                       <>

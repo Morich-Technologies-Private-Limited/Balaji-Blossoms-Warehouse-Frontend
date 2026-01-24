@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Package, Trash2, Send, Building2, User, Phone } from 'lucide-react';
+import { Search, Package, Trash2, Send, Building2, User, Phone ,Car } from 'lucide-react';
 import styles from './ShopTransfer.module.css';
 import { fetchStoresWithUserApi } from '../../api/findStoreAndEmployee';
 import { findProducts } from '../../api/findProducts';
@@ -19,7 +19,10 @@ const ShopTransfer = () => {
   
   // Store and Receiver information
   const [selectedStore, setSelectedStore] = useState('');
-  const [receiverName, setReceiverName] = useState('');
+  const [availableUsers, setAvailableUsers] = useState([]);
+  const [selectedReceiver, setSelectedReceiver] = useState('');
+  const [driverName, setDriverName] = useState('');
+  const [vehicleNo, setVehicleNo] = useState('');
   const [contactNo, setContactNo] = useState('');
   const[transferId,setTransferId]=useState('');
   const [showPdfModal, setShowPdfModal] = useState(false);
@@ -68,6 +71,15 @@ const ShopTransfer = () => {
       'SHOP': 'Shop'
     };
     return typeMap[storeType] || storeType;
+  };
+
+  // Get role display
+  const getRoleDisplay = (role) => {
+    const roleMap = {
+      'SUB_STORE_MANAGER': 'Sub Store Manager',
+      'MAIN_STORE_MANAGER': 'Main Store Manager'
+    };
+    return roleMap[role] || role;
   };
 
   // Check if unit is a smaller unit (GRAM or MILLILITER)
@@ -285,6 +297,20 @@ const ShopTransfer = () => {
   // Handle store selection
   const handleStoreSelect = (storeId) => {
     setSelectedStore(storeId);
+    setSelectedReceiver(''); // Reset receiver when store changes
+    
+    // Find the selected store and set available users
+    const store = stores.find(s => s.storeId === parseInt(storeId));
+    if (store && store.userList) {
+      setAvailableUsers(store.userList);
+    } else {
+      setAvailableUsers([]);
+    }
+  };
+
+  // Handle receiver selection
+  const handleReceiverSelect = (userId) => {
+    setSelectedReceiver(userId);
   };
 
   // Update item field
@@ -497,8 +523,18 @@ const fetchAndShowPdf = async (transferId) => {
         isValidationError = true;
       }
 
-      if (!receiverName.trim()) {
-        errorList.push("Please enter receiver name");
+      if (!selectedReceiver) {
+        errorList.push("Please select a receiver");
+        isValidationError = true;
+      }
+
+      if (!driverName.trim()) {
+        errorList.push("Please enter driver name");
+        isValidationError = true;
+      }
+
+       if (!vehicleNo.trim()) {
+        errorList.push("Please enter vehicle number");
         isValidationError = true;
       }
       
@@ -521,6 +557,7 @@ const fetchAndShowPdf = async (transferId) => {
       if(isValidationError)
       {
         showMessagePopUp("ERROR","Validation Error",errorList);
+        return;
       }
       
       // Validate items
@@ -548,7 +585,9 @@ const fetchAndShowPdf = async (transferId) => {
       // Build DTO with transfer metadata
       const transferDto = {
         receiverStoreId: Number(selectedStore),
-        receiverName: receiverName.trim(),
+        userId: selectedReceiver,
+        driverName: driverName.trim(),
+        vehicleNo: vehicleNo.trim(),
         contactNo: contactNo,
         stockList: transferItems.map(item => {
           // Build transfer metadata
@@ -597,7 +636,10 @@ const fetchAndShowPdf = async (transferId) => {
         const newTransferId = response.data.payload;
         setTransferItems([]);
         setSelectedStore("");
-        setReceiverName("");
+        setSelectedReceiver("");
+        setAvailableUsers([]);
+        setDriverName("");
+        setVehicleNo("");
         setContactNo(""); 
         fetchAndShowPdf(newTransferId);
 
@@ -700,14 +742,48 @@ const fetchAndShowPdf = async (transferId) => {
           <div className={styles.selectGroup}>
             <label className={styles.inputLabel}>
               <User size={16} />
-              Receiver Name:
+              Receiver:
+            </label>
+            <select
+              className={styles.selectInput}
+              value={selectedReceiver}
+              onChange={(e) => handleReceiverSelect(e.target.value)}
+              disabled={!selectedStore}
+            >
+              <option value="">Select receiver</option>
+              {availableUsers.map(user => (
+                <option key={user.userId} value={user.userId}>
+                  {user.name} - {getRoleDisplay(user.role)}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className={styles.selectGroup}>
+            <label className={styles.inputLabel}>
+              <User size={16} />
+              Driver Name:
             </label>
             <input
               type="text"
               className={styles.selectInput}
-              placeholder="Enter receiver name"
-              value={receiverName}
-              onChange={(e) => setReceiverName(e.target.value)}
+              placeholder="Enter driver name"
+              value={driverName}
+              onChange={(e) => setDriverName(e.target.value)}
+            />
+          </div>
+
+        <div className={styles.selectGroup}>
+            <label className={styles.inputLabel}>
+              <Car size={16} />
+              Vehicle No:
+            </label>
+            <input
+              type="text"
+              className={styles.selectInput}
+              placeholder="Enter vehicle number"
+              value={vehicleNo}
+              onChange={(e) => setVehicleNo(e.target.value)}
             />
           </div>
 

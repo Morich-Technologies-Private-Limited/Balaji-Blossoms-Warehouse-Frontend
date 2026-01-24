@@ -213,8 +213,13 @@ const LoginForm = () => {
                   </div>
 
                   <div className="d-flex justify-content-end align-items-center mb-4">
-                    <button onClick={() => navigate('/forgot-password')} className={`small ${styles.linkPrimary}`}>Forgot password?</button>
-
+                    <button 
+                      type="button"
+                      onClick={() => navigate('/forgot-password')} 
+                      className={`small ${styles.linkPrimary}`}
+                    >
+                      Forgot password?
+                    </button>
                   </div>
 
                   <button 

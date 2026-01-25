@@ -301,6 +301,7 @@ const AddProduct = () => {
 
     const currentNormalized = normalizePacking(packing.packingSize, packing.packingUnit);
     
+    
     // Check against existing packings
     for (const existing of existingPackings) {
       const existingNormalized = normalizePacking(existing.packingSize, existing.packingUnit);

@@ -407,6 +407,7 @@ const SupervisorTransfer = () => {
     
     setPdfUrl('');
     setPdfBlob(null);
+    setTransferId('');
   };
   
   const handlePrintPdf = () => {
@@ -429,7 +430,7 @@ const SupervisorTransfer = () => {
       const url = window.URL.createObjectURL(pdfBlob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `transfer-invoice-${transferId}.pdf`;
+      link.download = `Invoice-${transferId}.pdf`;
       
       // Trigger download
       document.body.appendChild(link);
@@ -475,13 +476,22 @@ const SupervisorTransfer = () => {
   const handleSubmit = async () => {
     try {
   
-
       var isValidationError = false;
       var errorList = []; // Change to array
 
 
       if (!mobileNo.trim()) {
         errorList.push("Please enter mobile number");
+        isValidationError = true;
+      }
+
+       if (/[a-zA-Z]/.test(mobileNo)) {
+        errorList.push("Mobile number should not contain alphabets");
+        isValidationError = true;
+      }
+
+      if (!/^\d{10}$/.test(mobileNo)) {
+        errorList.push("Mobile number must be exactly 10 digits");
         isValidationError = true;
       }
 
@@ -522,6 +532,8 @@ const SupervisorTransfer = () => {
         showMessagePopUp("ERROR", "Some items exceed available quantity", []);
         return;
       }
+      
+      setTransferId('');
 
       const transferDto = {
         contactNo: mobileNo,
@@ -567,12 +579,13 @@ const SupervisorTransfer = () => {
       if(response.data.status === "SUCCESS") {
         const newTransferId = response.data.payload;
 
-        showMessagePopUp("SUCCESS", response.data.message || "Stock transferred successfully!", []);
         setTransferItems([]);
         setStoreName("");
         setMobileNo("");
         setSupervisorName("");
         fetchAndShowPdf(newTransferId);
+        setTransferId(newTransferId);
+
       } else {
         showMessagePopUp(response.data.status || "ERROR", response.data.message || "Unable to transfer stock", response.data.errorList || []);
       }

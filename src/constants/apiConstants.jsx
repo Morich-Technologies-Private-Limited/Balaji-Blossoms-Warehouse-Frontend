@@ -40,7 +40,7 @@ export const ADD_INVENROTY_URL = `${API_BASE_URL}/product/add/inventory`;
 export const ADD_SUB_STORE_INVENROTY_URL = `${API_BASE_URL}/product/substore/add/inventory`;
 
 export const DELETE_STOCK_TRANSFER_URL = `${API_BASE_URL}/product/transferHistory/delete`;
-
+export const DELETE_PRODUCT_PACKING_URL = `${API_BASE_URL}/product/packing/delete`;
 
 
 export const ADD_PRODUCT_URL = `${API_BASE_URL}/product/add`;

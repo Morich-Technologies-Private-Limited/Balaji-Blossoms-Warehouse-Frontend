@@ -29,7 +29,7 @@
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 30px;
+  padding: 10px;
   background: #f8f9fa;
 }
 
@@ -215,11 +215,34 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
+.existingPackingsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.btnManagePacking {
+  background: white;
+  border: 1px solid #2a5298;
+  color: #2a5298;
+  padding: 6px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.btnManagePacking:hover {
+  background: #2a5298;
+  color: white;
+}
+
 .existingPackingsList {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  margin-top: 12px;
 }
 
 .existingPackingItem {
@@ -549,7 +572,21 @@
   width: 100%;
   max-width: 500px;
   max-height: 90vh;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.modalContentLarge {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 800px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .modalHeader {
@@ -558,6 +595,7 @@
   align-items: center;
   padding: 20px 24px;
   border-bottom: 1px solid #e5e7eb;
+  flex-shrink: 0;
 }
 
 .modalTitle {
@@ -580,6 +618,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .modalClose:hover {
@@ -588,6 +627,15 @@
 
 .modalBody {
   padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.modalBodyNoPadding {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .modalFooter {
@@ -596,6 +644,7 @@
   padding: 16px 24px;
   border-top: 1px solid #e5e7eb;
   justify-content: flex-end;
+  flex-shrink: 0;
 }
 
 .btnModalCancel {
@@ -637,6 +686,107 @@
   cursor: not-allowed;
 }
 
+/* Manage Packing Modal Table */
+.managePackingTableWrapper {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.managePackingTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.managePackingTable thead {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #2c5282;
+}
+
+.managePackingTable thead th {
+  background: #2c5282;
+  color: white;
+  font-weight: 600;
+  font-size: 13px;
+  text-transform: uppercase;
+  padding: 14px 20px;
+  text-align: left;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  letter-spacing: 0.5px;
+}
+
+.managePackingTable thead th:last-child {
+  border-right: none;
+  text-align: center;
+}
+
+.managePackingTable thead th:nth-child(1) {
+  width: 20%;
+}
+
+.managePackingTable thead th:nth-child(2) {
+  width: 30%;
+}
+
+.managePackingTable thead th:nth-child(3) {
+  width: 30%;
+}
+
+.managePackingTable thead th:nth-child(4) {
+  width: 20%;
+}
+
+.managePackingTable tbody td {
+  padding: 14px 20px;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 14px;
+  color: #374151;
+}
+
+.managePackingTable tbody td:last-child {
+  text-align: center;
+}
+
+.managePackingTable tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+.managePackingTable tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.noData {
+  text-align: center !important;
+  color: #6b7280;
+  font-style: italic;
+  padding: 40px 20px !important;
+}
+
+.btnDeletePacking {
+  background: #dc3545;
+  border: none;
+  color: white;
+  padding: 6px 20px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btnDeletePacking:hover:not(:disabled) {
+  background: #c82333;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+}
+
+.btnDeletePacking:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* Validation */
 .textDanger {
   color: #dc3545;
@@ -656,30 +806,34 @@
 /* Custom Scrollbar */
 .tableBodyWrapper::-webkit-scrollbar,
 .pageContent::-webkit-scrollbar,
-.modalContent::-webkit-scrollbar,
-.searchResults::-webkit-scrollbar {
+.modalBody::-webkit-scrollbar,
+.searchResults::-webkit-scrollbar,
+.managePackingTableWrapper::-webkit-scrollbar {
   width: 8px;
 }
 
 .tableBodyWrapper::-webkit-scrollbar-track,
 .pageContent::-webkit-scrollbar-track,
-.modalContent::-webkit-scrollbar-track,
-.searchResults::-webkit-scrollbar-track {
+.modalBody::-webkit-scrollbar-track,
+.searchResults::-webkit-scrollbar-track,
+.managePackingTableWrapper::-webkit-scrollbar-track {
   background: #f1f5f9;
 }
 
 .tableBodyWrapper::-webkit-scrollbar-thumb,
 .pageContent::-webkit-scrollbar-thumb,
-.modalContent::-webkit-scrollbar-thumb,
-.searchResults::-webkit-scrollbar-thumb {
+.modalBody::-webkit-scrollbar-thumb,
+.searchResults::-webkit-scrollbar-thumb,
+.managePackingTableWrapper::-webkit-scrollbar-thumb {
   background: #cbd5e1;
   border-radius: 4px;
 }
 
 .tableBodyWrapper::-webkit-scrollbar-thumb:hover,
 .pageContent::-webkit-scrollbar-thumb:hover,
-.modalContent::-webkit-scrollbar-thumb:hover,
-.searchResults::-webkit-scrollbar-thumb:hover {
+.modalBody::-webkit-scrollbar-thumb:hover,
+.searchResults::-webkit-scrollbar-thumb:hover,
+.managePackingTableWrapper::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
 
@@ -688,6 +842,10 @@
   .contentWrapper,
   .footerContent {
     max-width: 100%;
+  }
+
+  .modalContentLarge {
+    max-width: 95%;
   }
 }
 
@@ -715,6 +873,16 @@
   }
 
   .btnAddPacking {
+    width: 100%;
+  }
+
+  .existingPackingsHeader {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .btnManagePacking {
     width: 100%;
   }
 
@@ -759,6 +927,21 @@
   .existingPackingItem {
     width: 100%;
   }
+
+  .modalContentLarge {
+    max-width: 100%;
+    max-height: 95vh;
+  }
+
+  .managePackingTable thead th {
+    padding: 12px 10px;
+    font-size: 11px;
+  }
+
+  .managePackingTable tbody td {
+    padding: 12px 10px;
+    font-size: 13px;
+  }
 }
 
 @media (max-width: 576px) {
@@ -802,7 +985,8 @@
     padding: 5px 10px;
   }
 
-  .modalContent {
+  .modalContent,
+  .modalContentLarge {
     margin: 10px;
   }
 
@@ -819,5 +1003,20 @@
   .btnModalCancel,
   .btnModalSubmit {
     width: 100%;
+  }
+
+  .managePackingTable thead th {
+    padding: 10px 8px;
+    font-size: 10px;
+  }
+
+  .managePackingTable tbody td {
+    padding: 10px 8px;
+    font-size: 12px;
+  }
+
+  .btnDeletePacking {
+    padding: 5px 12px;
+    font-size: 12px;
   }
 }

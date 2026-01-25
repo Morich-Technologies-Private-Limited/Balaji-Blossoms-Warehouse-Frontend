@@ -5,9 +5,12 @@ import { checkProductAvaliablity } from '../../api/checkProductAvaliablity';
 import { findProducts } from '../../api/findProducts';
 import { addPacking } from '../../api/addPacking';
 import { findProductPackingWithoutInventory } from '../../api/findProductPackingWithoutInventory';
+import { deleteProductPacking } from '../../api/deleteProductPacking';
+import { showMessagePopUp } from '../modal/MessagePopUp';
 
 const AddProduct = () => {
   const [showCreateProductModal, setShowCreateProductModal] = useState(false);
+  const [showManagePackingModal, setShowManagePackingModal] = useState(false);
   const [productName, setProductName] = useState('');
   const [category, setCategory] = useState('');
   const [productNameError, setProductNameError] = useState('');
@@ -21,6 +24,7 @@ const AddProduct = () => {
   const [loadingPackings, setLoadingPackings] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const [deletingPackingId, setDeletingPackingId] = useState(null);
   
   const [packingList, setPackingList] = useState([{ packingSize: '', packingUnit: '' }]);
   const [errors, setErrors] = useState({});
@@ -234,6 +238,34 @@ const AddProduct = () => {
         break;
       default:
         break;
+    }
+  };
+
+  const handleDeletePacking = async (packingId) => {
+    if (!window.confirm('Are you sure you want to delete this packing?')) {
+      return;
+    }
+
+    setDeletingPackingId(packingId);
+    try {
+      const response = await deleteProductPacking(packingId);
+      
+      if (response.data.status === 'SUCCESS') {
+    
+        showMessagePopUp(response.data.status, response.data.message || 'Packing deleted successfully!',response.data.errorList|| []);
+      
+        // Refresh the packings list
+        await fetchProductPackings(selectedProduct.productId);
+        
+        setTimeout(() => setSubmitStatus(null), 3000);
+      } else {
+       showMessagePopUp(response.data.status||"FAILED", response.data.message || 'Unable to delete packing',response.data.errorList|| []);
+      
+      }
+    } catch (error) {
+        showMessagePopUp("ERROR", 'An error occurred while deleting packing', []);
+    } finally {
+      setDeletingPackingId(null);
     }
   };
 
@@ -511,7 +543,16 @@ const AddProduct = () => {
           {/* Existing Packings */}
           {selectedProduct && !loadingPackings && existingPackings.length > 0 && (
             <div className={styles.existingPackingsSection}>
-              <h3 className={styles.sectionTitle}>Existing Packings</h3>
+              <div className={styles.existingPackingsHeader}>
+                <h3 className={styles.sectionTitle}>Existing Packings</h3>
+                <button
+                  type="button"
+                  className={styles.btnManagePacking}
+                  onClick={() => setShowManagePackingModal(true)}
+                >
+                  Manage Packings
+                </button>
+              </div>
               <div className={styles.existingPackingsList}>
                 {existingPackings.map((packing, index) => (
                   <div key={index} className={styles.existingPackingItem}>
@@ -695,6 +736,73 @@ const AddProduct = () => {
                 disabled={checkingAvailability}
               >
                 {checkingAvailability ? 'Checking...' : 'Create Product'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Manage Packing Modal */}
+      {showManagePackingModal && (
+        <div className={styles.modalOverlay} onClick={() => setShowManagePackingModal(false)}>
+          <div className={styles.modalContentLarge} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h2 className={styles.modalTitle}>Manage Packings - {selectedProduct?.productName}</h2>
+              <button
+                className={styles.modalClose}
+                onClick={() => setShowManagePackingModal(false)}
+              >
+                ×
+              </button>
+            </div>
+            <div className={styles.modalBodyNoPadding}>
+              <div className={styles.managePackingTableWrapper}>
+                <table className={styles.managePackingTable}>
+                  <thead>
+                    <tr>
+                      <th>Packing ID</th>
+                      <th>Packing Size</th>
+                      <th>Packing Unit</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {existingPackings.length === 0 ? (
+                      <tr>
+                        <td colSpan="4" className={styles.noData}>
+                          No packings available
+                        </td>
+                      </tr>
+                    ) : (
+                      existingPackings.map((packing) => (
+                        <tr key={packing.packingId}>
+                          <td>{packing.packingId}</td>
+                          <td>{packing.packingSize}</td>
+                          <td>{packing.packingUnit}</td>
+                          <td>
+                            <button
+                              type="button"
+                              className={styles.btnDeletePacking}
+                              onClick={() => handleDeletePacking(packing.packingId)}
+                              disabled={deletingPackingId === packing.packingId}
+                            >
+                              {deletingPackingId === packing.packingId ? 'Deleting...' : 'Delete'}
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div className={styles.modalFooter}>
+              <button
+                type="button"
+                className={styles.btnModalCancel}
+                onClick={() => setShowManagePackingModal(false)}
+              >
+                Close
               </button>
             </div>
           </div>

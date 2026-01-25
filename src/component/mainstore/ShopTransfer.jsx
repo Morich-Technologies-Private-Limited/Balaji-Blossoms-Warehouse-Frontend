@@ -449,6 +449,7 @@ const ShopTransfer = () => {
   
   setPdfUrl('');
   setPdfBlob(null);
+  setTransferId('');
 };
 
 const handlePrintPdf = () => {
@@ -461,17 +462,14 @@ const handlePrintPdf = () => {
 
 
 const handleDownloadPdf = () => {
-  if (!pdfBlob || !transferId) {
-    showMessagePopUp("ERROR", "PDF not available for download", []);
-    return;
-  }
+
   
   try {
     // Create download link from already fetched blob
     const url = window.URL.createObjectURL(pdfBlob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `transfer-invoice-${transferId}.pdf`;
+    link.download = `Invoice-${transferId}.pdf`;
     
     // Trigger download
     document.body.appendChild(link);
@@ -641,6 +639,7 @@ const fetchAndShowPdf = async (transferId) => {
         setDriverName("");
         setVehicleNo("");
         setContactNo(""); 
+        setTransferId(newTransferId);
         fetchAndShowPdf(newTransferId);
 
       } else {
@@ -876,7 +875,7 @@ const fetchAndShowPdf = async (transferId) => {
                           />
                           {item.packingId && (
                             <small style={{display: 'block', fontSize: '0.75rem', color: '#666', marginTop: '2px'}}>
-                              Max: {(item.availableQuantity / parseFloat(item.packingSize)).toFixed(2)} units
+                              Max: {(item.availableQuantity / parseFloat(item.packingSize)).toFixed(2)} bags
                             </small>
                           )}
                         </div>

@@ -7,7 +7,7 @@ import { StoreProvider } from "./context/StoreContext";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <BrowserRouter>
+    <BrowserRouter basename={"/smss"}>
       <StoreProvider>
         <App />
       </StoreProvider>

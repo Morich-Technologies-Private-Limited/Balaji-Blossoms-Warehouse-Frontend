@@ -204,8 +204,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-
-         
          
           <Route
             path="/:scope/view/tranferHistory"

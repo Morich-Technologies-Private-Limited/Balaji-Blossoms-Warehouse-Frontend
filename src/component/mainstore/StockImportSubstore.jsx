@@ -520,7 +520,7 @@ const StockImportSubstore = () => {
                             value={item.inputUnit}
                             onChange={(e) => updateItem(item.id, 'inputUnit', e.target.value)}
                             disabled={!item.packingId}
-                            style={{flex: '0 0 60px', fontSize: '0.85rem'}}
+                            style={{flex: '0 0 70px', fontSize: '0.85rem'}}
                           >
                             {item.defaultUnit && getAvailableUnits(item.defaultUnit).map(unit => (
                               <option key={unit} value={unit}>

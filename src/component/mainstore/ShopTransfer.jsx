@@ -876,7 +876,7 @@ const fetchAndShowPdf = async (transferId) => {
                           />
                           {item.packingId && (
                             <small style={{display: 'block', fontSize: '0.75rem', color: '#666', marginTop: '2px'}}>
-                              Max: {(item.availableQuantity / parseFloat(item.packingSize)).toFixed(2)} bags
+                              Max: {(item.availableQuantity / parseFloat(item.packingSize)).toFixed(2)} units
                             </small>
                           )}
                         </div>
@@ -900,7 +900,7 @@ const fetchAndShowPdf = async (transferId) => {
                               value={item.inputUnit}
                               onChange={(e) => updateItem(item.id, 'inputUnit', e.target.value)}
                               disabled={!item.packingId}
-                              style={{flex: '0 0 60px', fontSize: '0.85rem'}}
+                              style={{flex: '0 0 70px', fontSize: '0.85rem'}}
                             >
                               {item.defaultUnit && getAvailableUnits(item.defaultUnit).map(unit => (
                                 <option key={unit} value={unit}>

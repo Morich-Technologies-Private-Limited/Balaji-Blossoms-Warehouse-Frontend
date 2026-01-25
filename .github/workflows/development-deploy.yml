@@ -2,6 +2,11 @@ name: Production Deployment Action
 
 on:
   workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Select branch to deploy'
+        required: true
+        default: 'main'   # or 'master' depending on your repo
 
 jobs:
   build-and-deploy:
@@ -11,6 +16,8 @@ jobs:
     steps:
       - name: Checkout source code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -23,7 +30,7 @@ jobs:
 
       - name: Build Vite frontend (PRODUCTION)
         run: npm run build -- --mode production
-        env:                      
+        env:
           VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
           VITE_DEV_MODE: ${{ secrets.VITE_DEV_MODE }}
 

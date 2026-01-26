@@ -6,7 +6,7 @@ import RouterWrapper from "./RouterWrapper";
 export default function AppWithProvider() {
   return (
     <StoreProvider>
-      <RouterWrapper basename={'/smss'}>
+      <RouterWrapper basename="/smss">
         <App />
       </RouterWrapper>
     </StoreProvider>

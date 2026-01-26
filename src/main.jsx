@@ -1,16 +1,25 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import {
-  BrowserRouter,
-  useInRouterContext,
-} from "react-router-dom";
+import { BrowserRouter, useInRouterContext } from "react-router-dom";
 import "./index.css";
 import App from "./App.jsx";
 import { StoreProvider } from "./context/StoreContext";
 
+/**
+ * RouterWrapper:
+ * - If already inside a router (federated), just render children
+ * - If not, create BrowserRouter with correct basename
+ */
 function RouterWrapper({ children }) {
   const inRouter = useInRouterContext();
-  return inRouter ? children : <BrowserRouter basename="/smss/">{children}</BrowserRouter>;
+
+  // Standalone: wrap in BrowserRouter
+  if (!inRouter) {
+    return <BrowserRouter basename="/smss">{children}</BrowserRouter>;
+  }
+
+  // Already in router (federated): do nothing
+  return children;
 }
 
 createRoot(document.getElementById("root")).render(

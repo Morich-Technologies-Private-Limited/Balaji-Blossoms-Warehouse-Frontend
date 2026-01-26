@@ -7,6 +7,12 @@ on:
         description: 'Select the branch to deploy'
         required: true
         default: 'main'
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   build-and-deploy:
@@ -17,7 +23,8 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.inputs.branch }}
+          # Use manual input branch if triggered manually, otherwise default to the branch that triggered the workflow
+          ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.branch || github.ref_name }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4

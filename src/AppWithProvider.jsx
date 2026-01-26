@@ -3,10 +3,10 @@ import App from "./App";
 import { StoreProvider } from "./context/StoreContext";
 import RouterWrapper from "./RouterWrapper";
 
-export default function AppWithProvider() {
+export default function AppWithProvider({ basename = "/smss" }) {
   return (
     <StoreProvider>
-      <RouterWrapper basename="/smss">
+      <RouterWrapper basename={basename}>
         <App />
       </RouterWrapper>
     </StoreProvider>

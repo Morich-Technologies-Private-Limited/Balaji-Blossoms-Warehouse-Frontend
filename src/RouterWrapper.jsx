@@ -1,8 +1,25 @@
 import React from "react";
-import { BrowserRouter, useInRouterContext } from "react-router-dom";
+import {
+  BrowserRouter,
+  MemoryRouter,
+  useInRouterContext,
+} from "react-router-dom";
 
 export default function RouterWrapper({ children, basename }) {
   const inRouter = useInRouterContext();
-  if (inRouter) return children; // Already in Central router
-  return <BrowserRouter basename={basename}>{children}</BrowserRouter>; // Standalone
+
+  // 👉 Running inside Central (federated)
+  if (inRouter) {
+    return (
+      <MemoryRouter initialEntries={["/"]}>
+        {children}
+      </MemoryRouter>
+    );
+  }
+
+  return (
+    <BrowserRouter basename={basename}>
+      {children}
+    </BrowserRouter>
+  );
 }

@@ -9,5 +9,5 @@ export default function RouterWrapper({ children, basename }) {
   if (inRouter) return children;
 
   // Standalone: wrap in BrowserRouter
-  return <BrowserRouter basename={basename}>{children}</BrowserRouter>;
+  return <BrowserRouter basename={'/smss'}>{children}</BrowserRouter>;
 }

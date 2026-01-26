@@ -4,28 +4,24 @@ import federation from "@originjs/vite-plugin-federation";
 
 export default defineConfig({
   base: "/smss/",
-
   build: {
     target: "esnext",
     minify: false,
     cssCodeSplit: false,
   },
-
   plugins: [
     react(),
     federation({
       name: "smss",
       filename: "remoteEntry.js",
-
       exposes: {
-        "./App": "./src/App.jsx",
-        "./AppWithProvider": "./src/AppWithProvider.jsx",
+        "./AppWithProvider": "./src/federated.jsx", // only federated entry
       },
-
       shared: {
-        react: { singleton: true, requiredVersion: false },
-        "react-dom": { singleton: true, requiredVersion: false },
-        scheduler: { singleton: true, requiredVersion: false },
+        react: { singleton: true, eager: true },
+        "react-dom": { singleton: true, eager: true },
+        "react-router-dom": { singleton: true, eager: true },
+        scheduler: { singleton: true, eager: true },
       },
     }),
   ],

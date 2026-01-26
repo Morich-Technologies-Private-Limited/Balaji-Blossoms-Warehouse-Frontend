@@ -16,14 +16,16 @@ export default defineConfig({
     federation({
       name: "smss",
       filename: "remoteEntry.js",
+
       exposes: {
-        "./App": "./src/App.jsx",               // optional, standalone use
-        "./AppWithProvider": "./src/AppWithProvider.jsx", // central should use this
+        "./App": "./src/App.jsx",
+        "./AppWithProvider": "./src/AppWithProvider.jsx",
       },
+
       shared: {
-        react: { singleton: true },
-        "react-dom": { singleton: true },
-        "react-router-dom": { singleton: true },
+        react: { singleton: true, requiredVersion: false },
+        "react-dom": { singleton: true, requiredVersion: false },
+        scheduler: { singleton: true, requiredVersion: false },
       },
     }),
   ],

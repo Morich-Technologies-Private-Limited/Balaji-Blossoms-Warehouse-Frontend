@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import styles from './LoginForm.module.css';
 import logo from "../../assets/logo.png";
 import { loginApi, devModeLogin } from '../../api/loginApi';
-import { useNavigate } from 'react-router-dom';
 import { useStores } from '../../context/StoreContext';
 import { showMessagePopUp } from '../modal/MessagePopUp';
 import { Button } from 'bootstrap/dist/js/bootstrap.bundle.min';
+import { useSafeNavigate } from '../../useSafeNavigate';
 
 const LoginForm = () => {  
   const [email, setEmail] = useState('');
@@ -14,7 +14,7 @@ const LoginForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedRole, setSelectedRole] = useState('');
   const { loadStores } = useStores(); 
-  const navigate = useNavigate();
+  const navigate = useSafeNavigate();
 
   // Check if dev mode is enabled
   const isDevMode = import.meta.env.VITE_DEV_MODE === 'true';

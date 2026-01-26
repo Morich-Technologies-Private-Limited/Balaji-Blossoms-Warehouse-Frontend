@@ -9,7 +9,7 @@ import RouterWrapper from "./RouterWrapper";
 createRoot(document.getElementById("root")).render(
   <StrictMode>
   <StoreProvider>
-      <RouterWrapper basename='/smss'>
+      <RouterWrapper>
         <App />
       </RouterWrapper>
     </StoreProvider>

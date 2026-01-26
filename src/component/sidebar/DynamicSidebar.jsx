@@ -7,13 +7,14 @@ import Logo2 from "../../assets/logo2.png"
 import Logo3 from "../../assets/logo3.png"
 import { createBackupApi } from '../../api/createBackupApi';
 import { showMessagePopUp } from '../modal/MessagePopUp';
+import { useSafeNavigate } from '../../useSafeNavigate';
 
 const DynamicSidebar = ({ role, onSidebarChange }) => {
   const [isOpen, setIsOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const [isCreatingBackup, setIsCreatingBackup] = useState(false);
 
-  const navigate = useNavigate();
+  const navigate = useSafeNavigate();
   const location = useLocation();
 
   // Detect mobile screen size

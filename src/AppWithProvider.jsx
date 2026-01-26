@@ -1,14 +1,14 @@
 import React from "react";
 import App from "./App";
 import { StoreProvider } from "./context/StoreContext";
-import RouterWrapper from "./RouterWrapper";
+import { BrowserRouter } from "react-router-dom";
 
 export default function AppWithProvider({ basename = "/smss" }) {
   return (
     <StoreProvider>
-      <RouterWrapper basename={basename}>
+      <BrowserRouter basename="/smss">
         <App />
-      </RouterWrapper>
+      </BrowserRouter>
     </StoreProvider>
   );
 }

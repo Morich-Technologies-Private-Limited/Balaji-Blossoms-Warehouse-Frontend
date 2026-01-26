@@ -6,7 +6,7 @@ export default defineConfig({
   base: "/smss/",
   build: {
     target: "esnext",
-    minify: false,
+    minify: true,
     cssCodeSplit: false,
   },
   plugins: [
@@ -15,13 +15,14 @@ export default defineConfig({
       name: "smss",
       filename: "remoteEntry.js",
       exposes: {
-        "./AppWithProvider": "./src/federated.jsx", // only federated entry
+        "./AppWithProvider": "./src/federated.jsx",
       },
       shared: {
         react: { singleton: true, eager: true },
         "react-dom": { singleton: true, eager: true },
         "react-router-dom": { singleton: true, eager: true },
         scheduler: { singleton: true, eager: true },
+        recharts: { singleton: true },  // ADD THIS
       },
     }),
   ],

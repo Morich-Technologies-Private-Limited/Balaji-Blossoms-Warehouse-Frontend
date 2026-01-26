@@ -4,6 +4,8 @@ export function useSafeNavigate(appBase = "/smss") {
   const navigate = useNavigate();
   const isFederated = window.__IS_FEDERATED__ === true;
 
+  console.log("useSafeNavigate - isFederated:", isFederated);
+
   return (to, options) => {
     // Standalone → normal navigation
     if (!isFederated) {

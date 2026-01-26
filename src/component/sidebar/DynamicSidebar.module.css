@@ -241,42 +241,42 @@
 
 /* UPDATED: Rectangle toggle button - consistent across all screen sizes */
 .toggleBtn {
-  position: fixed;
-  left: 250px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 20px;
-  height: 80px;
-  background: #0f4776;
-  color: white;
-  border: none;
-  border-radius: 0 8px 8px 0;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-  z-index: 1051;
-  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
+  position: fixed !important;
+  left: 250px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  width: 20px !important;
+  height: 80px !important;
+  background: #0f4776 !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 0 8px 8px 0 !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.3s ease !important;
+  z-index: 1051 !important;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2) !important;
 }
 
 .toggleBtn:hover {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  transform: translateY(-50%) scale(1.1);
-  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+  transform: translateY(-50%) scale(1.1) !important;
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4) !important;
 }
 
 .toggleBtn:active {
-  transform: translateY(-50%) scale(1.05);
+  transform: translateY(-50%) scale(1.05) !important;
 }
 
 .toggleBtnClosed {
-  left: 70px;
+  left: 70px !important;
 }
 
 .toggleBtn i {
-  font-size: 18px;
-  font-weight: bold;
+  font-size: 18px !important;
+  font-weight: bold !important;
 }
 
 /* Overlay for mobile */

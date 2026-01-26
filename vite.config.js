@@ -5,7 +5,6 @@ import federation from '@originjs/vite-plugin-federation'
 export default defineConfig({
   base: "/smss/",
   build: {
-    modulePreload: false,
     target: 'esnext',
     minify: false,
     cssCodeSplit: false,
@@ -19,9 +18,17 @@ export default defineConfig({
         "./App": "./src/App.jsx",
       },
       shared: {
-        react: { singleton: true, requiredVersion: '^18.0.0' },
-        "react-dom": { singleton: true, requiredVersion: '^18.0.0' },
-        "react-router-dom": { singleton: true },
+        react: {
+          singleton: true,
+          requiredVersion: "^18.0.0",
+        },
+        "react-dom": {
+          singleton: true,
+          requiredVersion: "^18.0.0",
+        },
+        "react-router-dom": {
+          singleton: true,
+        },
       },
     }),
   ],

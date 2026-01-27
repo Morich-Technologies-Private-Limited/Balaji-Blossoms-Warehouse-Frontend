@@ -48,7 +48,7 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            rm -rf /var/www/smss/*
+            sudo rm -rf /var/www/smss/*
 
       - name: Upload new PROD build files
         uses: appleboy/scp-action@v0.1.7

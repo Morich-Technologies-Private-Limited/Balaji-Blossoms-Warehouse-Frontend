@@ -1,7 +1,3 @@
-import axios from "axios";
-import { DELETE_REQUEST_URL } from "../constants/apiConstants";
-import { getSessionData } from "../component/utils/getSessionData";
-
 export const deleteRequestApi = async (requestId, remark, actionStatus) => {
   try {
     const { token } = getSessionData();
@@ -10,10 +6,16 @@ export const deleteRequestApi = async (requestId, remark, actionStatus) => {
       throw new Error("Authentication token not found");
     }
 
+    // Create query parameters like the working example
+    const params = new URLSearchParams();
+    params.append("requestId", requestId);
+    params.append("remark", remark);
+    params.append("actionStatus", actionStatus);
+
     const response = await axios.post(
-      DELETE_REQUEST_URL,
+      `${DELETE_REQUEST_URL}?${params.toString()}`,
+      {}, // empty body
       {
-        params: { requestId, remark, actionStatus },
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -22,26 +24,7 @@ export const deleteRequestApi = async (requestId, remark, actionStatus) => {
     );
 
     return response;
-  }  catch (error) {
-    const httpStatus = error.response?.status || 500;
-    const apiError = error.response?.data;
-
-    return {
-      data: {
-        status: apiError?.status || "ERROR",
-        payload: null,
-        message:
-          apiError?.message ||
-          (error.response
-            ? `Request failed with status ${httpStatus}`
-            : "Network error or server not reachable"),
-        errorList: apiError?.errorList || [],
-      },
-      status: httpStatus,
-      statusText: error.response?.statusText || "Error",
-      headers: error.response?.headers || {},
-      config: error.config || {},
-    };
+  } catch (error) {
+    // ... your existing error handling
   }
-
 };

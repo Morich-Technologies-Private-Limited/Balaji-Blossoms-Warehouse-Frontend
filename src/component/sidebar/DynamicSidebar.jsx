@@ -84,6 +84,7 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
       navItems: [
         { icon: 'bi-house-door-fill', text: 'Home', link: '/substore/dashboard' },
         { icon: 'bi-arrow-up-circle', text: 'Stock Transfer', link: '/substore/transfer' },
+              { icon: 'bi-clock-history', text: 'In Entry', link: '/substore/import' },
         { icon: 'bi-arrow-up-circle', text: 'Out Entry', link: '/substore/supervisor/transfer' },
         { icon: 'bi-file-text', text: 'Transfer History', link: '/substore/view/tranferHistory' },
         

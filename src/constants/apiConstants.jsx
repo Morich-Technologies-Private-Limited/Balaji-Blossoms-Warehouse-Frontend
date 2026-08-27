@@ -12,12 +12,19 @@ export const FETCH_STORE_INVENTORY_URL = `${API_BASE_URL}/store/inventory`;
 
 
 
+export const FIND_SUPERVISORS_URL = `${API_BASE_URL}/product/supervisors`;
+export const FETCH_SUPERVISOR_INVENTORY_URL = `${API_BASE_URL}/product/supervisor/inventory`;
+
+
 export const FIND_PRODUCT_SEARCH_URL = `${API_BASE_URL}/product/search`;
 export const FIND_PRODUCT_PACKING_URL = `${API_BASE_URL}/product/find/packing`;
 export const FIND_PRODUCT_PACKING_WITHOUT_INVENTORY_URL = `${API_BASE_URL}/product/findProductPackingWithoutInventory`;
 
 export const SEND_PRODUCT_URL = `${API_BASE_URL}/product/transfer-stock`;
 export const SEND_PRODUCT_TO_SUPERVISOR_URL = `${API_BASE_URL}/product/supervisor/transfer-stock`;
+export const TRANSFER_BETWEEN_SUPERVISORS_URL = `${API_BASE_URL}/product/supervisor/transfer-between-supervisors`;
+export const RETURN_STOCK_TO_STORE_URL = `${API_BASE_URL}/product/supervisor/return-to-store`;
+export const SUPERVISOR_CONSUME_URL = `${API_BASE_URL}/product/supervisor/consume`;
 
 export const ADD_INVENROTY_URL = `${API_BASE_URL}/product/add/inventory`;
 

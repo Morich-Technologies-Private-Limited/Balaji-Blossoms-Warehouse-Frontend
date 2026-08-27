@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { useStores } from '../../context/StoreContext';
 
 const LoginForm = () => {  
-  const [email, setEmail] = useState('');
+  const [userId, setUserId] = useState('');
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -21,14 +21,14 @@ const LoginForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (email && password) {
+    if (userId && password) {
       setIsLoading(true);
-      
+
       try {
-        const result = await loginApi(email, password);
-        
+        const result = await loginApi(userId, password);
+
         if (result.success) {
-          alert(`Login successful for: ${email}`);
+          alert(`Login successful for: ${userId}`);
           loadStores();
           navigate(result.navLink);
         } else {
@@ -172,15 +172,16 @@ const LoginForm = () => {
                 // Production Mode: Normal Login Form
                 <form onSubmit={handleSubmit}>
                   <div className="mb-3">
-                    <label className="form-label text-secondary small fw-semibold mb-2">Email Address</label>
+                    <label className="form-label text-secondary small fw-semibold mb-2">User Id</label>
                     <div className={styles.inputWrapper}>
-                      <i className="bi bi-envelope"></i>
+                      <i className="bi bi-person"></i>
+                      {/* Plain text: the user id can be a username, a number or an email */}
                       <input
-                        type="email"
+                        type="text"
                         className="form-control"
-                        placeholder="your.email@example.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="Username, id or email"
+                        value={userId}
+                        onChange={(e) => setUserId(e.target.value)}
                         required
                       />
                     </div>

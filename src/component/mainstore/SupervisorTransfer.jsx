@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Package, Trash2, Send, Building2, Phone } from 'lucide-react';
+import { Search, Package, Trash2, Send, Building2, Phone, User, UserCheck } from 'lucide-react';
 import styles from './SupervisorTransfer.module.css';
 import { fetchStoresWithUserApi } from '../../api/findStoreAndEmployee';
 import { findProducts } from '../../api/findProducts';
 import { findProductsPacking } from '../../api/findProductsPacking';
+import { findSupervisors } from '../../api/findSupervisors';
 import { sendProductToSupervisor } from '../../api/sendProductToSupervisor';
+import { getSessionData } from '../utils/getSessionData';
 
 const SupervisorTransfer = () => {
   const [searchKey, setSearchKey] = useState('');
@@ -13,21 +15,50 @@ const SupervisorTransfer = () => {
   const [stores, setStores] = useState([]);
   const [transferItems, setTransferItems] = useState([]);
   const [selectedDropdownIndex, setSelectedDropdownIndex] = useState(0);
-  
-  // Store selection by name and mobile
-  const [storeName, setStoreName] = useState('');
-  const [mobileNo, setMobileNo] = useState('');
-  const [supervisorName, setSupervisorName] = useState('');
-  
+
+  // Sender comes from the saved login data, receiver is picked from the store's supervisors
+  const [selectedStoreId, setSelectedStoreId] = useState(() => getSessionData().storeId || '');
+  const [storeName, setStoreName] = useState(() => getSessionData().user?.storeName || '');
+  const [mobileNo, setMobileNo] = useState(() => getSessionData().user?.contactNumber || '');
+  const [supervisors, setSupervisors] = useState([]);
+  const [receiverSupervisorId, setReceiverSupervisorId] = useState('');
+  const [receiverContactNo, setReceiverContactNo] = useState('');
+  const [isLoadingSupervisors, setIsLoadingSupervisors] = useState(false);
+
   const searchInputRef = useRef(null);
   const dropdownRef = useRef(null);
+  const sessionDataRef = useRef(null);
+
+  if (!sessionDataRef.current) {
+    sessionDataRef.current = getSessionData();
+  }
+
+  const { user, storeId: sessionStoreId, role } = sessionDataRef.current;
+  // Main store managers and admins can transfer to any store's supervisors,
+  // a sub store manager is limited to the supervisors of its own store
+  const canSelectAnyStore = role === "ADMIN" || role === "MAIN_STORE_MANAGER";
+  const senderId = user?.userId || '';
+  const senderName = user?.name || '';
+  const senderContactNo = user?.contactNumber || '';
 
   const loadStores = async () => {
     try {
       const response = await fetchStoresWithUserApi();
 
       if(response.data.status === "SUCCESS") {
-        setStores(response.data.payload);
+        const storeList = response.data.payload;
+        setStores(storeList);
+
+        // Default to the logged in user's own store; fall back to the first store
+        // only for roles allowed to transfer outside their own store
+        const defaultStore =
+          storeList.find(store => String(store.storeId) === String(sessionStoreId)) ||
+          (canSelectAnyStore ? storeList[0] : null);
+
+        if (defaultStore) {
+          setSelectedStoreId(String(defaultStore.storeId));
+          setStoreName(defaultStore.storeName);
+        }
       } else {
         console.log(response.data);
         setStores([]);
@@ -40,6 +71,51 @@ const SupervisorTransfer = () => {
   useEffect(() => {
     loadStores();
   }, []);
+
+  useEffect(() => {
+    if (!selectedStoreId) return;
+    loadSupervisors(selectedStoreId);
+  }, [selectedStoreId]);
+
+  const loadSupervisors = async (storeId) => {
+    try {
+      setIsLoadingSupervisors(true);
+      setSupervisors([]);
+      setReceiverSupervisorId('');
+      setReceiverContactNo('');
+
+      const response = await findSupervisors(storeId);
+
+      if (response.data.status === "SUCCESS") {
+        setSupervisors(response.data.payload || []);
+      } else {
+        setSupervisors([]);
+      }
+    } catch (err) {
+      console.error("Failed to load supervisors", err);
+      setSupervisors([]);
+    } finally {
+      setIsLoadingSupervisors(false);
+    }
+  };
+
+  const handleStoreChange = (storeId) => {
+    setSelectedStoreId(storeId);
+
+    const store = stores.find(s => String(s.storeId) === String(storeId));
+    setStoreName(store ? store.storeName : '');
+  };
+
+  // Contact number comes with the supervisor, so fill it in on selection
+  const handleReceiverChange = (supervisorId) => {
+    setReceiverSupervisorId(supervisorId);
+
+    const supervisor = supervisors.find(
+      s => String(s.supervisorId) === String(supervisorId)
+    );
+
+    setReceiverContactNo(supervisor?.contactNumber || '');
+  };
 
   // Get unit display
   const getUnitDisplay = (unit) => {
@@ -392,18 +468,18 @@ const SupervisorTransfer = () => {
 
   const handleSubmit = async () => {
     try {
-      if (!storeName.trim()) {
-        alert("Please enter store name");
+      if (!selectedStoreId) {
+        alert("Please select a store");
         return;
       }
 
-      if (!mobileNo.trim()) {
-        alert("Please enter mobile number");
+      if (!receiverSupervisorId) {
+        alert("Please select the receiving supervisor");
         return;
       }
 
-      if (!supervisorName.trim()) {
-        alert("Please enter supervisor name");
+      if (!receiverContactNo.trim()) {
+        alert("Please enter the receiver's mobile number");
         return;
       }
 
@@ -434,10 +510,18 @@ const SupervisorTransfer = () => {
         return;
       }
 
+      const receiver = supervisors.find(
+        s => String(s.supervisorId) === String(receiverSupervisorId)
+      );
+
       const transferDto = {
-        storeName: storeName,
+        supervisorId: senderId,
+        supervisorName: senderName,
         contactNo: mobileNo,
-        supervisorName: supervisorName,
+        receiverSupervisorId: receiverSupervisorId,
+        receiverSupervisorName: receiver ? receiver.name : '',
+        receiverContactNo: receiverContactNo,
+        storeName: storeName,
         stockList: transferItems.map(item => {
           let transferMetadata;
           
@@ -479,9 +563,9 @@ const SupervisorTransfer = () => {
       if(response.data.status === "SUCCESS") {
         alert(response.data.message || "Stock transferred successfully!");
         setTransferItems([]);
-        setStoreName("");
-        setMobileNo("");
-        setSupervisorName("");
+        setMobileNo(senderContactNo);
+        setReceiverSupervisorId("");
+        setReceiverContactNo("");
       } else {
         alert(response.data.message || "Unable to transfer stock");
       }
@@ -556,41 +640,26 @@ const SupervisorTransfer = () => {
           </div>
         </div>
 
-        {/* Store Name, Mobile Number, and Supervisor Name Input */}
+        {/* Sender (logged in user), store and receiving supervisor */}
         <div className={styles.selectionRow}>
-         
-         
+
           <div className={styles.selectGroup}>
             <label className={styles.inputLabel}>
-              Supervisor Name:
+              <User size={16} />
+              Sender:
             </label>
             <input
               type="text"
-              className={styles.selectInput}
-              placeholder="Enter supervisor name"
-              value={supervisorName}
-              onChange={(e) => setSupervisorName(e.target.value)}
-            />
-          </div>
-         
-          <div className={styles.selectGroup}>
-            <label className={styles.inputLabel}>
-              <Building2 size={16} />
-              Store Name:
-            </label>
-            <input
-              type="text"
-              className={styles.selectInput}
-              placeholder="Enter store name"
-              value={storeName}
-              onChange={(e) => setStoreName(e.target.value)}
+              className={styles.textInput}
+              value={senderName}
+              readOnly
             />
           </div>
 
           <div className={styles.selectGroup}>
             <label className={styles.inputLabel}>
               <Phone size={16} />
-              Mobile No:
+              Sender Mobile No:
             </label>
             <input
               type="text"
@@ -598,6 +667,74 @@ const SupervisorTransfer = () => {
               placeholder="Enter mobile number"
               value={mobileNo}
               onChange={(e) => setMobileNo(e.target.value)}
+            />
+          </div>
+
+          <div className={styles.selectGroup}>
+            <label className={styles.inputLabel}>
+              <Building2 size={16} />
+              Store Name:
+            </label>
+            {canSelectAnyStore ? (
+              <select
+                className={styles.selectInput}
+                value={selectedStoreId}
+                onChange={(e) => handleStoreChange(e.target.value)}
+              >
+                <option value="">Select store</option>
+                {stores.map(store => (
+                  <option key={store.storeId} value={store.storeId}>
+                    {store.storeName} - {getStoreTypeDisplay(store.storeType)}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <input
+                type="text"
+                className={styles.textInput}
+                value={storeName}
+                readOnly
+              />
+            )}
+          </div>
+
+          <div className={styles.selectGroup}>
+            <label className={styles.inputLabel}>
+              <UserCheck size={16} />
+              Receiver Supervisor:
+            </label>
+            <select
+              className={styles.selectInput}
+              value={receiverSupervisorId}
+              onChange={(e) => handleReceiverChange(e.target.value)}
+              disabled={isLoadingSupervisors || !supervisors.length}
+            >
+              <option value="">
+                {isLoadingSupervisors
+                  ? 'Loading supervisors...'
+                  : supervisors.length
+                    ? 'Select supervisor'
+                    : 'No supervisors found'}
+              </option>
+              {supervisors.map(supervisor => (
+                <option key={supervisor.supervisorId} value={supervisor.supervisorId}>
+                  {supervisor.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className={styles.selectGroup}>
+            <label className={styles.inputLabel}>
+              <Phone size={16} />
+              Receiver Mobile No:
+            </label>
+            <input
+              type="text"
+              className={styles.selectInput}
+              placeholder="Enter mobile number"
+              value={receiverContactNo}
+              onChange={(e) => setReceiverContactNo(e.target.value)}
             />
           </div>
 

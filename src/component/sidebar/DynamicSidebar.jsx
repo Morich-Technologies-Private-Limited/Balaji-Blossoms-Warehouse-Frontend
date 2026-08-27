@@ -7,6 +7,9 @@ import Logo2 from "../../assets/logo2.png"
 import Logo3 from "../../assets/logo3.png"
 
 
+// 🔹 Build flag - set to false before the production deploy
+const IS_DEVELOPMENT_MODE = true;
+
 const DynamicSidebar = ({ role, onSidebarChange }) => {
   const [isOpen, setIsOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
@@ -61,6 +64,8 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
         { icon: 'bi-shop', text: 'Create Store', link: '/admin/create/store' },
         { icon: 'bi-person-badge', text: 'User Management', link: '/admin/manage/user' },
         { icon: 'bi-boxes', text: 'View Inventory', link: '/admin/view/inventory' },
+        { icon: 'bi-arrow-up-circle', text: 'Supervisor Transfer', link: '/admin/supervisor/transfer' },
+        { icon: 'bi-person-lines-fill', text: 'Supervisor Inventory', link: '/admin/supervisor/inventory' },
         { icon: 'bi-clock-history', text: 'Transfer History', link: '/admin/view/tranferHistory' },
       ]
     },
@@ -74,6 +79,8 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
         { icon: 'bi-shop', text: 'Out Entry', link: '/mainstore/transfer' },
         { icon: 'bi-box', text: 'Product Master', link: '/mainstore/product/add' },
         { icon: 'bi-boxes', text: 'Inventory View', link: '/mainstore/view/inventory' },
+        { icon: 'bi-arrow-up-circle', text: 'Supervisor Transfer', link: '/mainstore/supervisor/transfer' },
+        { icon: 'bi-person-lines-fill', text: 'Supervisor Inventory', link: '/mainstore/supervisor/inventory' },
         { icon: 'bi-clock-history', text: 'Transfer History', link: '/mainstore/view/tranferHistory'},
       ]
     },
@@ -89,6 +96,18 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
         { icon: 'bi-file-text', text: 'Transfer History', link: '/substore/view/tranferHistory' },
         
         { icon: 'bi-boxes', text: 'Inventory View', link: '/substore/view/inventory' },
+        { icon: 'bi-person-lines-fill', text: 'Supervisor Inventory', link: '/substore/supervisor/inventory' },
+      ]
+    },
+
+    supervisor: {
+      logo: 'Balaji Blossoms',
+      title: 'Supervisor',
+      navItems: [
+        { icon: 'bi-boxes', text: 'My Inventory', link: '/supervisor/my/inventory' },
+        { icon: 'bi-arrow-left-right', text: 'Transfer to Supervisor', link: '/supervisor/transfer/supervisor' },
+        { icon: 'bi-arrow-return-left', text: 'Return to Store', link: '/supervisor/transfer/store' },
+        { icon: 'bi-clipboard-check', text: 'Record Usage', link: '/supervisor/usage' },
       ]
     },
 
@@ -99,6 +118,7 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
     ADMIN: 'admin',
     MAIN_STORE_MANAGER: 'mainstore',
     SUB_STORE_MANAGER: 'substore',
+    SUPERVISOR: 'supervisor',
     SUB_STORE_SUPERVISOR: 'substore',
   };
 
@@ -128,6 +148,13 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
             </button>
           )}
         </div>
+
+        {IS_DEVELOPMENT_MODE && (
+          <div className={styles.devBadge} title="Development build">
+            <i className="bi bi-code-slash"></i>
+            <span className={styles.navText}>Development Mode</span>
+          </div>
+        )}
 
         <nav className={styles.sidebarNav}>
           {config.navItems.map((item, index) => (

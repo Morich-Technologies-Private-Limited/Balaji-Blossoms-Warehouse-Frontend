@@ -6,6 +6,7 @@ const getNavLinkByRole = (userRole) => {
     ADMIN: "/admin",
     MAIN_STORE_MANAGER: "/mainstore",
     SUB_STORE_MANAGER: "/substore",
+    SUPERVISOR: "/supervisor/my/inventory",
     SUB_STORE_SUPERVISOR: "/sales/substore",
     SHOP_MANAGER: "/shop",
   };
@@ -67,6 +68,8 @@ export const devModeLogin = (role) => {
     userId: user.userId,
     name: user.name,
     userRole: user.userRole,
+    contactNumber: user.contactNumber,
+    storeId: user.storeId,
   }));
 
   sessionStorage.setItem("token", user.token);
@@ -96,6 +99,10 @@ export const loginApi = async (userId, password) => {
         userId: user.userId,
         name: user.name,
         userRole: user.userRole,
+        contactNumber: user.contactNumber,
+        storeId: user.storeId,
+        storeName: user.storeName,
+        storeType: user.storeType,
       }));
 
       sessionStorage.setItem("token", user.token);

@@ -18,6 +18,10 @@ import StockImport from "./component/mainstore/StockImport";
 import SupervisorTransfer from "./component/mainstore/SupervisorTransfer";
 import Dashboard from "./component/mainstore/Dashboard";
 import CreateStore from "./component/admin/CreateStore";
+import ViewSupervisorInventory from "./component/supervisor/ViewSupervisorInventory";
+import SupervisorInternalTransfer from "./component/supervisor/SupervisorInternalTransfer";
+import SupervisorReturnToStore from "./component/supervisor/SupervisorReturnToStore";
+import SupervisorUsage from "./component/supervisor/SupervisorUsage";
 
 
 /* ================= ROLE ↔ PATH MAP ================= */
@@ -26,6 +30,7 @@ const ROLE_PATH_MAP = {
   mainstore: "MAIN_STORE_MANAGER",
   substore: "SUB_STORE_MANAGER",
   storehouse: "SHOP_MANAGER",
+  supervisor: "SUPERVISOR",
 };
 
 /* ================= PROTECTED ROUTE ================= */
@@ -201,8 +206,54 @@ function App() {
       <Route
             path="/:scope/supervisor/transfer"
             element={
-              <ProtectedRoute allowedRoles={["ADMIN","SUB_STORE_MANAGER"]}>
+              <ProtectedRoute allowedRoles={["ADMIN","MAIN_STORE_MANAGER","SUB_STORE_MANAGER"]}>
                 <SupervisorTransfer />
+              </ProtectedRoute>
+            }
+          /> 
+
+          {/* ===== SUPERVISOR SCOPE ===== */}
+          <Route
+            path="/:scope/my/inventory"
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN","SUPERVISOR"]}>
+                <ViewSupervisorInventory />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/:scope/transfer/supervisor"
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN","SUPERVISOR"]}>
+                <SupervisorInternalTransfer />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/:scope/transfer/store"
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN","SUPERVISOR"]}>
+                <SupervisorReturnToStore />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/:scope/usage"
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN","SUPERVISOR"]}>
+                <SupervisorUsage />
+              </ProtectedRoute>
+            }
+          />
+
+           <Route
+            path="/:scope/supervisor/inventory"
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN","MAIN_STORE_MANAGER","SUB_STORE_MANAGER"]}>
+                <ViewSupervisorInventory />
               </ProtectedRoute>
             }
           /> 

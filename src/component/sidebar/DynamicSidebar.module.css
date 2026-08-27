@@ -66,6 +66,30 @@
   display: none;
 }
 
+/* Development build tag - hidden by flipping IS_DEVELOPMENT_MODE in DynamicSidebar.jsx */
+.devBadge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 10px 12px 0 12px;
+  padding: 6px 10px;
+  background: #ffc107;
+  color: #3d2f00;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.closed .devBadge {
+  margin: 10px 8px 0 8px;
+  padding: 6px 4px;
+}
+
 /* Close button for mobile */
 .closeBtn {
   position: absolute;

@@ -61,6 +61,10 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
         { icon: 'bi-shop', text: 'Create Store', link: '/admin/create/store' },
         { icon: 'bi-person-badge', text: 'User Management', link: '/admin/manage/user' },
         { icon: 'bi-boxes', text: 'View Inventory', link: '/admin/view/inventory' },
+        { icon: 'bi-person-badge', text: 'Supervisors', link: '/admin/supervisors' },
+        { icon: 'bi-box-seam', text: 'Supervisor Inventory', link: '/admin/supervisor/inventory' },
+        { icon: 'bi-calendar-x', text: 'Product Expiry', link: '/admin/product/expiry' },
+        { icon: 'bi-sliders', text: 'Inventory Correction', link: '/admin/inventory-correction' },
         { icon: 'bi-clock-history', text: 'Transfer History', link: '/admin/view/tranferHistory' },
       ]
     },
@@ -74,6 +78,8 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
         { icon: 'bi-shop', text: 'Out Entry', link: '/mainstore/transfer' },
         { icon: 'bi-box', text: 'Product Master', link: '/mainstore/product/add' },
         { icon: 'bi-boxes', text: 'Inventory View', link: '/mainstore/view/inventory' },
+        { icon: 'bi-calendar-x', text: 'Product Expiry', link: '/mainstore/product/expiry' },
+        { icon: 'bi-sliders', text: 'Inventory Correction', link: '/mainstore/inventory-correction' },
         { icon: 'bi-clock-history', text: 'Transfer History', link: '/mainstore/view/tranferHistory'},
       ]
     },
@@ -89,6 +95,21 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
         { icon: 'bi-file-text', text: 'Transfer History', link: '/substore/view/tranferHistory' },
         
         { icon: 'bi-boxes', text: 'Inventory View', link: '/substore/view/inventory' },
+        { icon: 'bi-calendar-x', text: 'Product Expiry', link: '/substore/product/expiry' },
+        { icon: 'bi-sliders', text: 'Inventory Correction', link: '/substore/inventory-correction' },
+        { icon: 'bi-person-badge', text: 'Supervisors', link: '/substore/supervisors' },
+        { icon: 'bi-box-seam', text: 'Supervisor Inventory', link: '/substore/supervisor/inventory' },
+      ]
+    },
+
+    supervisor: {
+      logo: 'Balaji Blossoms',
+      title: 'Supervisor',
+      navItems: [
+        { icon: 'bi-box-seam', text: 'My Stock', link: '/supervisor/stock' },
+        { icon: 'bi-pencil-square', text: 'Log Usage', link: '/supervisor/log-usage' },
+        { icon: 'bi-clock-history', text: 'Usage History', link: '/supervisor/usage' },
+        { icon: 'bi-box-arrow-in-down', text: 'Received Stock', link: '/supervisor/received' },
       ]
     },
 
@@ -100,6 +121,7 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
     MAIN_STORE_MANAGER: 'mainstore',
     SUB_STORE_MANAGER: 'substore',
     SUB_STORE_SUPERVISOR: 'substore',
+    SUPERVISOR: 'supervisor',
   };
 
   const sidebarKey = roleKeyMap[role] || 'mainstore';

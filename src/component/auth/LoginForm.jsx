@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import styles from './LoginForm.module.css';
 import logo from "../../assets/logo.png";
 import { loginApi, devModeLogin } from '../../api/loginApi';
+import { supervisorLoginApi } from '../../supervisor/supervisorPortalApi';
 import { useNavigate } from 'react-router-dom';
 import { useStores } from '../../context/StoreContext';
+import { notify } from '../utils/feedback';
 
 const LoginForm = () => {  
   const [email, setEmail] = useState('');
@@ -12,6 +14,7 @@ const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedRole, setSelectedRole] = useState('');
+  const [isSupervisorLogin, setIsSupervisorLogin] = useState(false);
   const { loadStores } = useStores(); 
   const navigate = useNavigate();
 
@@ -25,34 +28,36 @@ const LoginForm = () => {
       setIsLoading(true);
       
       try {
-        const result = await loginApi(email, password);
-        
+        const result = isSupervisorLogin
+          ? await supervisorLoginApi(email, password)
+          : await loginApi(email, password);
+
         if (result.success) {
-          alert(`Login successful for: ${email}`);
-          loadStores();
+          notify.success(`Logged in as ${email}`, 'Login successful');
+          if (!isSupervisorLogin) loadStores(); // store list is not available to supervisors
           navigate(result.navLink);
         } else {
-          alert(result.message || 'Login failed');
+          notify.error(result.message || 'Login failed', 'Login failed');
         }
       } catch (error) {
-        alert('An error occurred during login');
+        notify.error('An error occurred during login', 'Login failed');
       } finally {
         setIsLoading(false);
       }
     } else {
-      alert('Please fill in all fields');
+      notify.warning('Please fill in all fields');
     }
   };
 
   const handleDevModeLogin = (role) => {
     setIsLoading(true);
-    
+
     try {
       const result = devModeLogin(role);
-      alert(`Dev Mode: Logged in as ${role}`);
+      notify.success(`Dev Mode: Logged in as ${role}`, 'Login successful');
       navigate(result.navLink);
     } catch (error) {
-      alert('Dev mode login failed');
+      notify.error('Dev mode login failed', 'Login failed');
     } finally {
       setIsLoading(false);
     }
@@ -171,16 +176,37 @@ const LoginForm = () => {
               ) : (
                 // Production Mode: Normal Login Form
                 <form onSubmit={handleSubmit}>
+                  {/* Staff (users) and supervisors have separate logins */}
+                  <div className="btn-group w-100 mb-4" role="group">
+                    <button
+                      type="button"
+                      className={`btn ${!isSupervisorLogin ? styles.btnPrimary : 'btn-outline-secondary'}`}
+                      onClick={() => setIsSupervisorLogin(false)}
+                    >
+                      <i className="bi bi-person-workspace me-2"></i>Staff
+                    </button>
+                    <button
+                      type="button"
+                      className={`btn ${isSupervisorLogin ? styles.btnPrimary : 'btn-outline-secondary'}`}
+                      onClick={() => setIsSupervisorLogin(true)}
+                    >
+                      <i className="bi bi-person-badge me-2"></i>Supervisor
+                    </button>
+                  </div>
+
                   <div className="mb-3">
-                    <label className="form-label text-secondary small fw-semibold mb-2">Email Address</label>
+                    <label className="form-label text-secondary small fw-semibold mb-2">
+                      {isSupervisorLogin ? 'Mobile Number' : 'Email Address'}
+                    </label>
                     <div className={styles.inputWrapper}>
-                      <i className="bi bi-envelope"></i>
+                      <i className={`bi ${isSupervisorLogin ? 'bi-phone' : 'bi-envelope'}`}></i>
                       <input
-                        type="email"
+                        type={isSupervisorLogin ? 'tel' : 'email'}
                         className="form-control"
-                        placeholder="your.email@example.com"
+                        placeholder={isSupervisorLogin ? '10 digit mobile number' : 'your.email@example.com'}
+                        maxLength={isSupervisorLogin ? 10 : undefined}
                         value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        onChange={(e) => setEmail(isSupervisorLogin ? e.target.value.replace(/\D/g, '') : e.target.value)}
                         required
                       />
                     </div>

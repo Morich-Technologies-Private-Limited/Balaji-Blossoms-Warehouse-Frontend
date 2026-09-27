@@ -1,0 +1,173 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(15, 23, 42, 0.45);
+  animation: fadeIn 0.15s ease-out;
+}
+
+/* result / confirm dialogs sit above the waiting modal */
+.dialogOverlay {
+  z-index: 2001;
+}
+
+.modal {
+  width: 100%;
+  max-width: 400px;
+  padding: 28px 24px 22px;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  animation: popIn 0.18s ease-out;
+}
+
+.iconWrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 68px;
+  height: 68px;
+  margin-bottom: 14px;
+  border-radius: 50%;
+}
+
+.success .iconWrap {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.error .iconWrap {
+  background: #ffebee;
+  color: #d32f2f;
+}
+
+.warning .iconWrap {
+  background: #fff8e1;
+  color: #ef8f00;
+}
+
+.confirm .iconWrap {
+  background: #e3f2fd;
+  color: #0f4776;
+}
+
+.title {
+  margin: 0 0 8px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #222;
+}
+
+.message {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: #555;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 22px;
+}
+
+.primaryBtn,
+.secondaryBtn {
+  min-width: 110px;
+  padding: 9px 20px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.primaryBtn {
+  border: 1px solid #0f4776;
+  background: #0f4776;
+  color: #fff;
+}
+
+.primaryBtn:hover {
+  background: #0b3559;
+}
+
+.success .primaryBtn {
+  border-color: #2e7d32;
+  background: #2e7d32;
+}
+
+.success .primaryBtn:hover {
+  background: #1b5e20;
+}
+
+.error .primaryBtn,
+.primaryBtn.dangerBtn {
+  border-color: #d32f2f;
+  background: #d32f2f;
+}
+
+.error .primaryBtn:hover,
+.primaryBtn.dangerBtn:hover {
+  background: #b71c1c;
+}
+
+.secondaryBtn {
+  border: 1px solid #ccc;
+  background: #fff;
+  color: #444;
+}
+
+.secondaryBtn:hover {
+  background: #f5f5f5;
+}
+
+.primaryBtn:focus-visible,
+.secondaryBtn:focus-visible {
+  outline: 3px solid rgba(30, 136, 229, 0.4);
+  outline-offset: 2px;
+}
+
+.waiting {
+  max-width: 300px;
+  padding: 30px 24px;
+}
+
+.spinner {
+  margin-bottom: 14px;
+  color: #0f4776;
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.94); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overlay,
+  .modal {
+    animation: none;
+  }
+
+  .spinner {
+    animation-duration: 2s;
+  }
+}

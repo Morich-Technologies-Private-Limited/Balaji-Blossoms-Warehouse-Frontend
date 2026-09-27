@@ -1,45 +1,62 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Package, Trash2, Send, Building2, Phone } from 'lucide-react';
+import { Package, Trash2, Building2, Phone, User } from 'lucide-react';
 import styles from './SupervisorTransfer.module.css';
-import { fetchStoresWithUserApi } from '../../api/findStoreAndEmployee';
 import { findProducts } from '../../api/findProducts';
 import { findProductsPacking } from '../../api/findProductsPacking';
 import { sendProductToSupervisor } from '../../api/sendProductToSupervisor';
+import { fetchSupervisorsByStore } from '../../api/supervisorApi';
+import { getSessionData } from '../utils/getSessionData';
+import { fetchProductExpiry } from '../../api/productExpiryApi';
+import ExpirySelect from '../stock/ExpirySelect';
+import { notify, confirmAction } from '../utils/feedback';
+import { round3 } from '../utils/units';
 
 const SupervisorTransfer = () => {
   const [searchKey, setSearchKey] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
   const [filteredProducts, setFilteredProducts] = useState([]);
-  const [stores, setStores] = useState([]);
   const [transferItems, setTransferItems] = useState([]);
   const [selectedDropdownIndex, setSelectedDropdownIndex] = useState(0);
-  
-  // Store selection by name and mobile
-  const [storeName, setStoreName] = useState('');
-  const [mobileNo, setMobileNo] = useState('');
-  const [supervisorName, setSupervisorName] = useState('');
-  
+
+  // Supervisor selection (supervisors of the logged-in sub store; managed in the Supervisors tab)
+  const [supervisors, setSupervisors] = useState([]);
+  const [selectedSupervisorId, setSelectedSupervisorId] = useState('');
+
   const searchInputRef = useRef(null);
   const dropdownRef = useRef(null);
 
-  const loadStores = async () => {
+  const selectedSupervisor = supervisors.find(s => s.supervisorId === Number(selectedSupervisorId));
+
+  // Sub store can send stock only to its own supervisors
+  const loadSupervisors = async () => {
     try {
-      const response = await fetchStoresWithUserApi();
+      const { storeId } = getSessionData();
+      const response = await fetchSupervisorsByStore(storeId);
 
       if(response.data.status === "SUCCESS") {
-        setStores(response.data.payload);
+        setSupervisors(response.data.payload || []);
       } else {
-        console.log(response.data);
-        setStores([]);
+        setSupervisors([]);
       }
     } catch (err) {
-      console.error("Failed to load stores", err);
+      console.error("Failed to load supervisors", err);
     }
   };
 
   useEffect(() => {
-    loadStores();
+    loadSupervisors();
   }, []);
+
+  // Fetch expiry notes of a product for the logged-in store
+  const fetchExpiryForProduct = async (productId) => {
+    try {
+      const response = await fetchProductExpiry(productId);
+      return response.data.status === "SUCCESS" ? response.data.payload || [] : [];
+    } catch (error) {
+      console.error("Error fetching expiry notes:", error);
+      return [];
+    }
+  };
 
   // Get unit display
   const getUnitDisplay = (unit) => {
@@ -230,11 +247,14 @@ const SupervisorTransfer = () => {
 
   // Handle product selection
   const handleProductSelect = async (product) => {
-    // Fetch packing options for the selected product
-    const packingOptions = await fetchPackingForProduct(product.productId);
+    // Fetch packing options and expiry notes for the selected product
+    const [packingOptions, expiryOptions] = await Promise.all([
+      fetchPackingForProduct(product.productId),
+      fetchExpiryForProduct(product.productId),
+    ]);
     
     if (packingOptions.length === 0) {
-      alert('No packing options available for this product');
+      notify.warning('No packing options available for this product');
       setShowDropdown(false);
       setSearchKey('');
       return;
@@ -257,7 +277,9 @@ const SupervisorTransfer = () => {
       quantity: 0,
       availableQuantity: 0,
       maxBags: 0,
-      packingOptions: packingOptions
+      packingOptions: packingOptions,
+      expiryOptions: expiryOptions,
+      expiryId: ''
     };
 
     setTransferItems([...transferItems, newItem]);
@@ -282,7 +304,7 @@ const SupervisorTransfer = () => {
         );
 
         if (duplicateExists) {
-          alert('This product with the same packing size is already added to the transfer list');
+          notify.warning('This product with the same packing size is already added to the transfer list');
           return item;
         }
 
@@ -293,7 +315,7 @@ const SupervisorTransfer = () => {
             : null;
           
           if (!inventory) {
-            alert('No inventory available for this packing');
+            notify.warning('No inventory available for this packing');
             return item;
           }
 
@@ -328,7 +350,7 @@ const SupervisorTransfer = () => {
         const maxBagsFromQuantity = updated.availableQuantity / parseFloat(updated.packingSize);
         
         if (numValue > maxBagsFromQuantity) {
-          alert(`Maximum ${maxBagsFromQuantity.toFixed(2)} bags available`);
+          notify.warning(`Maximum ${maxBagsFromQuantity.toFixed(2)} bags available`);
           return item;
         }
         
@@ -345,7 +367,7 @@ const SupervisorTransfer = () => {
         
         // Check if exceeds available
         if (quantityInDefaultUnit > updated.availableQuantity) {
-          alert(`Maximum available: ${updated.availableQuantity} ${getUnitDisplay(updated.defaultUnit)}`);
+          notify.warning(`Maximum available: ${round3(updated.availableQuantity)} ${getUnitDisplay(updated.defaultUnit)}`);
           return item;
         }
         
@@ -370,7 +392,7 @@ const SupervisorTransfer = () => {
           );
           
           if (quantityInDefaultUnit > updated.availableQuantity) {
-            alert(`Maximum available: ${updated.availableQuantity} ${getUnitDisplay(updated.defaultUnit)}`);
+            notify.warning(`Maximum available: ${round3(updated.availableQuantity)} ${getUnitDisplay(updated.defaultUnit)}`);
             updated.directQuantity = '';
             updated.quantity = 0;
           } else {
@@ -384,31 +406,26 @@ const SupervisorTransfer = () => {
   };
 
   // Delete item
-  const handleDelete = (id) => {
-    if (window.confirm('Are you sure you want to delete this item?')) {
-      setTransferItems(transferItems.filter(item => item.id !== id));
+  const handleDelete = async (id) => {
+    const confirmed = await confirmAction('Are you sure you want to delete this item?', {
+      title: 'Remove item',
+      confirmText: 'Delete',
+      danger: true,
+    });
+    if (confirmed) {
+      setTransferItems(items => items.filter(item => item.id !== id));
     }
   };
 
   const handleSubmit = async () => {
     try {
-      if (!storeName.trim()) {
-        alert("Please enter store name");
-        return;
-      }
-
-      if (!mobileNo.trim()) {
-        alert("Please enter mobile number");
-        return;
-      }
-
-      if (!supervisorName.trim()) {
-        alert("Please enter supervisor name");
+      if (!selectedSupervisor) {
+        notify.warning("Please select a supervisor");
         return;
       }
 
       if (transferItems.length === 0) {
-        alert("Please add at least one item to transfer");
+        notify.warning("Please add at least one item to transfer");
         return;
       }
 
@@ -420,7 +437,7 @@ const SupervisorTransfer = () => {
       );
 
       if (invalidItems.length > 0) {
-        alert("Please fill all required fields for all items");
+        notify.warning("Please fill all required fields for all items");
         return;
       }
 
@@ -430,14 +447,15 @@ const SupervisorTransfer = () => {
       );
 
       if (exceededItems.length > 0) {
-        alert("Some items exceed available quantity");
+        notify.warning("Some items exceed available quantity");
         return;
       }
 
       const transferDto = {
-        storeName: storeName,
-        contactNo: mobileNo,
-        supervisorName: supervisorName,
+        supervisorId: selectedSupervisor.supervisorId,
+        supervisorName: selectedSupervisor.name,
+        storeName: selectedSupervisor.storeName,
+        contactNo: selectedSupervisor.phoneNumber,
         stockList: transferItems.map(item => {
           let transferMetadata;
           
@@ -466,8 +484,9 @@ const SupervisorTransfer = () => {
             inventoryId: Number(item.inventoryId),
             packingId: Number(item.packingId),
             productId: Number(item.productId),
-            quantityToTransfer: Number(item.quantity), // Already in default unit
-            transferMetadata: transferMetadata
+            quantityToTransfer: round3(item.quantity), // Already in default unit, max 3 decimals
+            transferMetadata: transferMetadata,
+            expiryId: item.expiryId ? Number(item.expiryId) : null
           };
         }),
       };
@@ -477,18 +496,16 @@ const SupervisorTransfer = () => {
       const response = await sendProductToSupervisor(transferDto);
 
       if(response.data.status === "SUCCESS") {
-        alert(response.data.message || "Stock transferred successfully!");
+        notify.success(response.data.message || "Stock transferred successfully!");
         setTransferItems([]);
-        setStoreName("");
-        setMobileNo("");
-        setSupervisorName("");
+        setSelectedSupervisorId("");
       } else {
-        alert(response.data.message || "Unable to transfer stock");
+        notify.error(response.data.message || "Unable to transfer stock");
       }
 
     } catch (error) {
       console.error("Transfer failed:", error);
-      alert(error.message || "Stock transfer failed");
+      notify.error(error.message || "Stock transfer failed");
     }
   };
 
@@ -556,23 +573,29 @@ const SupervisorTransfer = () => {
           </div>
         </div>
 
-        {/* Store Name, Mobile Number, and Supervisor Name Input */}
+        {/* Supervisor selection (store name and mobile are taken from the selected supervisor) */}
         <div className={styles.selectionRow}>
-         
-         
           <div className={styles.selectGroup}>
             <label className={styles.inputLabel}>
-              Supervisor Name:
+              <User size={16} />
+              Supervisor:
             </label>
-            <input
-              type="text"
+            <select
               className={styles.selectInput}
-              placeholder="Enter supervisor name"
-              value={supervisorName}
-              onChange={(e) => setSupervisorName(e.target.value)}
-            />
+              value={selectedSupervisorId}
+              onChange={(e) => setSelectedSupervisorId(e.target.value)}
+            >
+              <option value="">
+                {supervisors.length === 0 ? 'No supervisor found - add from Supervisors tab' : 'Select a supervisor'}
+              </option>
+              {supervisors.map(supervisor => (
+                <option key={supervisor.supervisorId} value={supervisor.supervisorId}>
+                  {supervisor.name} - {supervisor.phoneNumber}
+                </option>
+              ))}
+            </select>
           </div>
-         
+
           <div className={styles.selectGroup}>
             <label className={styles.inputLabel}>
               <Building2 size={16} />
@@ -580,10 +603,10 @@ const SupervisorTransfer = () => {
             </label>
             <input
               type="text"
-              className={styles.selectInput}
-              placeholder="Enter store name"
-              value={storeName}
-              onChange={(e) => setStoreName(e.target.value)}
+              className={styles.textInput}
+              value={selectedSupervisor?.storeName || ''}
+              placeholder="-"
+              readOnly
             />
           </div>
 
@@ -594,10 +617,10 @@ const SupervisorTransfer = () => {
             </label>
             <input
               type="text"
-              className={styles.selectInput}
-              placeholder="Enter mobile number"
-              value={mobileNo}
-              onChange={(e) => setMobileNo(e.target.value)}
+              className={styles.textInput}
+              value={selectedSupervisor?.phoneNumber || ''}
+              placeholder="-"
+              readOnly
             />
           </div>
 
@@ -615,6 +638,7 @@ const SupervisorTransfer = () => {
                 <th>Input Type</th>
                 <th>Input</th>
                 <th>Transfer Qty</th>
+                <th>Expiry</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -642,7 +666,7 @@ const SupervisorTransfer = () => {
                     <td>
                       {item.packingId && (
                         <div className={styles.availableText}>
-                          {item.availableQuantity} {getUnitDisplay(item.defaultUnit)}
+                          {round3(item.availableQuantity)} {getUnitDisplay(item.defaultUnit)}
                         </div>
                       )}
                     </td>
@@ -726,7 +750,17 @@ const SupervisorTransfer = () => {
                         '-'
                       )}
                     </td>
-                    
+
+                    <td>
+                      <ExpirySelect
+                        className={styles.tableSelect}
+                        options={(item.expiryOptions || []).filter(expiry => !expiry.packingId || expiry.packingId === Number(item.packingId))}
+                        value={item.expiryId}
+                        onChange={(value) => updateItem(item.id, 'expiryId', value)}
+                        disabled={!item.packingId}
+                      />
+                    </td>
+
                     <td>
                       <button
                         className={styles.deleteBtn}
@@ -740,7 +774,7 @@ const SupervisorTransfer = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="8" className={styles.emptyRow}>
+                  <td colSpan="9" className={styles.emptyRow}>
                     <Package size={48} />
                     <p>No items added yet. Search and add products to create a transfer.</p>
                   </td>

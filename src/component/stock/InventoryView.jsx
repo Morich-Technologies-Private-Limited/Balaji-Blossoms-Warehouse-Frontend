@@ -3,7 +3,9 @@ import styles from './InventoryView.module.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { useStores } from "../../context/StoreContext";
 import { getSessionData } from '../utils/getSessionData';
-import { findStoreInventory } from '../../api/findStoreInventory';
+import { fetchStoreProducts, fetchInventoryItems, groupItemsByProduct, INVENTORY_BATCH_SIZE } from '../../api/storeInventoryApi';
+import { notify } from '../utils/feedback';
+import { round3 } from '../utils/units';
 
 
 const InventoryView = () => {
@@ -19,7 +21,10 @@ const InventoryView = () => {
   const [sortBy, setSortBy] = useState('none');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [isLoading, setIsLoading] = useState(false);
-  
+  // background loading of quantities: { loaded, total } products
+  const [quantityProgress, setQuantityProgress] = useState(null);
+  const requestIdRef = useRef(0); // ignore results of an older store / refresh
+
   const initRef = useRef(false);
   const sessionDataRef = useRef(null);
   const hasCalledApiRef = useRef(false);
@@ -51,23 +56,60 @@ const InventoryView = () => {
     }
   }, [selectedStore]);
 
+  // 1. product master (fast, shown immediately)  2. packings + quantities in batches in the background
   const fetchInventory = async (storeId) => {
     if (!storeId) return;
-    
+    const requestId = ++requestIdRef.current;
+    const isCurrent = () => requestId === requestIdRef.current;
+
+    let productList = [];
     try {
       setIsLoading(true);
-      const response = await findStoreInventory(storeId);
+      setQuantityProgress(null);
+      const response = await fetchStoreProducts(storeId);
+      if (!isCurrent()) return;
 
-      if (response.data.status === "SUCCESS") {
-        setProducts(response.data.payload);
-      } else {
-        alert(response.data.message || "Unable to fetch inventory");
+      if (response.data.status !== "SUCCESS") {
+        notify.error(response.data.message || "Unable to fetch inventory");
+        return;
       }
+      productList = response.data.payload || [];
+      // packingList null = quantities not loaded yet
+      setProducts(productList.map(product => ({ ...product, packingList: null })));
     } catch (err) {
-      alert(err.message || "Error fetching inventory");
+      if (isCurrent()) notify.error(err.message || "Error fetching inventory");
+      return;
     } finally {
-      setIsLoading(false);
+      if (isCurrent()) setIsLoading(false);
     }
+
+    const productIds = productList.map(product => product.productId);
+    setQuantityProgress({ loaded: 0, total: productIds.length });
+
+    for (let start = 0; start < productIds.length; start += INVENTORY_BATCH_SIZE) {
+      const batch = productIds.slice(start, start + INVENTORY_BATCH_SIZE);
+      try {
+        const response = await fetchInventoryItems(storeId, batch);
+        if (!isCurrent()) return;
+
+        const packingsByProduct = groupItemsByProduct(response.data.payload || []);
+        setProducts(prev => prev.map(product =>
+          batch.includes(product.productId)
+            ? { ...product, packingList: packingsByProduct[product.productId] || [] }
+            : product
+        ));
+      } catch (err) {
+        if (!isCurrent()) return;
+        notify.error(err.message || "Error fetching quantities");
+        // show N/A instead of loading forever for this batch
+        setProducts(prev => prev.map(product =>
+          batch.includes(product.productId) && product.packingList === null ? { ...product, packingList: [] } : product
+        ));
+      }
+      setQuantityProgress({ loaded: Math.min(start + batch.length, productIds.length), total: productIds.length });
+    }
+
+    if (isCurrent()) setQuantityProgress(null);
   };
 
   const handleStoreChange = (e) => {
@@ -103,8 +145,9 @@ const InventoryView = () => {
   }, [products]);
 
   const filteredProducts = useMemo(() => {
+    const key = searchTerm.toLowerCase();
     let filtered = products.filter(product =>
-      product.productName.toLowerCase().includes(searchTerm.toLowerCase())
+      product.productName.toLowerCase().includes(key) || String(product.productId).includes(key)
     );
 
     if (categoryFilter !== 'all') {
@@ -328,7 +371,14 @@ const InventoryView = () => {
         {isLoading && (
           <div className={styles.loadingContainer}>
             <div className={styles.spinner}></div>
-            <span>Loading inventory...</span>
+            <span>Loading products...</span>
+          </div>
+        )}
+
+        {!isLoading && quantityProgress && (
+          <div className={styles.loadingContainer}>
+            <div className={styles.spinner}></div>
+            <span>Loading quantities... {quantityProgress.loaded} / {quantityProgress.total} products</span>
           </div>
         )}
 
@@ -349,8 +399,19 @@ const InventoryView = () => {
             <tbody>
               {filteredProducts.length > 0 ? (
                 filteredProducts.map((product, productIndex) => {
+                  // quantities for this product still loading in the background
+                  if (product.packingList === null) {
+                    return (
+                      <tr key={`${product.productId}-${productIndex}`} className={styles.dataRow}>
+                        <td className={styles.mergedCell}>{product.productId}</td>
+                        <td className={styles.mergedCell}>{product.productName}</td>
+                        <td colSpan="3" className={`${styles.regularCell} ${styles.pendingCell}`}>Loading...</td>
+                      </tr>
+                    );
+                  }
+
                   const packingList = product.packingList || [];
-                  
+
                   if (packingList.length === 0) {
                     return (
                       <tr key={`${product.productId}-${productIndex}`} className={styles.dataRow}>
@@ -405,7 +466,7 @@ const InventoryView = () => {
                                 {packing.packingSize} {getShortUnit(packing.packingUnit)}
                               </td>
                             )}
-                            <td className={styles.regularCell}>{inventory.availableQuantity} {getShortUnit(inventory.packingUnit)}</td>
+                            <td className={styles.regularCell}>{round3(inventory.availableQuantity)} {getShortUnit(inventory.packingUnit)}</td>
                             <td className={styles.regularCell}>
                               {calculateBags(inventory.availableQuantity, packing.packingSize)}
                             </td>

@@ -5,6 +5,9 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { findTranfserHistoryStore } from '../../api/findTranfserHistoryStore';
 import { getSessionData } from '../utils/getSessionData';
 import { useStores } from '../../context/StoreContext';
+import { formatDate } from '../utils/date';
+import { notify } from '../utils/feedback';
+import { round3 } from '../utils/units';
 
 const StockTransferHistory = () => {
   const [transferHistory, setTransferHistory] = useState([]);
@@ -58,7 +61,7 @@ const StockTransferHistory = () => {
         const response = await findTranfserHistoryStore(selectedStore.storeId);
 
         if (response.data.status != "SUCCESS") {
-          alert(response.data.message || "Unable to find tranfer");
+          notify.error(response.data.message || "Unable to find transfer");
           return;
         }
 
@@ -216,15 +219,11 @@ const StockTransferHistory = () => {
     setExpandedRows(new Set());
   };
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-  };
 
   const handleExport = () => {
     const selectedIds = Array.from(selectedTransfers);
     console.log('Selected Transfer IDs for export:', selectedIds);
-    alert(`Selected ${selectedIds.length} transfers for export: ${selectedIds.join(', ')}`);
+    notify.success(`Selected ${selectedIds.length} transfers for export: ${selectedIds.join(', ')}`, 'Export');
   };
 
   const clearFilters = () => {
@@ -516,14 +515,14 @@ const StockTransferHistory = () => {
                                       <tr>
                                         <td>{stock.productName}</td>
                                         <td>{stock.packingSize} {formatPackingUnit(stock.packingUnit)}</td>
-                                        <td className={styles.hideOnMobile}>{stock.currentQuantity}</td>
+                                        <td className={styles.hideOnMobile}>{round3(stock.currentQuantity)}</td>
                                         <td className={styles.highlight}>
                                           {transfer.transferType === 'OUT'
-                                            ? stock.outgoingQuantity
-                                            : stock.incomingQuantity}{' '}
+                                            ? round3(stock.outgoingQuantity)
+                                            : round3(stock.incomingQuantity)}{' '}
                                           {formatPackingUnit(stock.packingUnit)}
                                         </td>
-                                        <td><strong>{stock.finalRemainingQuantity} {formatPackingUnit(stock.packingUnit)}</strong></td>
+                                        <td><strong>{round3(stock.finalRemainingQuantity)} {formatPackingUnit(stock.packingUnit)}</strong></td>
                                         <td className={styles.hideOnMobile}>
                                           {transfer.transferType === 'OUT'
                                             ? stock.outgoingBags

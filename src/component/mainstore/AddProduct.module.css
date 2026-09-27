@@ -450,6 +450,13 @@
   box-shadow: 0 0 0 2px rgba(42, 82, 152, 0.1);
 }
 
+.tableSelect:disabled,
+.tableInput:disabled {
+  background-color: #f3f4f6;
+  color: #6b7280;
+  cursor: not-allowed;
+}
+
 .tableSelect.isInvalid,
 .tableInput.isInvalid {
   border-color: #dc3545;

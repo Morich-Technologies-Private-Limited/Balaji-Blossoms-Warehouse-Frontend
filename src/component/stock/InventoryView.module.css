@@ -664,3 +664,8 @@ tr {
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
+/* product row whose quantities are still loading in the background */
+.pendingCell {
+  color: #9e9e9e;
+  font-style: italic;
+}

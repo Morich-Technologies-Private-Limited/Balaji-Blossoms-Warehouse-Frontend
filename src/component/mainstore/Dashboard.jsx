@@ -3,7 +3,9 @@ import { Container, Row, Col, Card } from 'react-bootstrap';
 import styles from './Dashboard.module.css';
 import { useStores } from "../../context/StoreContext";
 import { getSessionData } from '../utils/getSessionData';
-import { findStoreInventory } from '../../api/findStoreInventory';
+import { fetchStoreProducts, fetchInventoryItems, groupItemsByProduct } from '../../api/storeInventoryApi';
+import { notify } from '../utils/feedback';
+import { round3, isCountUnit } from '../utils/units';
 
 const Dashboard = () => {
   const { stores } = useStores();
@@ -51,15 +53,23 @@ const Dashboard = () => {
     
     try {
       setIsLoading(true);
-      const response = await findStoreInventory(storeId);
+      // two single-query calls in parallel instead of the slow per-product /store/inventory
+      const [productsRes, itemsRes] = await Promise.all([
+        fetchStoreProducts(storeId),
+        fetchInventoryItems(storeId),
+      ]);
 
-      if (response.data.status === "SUCCESS") {
-        setProducts(response.data.payload);
+      if (productsRes.data.status === "SUCCESS" && itemsRes.data.status === "SUCCESS") {
+        const packingsByProduct = groupItemsByProduct(itemsRes.data.payload || []);
+        setProducts((productsRes.data.payload || []).map(product => ({
+          ...product,
+          packingList: packingsByProduct[product.productId] || [],
+        })));
       } else {
-        alert(response.data.message || "Unable to fetch inventory");
+        notify.error(productsRes.data.message || itemsRes.data.message || "Unable to fetch inventory");
       }
     } catch (err) {
-      alert(err.message || "Error fetching inventory");
+      notify.error(err.message || "Error fetching inventory");
     } finally {
       setIsLoading(false);
     }
@@ -113,6 +123,12 @@ const Dashboard = () => {
   };
 
   const getDisplayUnit = (packingList) => {
+    // count based products (NOS / BUNDLE / PACKET) are totalled in their own unit, never converted
+    const countUnit = packingList.map(p => p.packingUnit).find(isCountUnit);
+    if (countUnit) {
+      return { primary: countUnit, secondary: null };
+    }
+
     const hasKilogram = packingList.some(p => p.packingUnit === "KILOGRAM");
     const hasLiter = packingList.some(p => p.packingUnit === "LITER");
     const hasGram = packingList.some(p => p.packingUnit === "GRAM");
@@ -144,6 +160,9 @@ const Dashboard = () => {
   const getPackageLabel = (unit) => {
     if (unit === "LITER" || unit === "MILLILITER") {
       return "Bottles";
+    }
+    if (isCountUnit(unit)) {
+      return "Packs";
     }
     return "Bags";
   };
@@ -291,7 +310,7 @@ const Dashboard = () => {
                         <div className={styles.totalInventory}>
                           <span className={styles.inventoryLabel}>Total Stock</span>
                           <span className={styles.inventoryValue}>
-                            {totalInventory.toFixed(1)} {getUnitLabel(currentUnit)}
+                            {round3(totalInventory)} {getUnitLabel(currentUnit)}
                           </span>
                         </div>
 
@@ -327,7 +346,7 @@ const Dashboard = () => {
                                     {packing.packingSize} {getUnitLabel(packing.packingUnit)}
                                   </span>
                                   <span className={styles.packingQuantity}>
-                                    {packageCount} {packageLabel} ({packingTotal.toFixed(1)} {getUnitLabel(packing.packingUnit)})
+                                    {packageCount} {packageLabel} ({round3(packingTotal)} {getUnitLabel(packing.packingUnit)})
                                   </span>
                                 </div>
                                 <div className={styles.miniBar}>

@@ -5,6 +5,7 @@ import { checkProductAvaliablity } from '../../api/checkProductAvaliablity';
 import { findProducts } from '../../api/findProducts';
 import { addPacking } from '../../api/addPacking';
 import { findProductPackingWithoutInventory } from '../../api/findProductPackingWithoutInventory';
+import { CATEGORY_OPTIONS, CATEGORY_UNITS, UNIT_LABEL, isCountUnit } from '../utils/units';
 
 const AddProduct = () => {
   const [showCreateProductModal, setShowCreateProductModal] = useState(false);
@@ -59,17 +60,21 @@ const AddProduct = () => {
     }
   }, [highlightedIndex]);
 
-  const getValidUnits = (selectedCategory) => {
-    if (selectedCategory === 'SOLID') {
-      return ['KILOGRAM', 'GRAM'];
-    } else if (selectedCategory === 'LIQUID') {
-      return ['LITER', 'MILLILITER'];
-    }
-    return [];
-  };
+  // SOLID: KG/G, LIQUID: L/ML, NOS / BUNDLE / PACKET: only their own count unit (same rules as backend)
+  const getValidUnits = (selectedCategory) => CATEGORY_UNITS[selectedCategory] || [];
 
+  // NOS / BUNDLE / PACKET products: only one packing, always size 1 of their own unit
+  const isCountProduct = (product) => !!product && isCountUnit(product.category);
+
+  const newPackingRow = (product) => isCountProduct(product)
+    ? { packingSize: '1', packingUnit: product.category }
+    : { packingSize: '', packingUnit: '' };
+
+  const countPackingExists = isCountProduct(selectedProduct) && existingPackings.length > 0;
+
+  // packing size must be a whole number for G / ML and for count units (1 NOS, 10 PACKET ...)
   const isSmallUnit = (unit) => {
-    return unit === 'GRAM' || unit === 'MILLILITER';
+    return unit === 'GRAM' || unit === 'MILLILITER' || isCountUnit(unit);
   };
 
   const normalizePacking = (size, unit) => {
@@ -203,7 +208,9 @@ const AddProduct = () => {
     setSearchKey(product.productName);
     setShowDropdown(false);
     setHighlightedIndex(-1);
-    
+    setPackingList([newPackingRow(product)]);
+    setErrors({});
+
     // Call the packing API when product is selected
     await fetchProductPackings(product.productId);
   };
@@ -261,9 +268,13 @@ const AddProduct = () => {
       return 'Packing size must be a valid number greater than 0';
     }
 
+    if (isCountUnit(packing.packingUnit) && sizeValue !== 1) {
+      return `Packing size must be 1 for ${UNIT_LABEL[packing.packingUnit] || packing.packingUnit}`;
+    }
+
     if (packing.packingUnit && isSmallUnit(packing.packingUnit)) {
       if (packing.packingSize.includes('.')) {
-        return 'Decimal values are not allowed for GRAM and MILLILITER';
+        return `Decimal values are not allowed for ${UNIT_LABEL[packing.packingUnit] || packing.packingUnit} packing size`;
       }
     }
 
@@ -291,12 +302,13 @@ const AddProduct = () => {
   };
 
   const handleAddPacking = () => {
-    setPackingList([...packingList, { packingSize: '', packingUnit: '' }]);
+    if (isCountProduct(selectedProduct)) return;
+    setPackingList([...packingList, newPackingRow(selectedProduct)]);
   };
 
   const handleRemovePacking = (index) => {
     const newPackingList = packingList.filter((_, i) => i !== index);
-    setPackingList(newPackingList.length > 0 ? newPackingList : [{ packingSize: '', packingUnit: '' }]);
+    setPackingList(newPackingList.length > 0 ? newPackingList : [newPackingRow(selectedProduct)]);
 
     const newErrors = { ...errors };
     delete newErrors[`packing_${index}`];
@@ -309,7 +321,7 @@ const AddProduct = () => {
     if (field === 'packingSize') {
       if (value.includes('.') && newPackingList[index].packingUnit && isSmallUnit(newPackingList[index].packingUnit)) {
         const newErrors = { ...errors };
-        newErrors[`packing_${index}`] = 'Decimal values are not allowed for GRAM and MILLILITER';
+        newErrors[`packing_${index}`] = `Decimal values are not allowed for ${UNIT_LABEL[newPackingList[index].packingUnit] || newPackingList[index].packingUnit} packing size`;
         setErrors(newErrors);
 
         newPackingList[index][field] = '';
@@ -326,12 +338,18 @@ const AddProduct = () => {
       const sanitizedValue = value.replace(/[^\d.]/g, '');
       newPackingList[index][field] = sanitizedValue;
     } else {
+      const previousUnit = newPackingList[index].packingUnit;
       newPackingList[index][field] = value;
 
-      if (field === 'packingUnit' && isSmallUnit(value) && newPackingList[index].packingSize.includes('.')) {
+      // count units (NOS / BUNDLE / PACKET): packing size is always 1
+      if (field === 'packingUnit' && isCountUnit(value)) {
+        newPackingList[index].packingSize = '1';
+      } else if (field === 'packingUnit' && isCountUnit(previousUnit)) {
+        newPackingList[index].packingSize = '';
+      } else if (field === 'packingUnit' && isSmallUnit(value) && newPackingList[index].packingSize.includes('.')) {
         newPackingList[index].packingSize = '';
         const newErrors = { ...errors };
-        newErrors[`packing_${index}`] = 'Decimal values are not allowed for GRAM and MILLILITER. Size field has been cleared.';
+        newErrors[`packing_${index}`] = `Decimal values are not allowed for ${UNIT_LABEL[value] || value} packing size. Size field has been cleared.`;
         setErrors(newErrors);
 
         setTimeout(() => {
@@ -358,6 +376,14 @@ const AddProduct = () => {
       setSubmitStatus({
         type: 'error',
         message: 'Please select a product first'
+      });
+      return;
+    }
+
+    if (isCountProduct(selectedProduct) && (countPackingExists || packingList.length > 1)) {
+      setSubmitStatus({
+        type: 'error',
+        message: `${selectedProduct.category} products can have only one packing`
       });
       return;
     }
@@ -398,8 +424,8 @@ const AddProduct = () => {
           type: 'success',
           message: 'Packing added successfully!'
         });
-        setPackingList([{ packingSize: '', packingUnit: '' }]);
-        
+        setPackingList([newPackingRow(selectedProduct)]);
+
         // Refresh existing packings using the API function
         await fetchProductPackings(selectedProduct.productId);
         
@@ -521,18 +547,27 @@ const AddProduct = () => {
             </div>
           )}
 
+          {/* Count products (NOS / BUNDLE / PACKET) have only one packing */}
+          {selectedProduct && !loadingPackings && countPackingExists && (
+            <div className={styles.loadingSection}>
+              <p>{selectedProduct.category} products can have only one packing, and it is already added.</p>
+            </div>
+          )}
+
           {/* Add Packing Section */}
-          {selectedProduct && !loadingPackings && (
+          {selectedProduct && !loadingPackings && !countPackingExists && (
             <div className={styles.packingSection}>
               <div className={styles.packingHeader}>
                 <h3 className={styles.sectionTitle}>Add New Packing</h3>
-                <button
-                  type="button"
-                  className={styles.btnAddPacking}
-                  onClick={handleAddPacking}
-                >
-                  + Add Packing
-                </button>
+                {!isCountProduct(selectedProduct) && (
+                  <button
+                    type="button"
+                    className={styles.btnAddPacking}
+                    onClick={handleAddPacking}
+                  >
+                    + Add Packing
+                  </button>
+                )}
               </div>
 
               <div className={styles.tableWrapper}>
@@ -556,10 +591,11 @@ const AddProduct = () => {
                               className={`${styles.tableSelect} ${errors[`packing_${index}`] ? styles.isInvalid : ''}`}
                               value={packing.packingUnit}
                               onChange={(e) => handlePackingChange(index, 'packingUnit', e.target.value)}
+                              disabled={isCountProduct(selectedProduct)}
                             >
                               <option value="">Select unit</option>
                               {selectedProduct && getValidUnits(selectedProduct.category).map(unit => (
-                                <option key={unit} value={unit}>{unit}</option>
+                                <option key={unit} value={unit}>{UNIT_LABEL[unit] || unit}</option>
                               ))}
                             </select>
                           </td>
@@ -570,7 +606,7 @@ const AddProduct = () => {
                               value={packing.packingSize}
                               onChange={(e) => handlePackingChange(index, 'packingSize', e.target.value)}
                               placeholder="Enter size"
-                              disabled={!packing.packingUnit}
+                              disabled={!packing.packingUnit || isCountUnit(packing.packingUnit)}
                             />
                             {errors[`packing_${index}`] && (
                               <div className={styles.errorText}>
@@ -600,7 +636,7 @@ const AddProduct = () => {
         </div>
       </main>
 
-      {selectedProduct && !loadingPackings && (
+      {selectedProduct && !loadingPackings && !countPackingExists && (
         <footer className={styles.pageFooter}>
           <div className={styles.footerContent}>
             <button
@@ -614,7 +650,7 @@ const AddProduct = () => {
               type="button"
               className={`btn btn-secondary ${styles.btnReset}`}
               onClick={() => {
-                setPackingList([{ packingSize: '', packingUnit: '' }]);
+                setPackingList([newPackingRow(selectedProduct)]);
                 setErrors({});
               }}
             >
@@ -665,8 +701,9 @@ const AddProduct = () => {
                   }}
                 >
                   <option value="">Select category</option>
-                  <option value="SOLID">Solid</option>
-                  <option value="LIQUID">Liquid</option>
+                  {CATEGORY_OPTIONS.map(option => (
+                    <option key={option.value} value={option.value}>{option.label}</option>
+                  ))}
                 </select>
                 {categoryError && (
                   <div className={styles.invalidFeedback}>{categoryError}</div>

@@ -84,6 +84,7 @@ export const devModeLogin = (role) => {
 export const loginApi = async (userId, password) => {
   try {
     const response = await axios.get(LOGIN_URL, {
+      showLoader: true, // login is a GET but the user must wait for it
       params: {userId, password},
     });
 

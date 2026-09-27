@@ -4,6 +4,8 @@ import styles from './StockImport.module.css';
 import { findProducts } from '../../api/findProducts';
 import { findProductsPacking } from '../../api/findProductsPacking';
 import { importProduct } from '../../api/importProduct';
+import { notify, confirmAction } from '../utils/feedback';
+import { round3 } from '../utils/units';
 
 const StockImport = () => {
   const [searchKey, setSearchKey] = useState('');
@@ -179,7 +181,7 @@ const StockImport = () => {
     const packingOptions = await fetchPackingForProduct(product.productId);
     
     if (packingOptions.length === 0) {
-      alert('No packing options available for this product');
+      notify.warning('No packing options available for this product');
       setShowDropdown(false);
       setSearchKey('');
       return;
@@ -199,7 +201,9 @@ const StockImport = () => {
       packingSize: '',
       packingUnit: '',
       quantity: 0,
-      packingOptions: packingOptions
+      packingOptions: packingOptions,
+      expiryDate: '', // optional - creates an expiry note for this stock
+      rackId: ''      // optional
     };
 
     setImportItems([...importItems, newItem]);
@@ -223,7 +227,7 @@ const StockImport = () => {
         );
 
         if (duplicateExists) {
-          alert('This product with the same packing size is already added to the import list');
+          notify.warning('This product with the same packing size is already added to the import list');
           return item;
         }
 
@@ -277,9 +281,14 @@ const StockImport = () => {
   };
 
   // Delete item
-  const handleDelete = (id) => {
-    if (window.confirm('Are you sure you want to delete this item?')) {
-      setImportItems(importItems.filter(item => item.id !== id));
+  const handleDelete = async (id) => {
+    const confirmed = await confirmAction('Are you sure you want to delete this item?', {
+      title: 'Remove item',
+      confirmText: 'Delete',
+      danger: true,
+    });
+    if (confirmed) {
+      setImportItems(items => items.filter(item => item.id !== id));
     }
   };
 
@@ -287,38 +296,38 @@ const StockImport = () => {
     try {
       // Validation
       if (!senderCompanyName.trim()) {
-        alert("Please enter sender company name");
+        notify.warning("Please enter sender company name");
         return;
       }
 
       if (!senderName.trim()) {
-        alert("Please enter sender name");
+        notify.warning("Please enter sender name");
         return;
       }
 
       if (!email.trim()) {
-        alert("Please enter email");
+        notify.warning("Please enter email");
         return;
       }
 
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
-        alert("Please enter a valid email address");
+        notify.warning("Please enter a valid email address");
         return;
       }
 
       if (!contact.trim()) {
-        alert("Please enter contact number");
+        notify.warning("Please enter contact number");
         return;
       }
 
       if (!receiverName.trim()) {
-        alert("Please enter receiver name");
+        notify.warning("Please enter receiver name");
         return;
       }
 
       if (importItems.length === 0) {
-        alert("Please add at least one item to import");
+        notify.warning("Please add at least one item to import");
         return;
       }
 
@@ -329,7 +338,7 @@ const StockImport = () => {
       );
 
       if (invalidItems.length > 0) {
-        alert("Please fill all required fields for all items");
+        notify.warning("Please fill all required fields for all items");
         return;
       }
 
@@ -371,18 +380,29 @@ const StockImport = () => {
           return {
             packingId: Number(item.packingId),
             productId: Number(item.productId),
-            quantityToTransfer: Number(item.quantity),
-            transferMetadata: transferMetadata
+            quantityToTransfer: round3(item.quantity), // max 3 decimals
+            transferMetadata: transferMetadata,
+            expiryDate: item.expiryDate || null,
+            rackId: item.rackId.trim() || null
           };
         }),
       };
+
+      const rackWithoutExpiry = importItems.some(item => item.rackId.trim() && !item.expiryDate);
+      if (rackWithoutExpiry) {
+        const proceed = await confirmAction("Rack No is saved only with an Expiry Date. Continue without saving those rack numbers?", {
+          title: 'Rack numbers will not be saved',
+          confirmText: 'Continue',
+        });
+        if (!proceed) return;
+      }
 
       console.log("Import DTO:", importDto);
 
       const response = await importProduct(importDto);
 
       if (response.data.status === "SUCCESS") {
-        alert(response.data.message || "Stock imported successfully!");
+        notify.success(response.data.message || "Stock imported successfully!");
         // Reset form
         setImportItems([]);
         setSenderCompanyName('');
@@ -391,12 +411,12 @@ const StockImport = () => {
         setContact('');
         setReceiverName('');
       } else {
-        alert(response.data.message || "Unable to import stock");
+        notify.error(response.data.message || "Unable to import stock");
       }
 
     } catch (error) {
       console.error("Import failed:", error);
-      alert(error.message || "Stock import failed");
+      notify.error(error.message || "Stock import failed");
     }
   };
 
@@ -548,6 +568,8 @@ const StockImport = () => {
                 <th>Input Type</th>
                 <th>Input</th>
                 <th>Import Qty</th>
+                <th>Expiry Date <small>(optional)</small></th>
+                <th>Rack No <small>(optional)</small></th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -639,7 +661,28 @@ const StockImport = () => {
                         '-'
                       )}
                     </td>
-                    
+
+                    <td>
+                      <input
+                        type="date"
+                        className={styles.tableInput}
+                        value={item.expiryDate}
+                        onChange={(e) => updateItem(item.id, 'expiryDate', e.target.value)}
+                        disabled={!item.packingId}
+                      />
+                    </td>
+
+                    <td>
+                      <input
+                        type="text"
+                        className={styles.tableInput}
+                        placeholder="e.g. R-12"
+                        value={item.rackId}
+                        onChange={(e) => updateItem(item.id, 'rackId', e.target.value)}
+                        disabled={!item.packingId}
+                      />
+                    </td>
+
                     <td>
                       <button
                         className={styles.deleteBtn}
@@ -653,7 +696,7 @@ const StockImport = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="7" className={styles.emptyRow}>
+                  <td colSpan="9" className={styles.emptyRow}>
                     <Package size={48} />
                     <p>No items added yet. Search and add products to create an import.</p>
                   </td>

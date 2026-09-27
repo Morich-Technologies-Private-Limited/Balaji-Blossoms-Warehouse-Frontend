@@ -1,10 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Package, Trash2, Send, Building2, User } from 'lucide-react';
+import { Search, Package, Trash2, Send, Building2, User, UserCheck } from 'lucide-react';
 import styles from './ShopTransfer.module.css';
 import { fetchStoresWithUserApi } from '../../api/findStoreAndEmployee';
 import { findProducts } from '../../api/findProducts';
 import { findProductsPacking } from '../../api/findProductsPacking';
 import { sendProductToStore } from '../../api/sendProductToStore';
+import { fetchProductExpiry } from '../../api/productExpiryApi';
+import { fetchSupervisorsByStore, sendMainStoreToSupervisor } from '../../api/supervisorApi';
+import { getSessionData } from '../utils/getSessionData';
+import ExpirySelect from '../stock/ExpirySelect';
+import { notify, confirmAction } from '../utils/feedback';
+import { round3 } from '../utils/units';
 
 const ShopTransfer = () => {
   
@@ -19,7 +25,14 @@ const ShopTransfer = () => {
   const [selectedStore, setSelectedStore] = useState('');
   const [selectedUser, setSelectedUser] = useState('');
   const [availableUsers, setAvailableUsers] = useState([]);
-  
+
+  // Main store only: optional supervisor of the selected sub store (direct delivery)
+  const { role } = getSessionData();
+  const canSendToSupervisor = role === 'MAIN_STORE_MANAGER';
+  const [supervisors, setSupervisors] = useState([]);
+  const [selectedSupervisorId, setSelectedSupervisorId] = useState('');
+  const selectedStoreObj = stores.find(s => s.storeId === parseInt(selectedStore));
+
   const searchInputRef = useRef(null);
   const dropdownRef = useRef(null);
 
@@ -229,13 +242,27 @@ const ShopTransfer = () => {
     }
   };
 
+  // Fetch expiry notes of a product for the logged-in store
+  const fetchExpiryForProduct = async (productId) => {
+    try {
+      const response = await fetchProductExpiry(productId);
+      return response.data.status === "SUCCESS" ? response.data.payload || [] : [];
+    } catch (error) {
+      console.error("Error fetching expiry notes:", error);
+      return [];
+    }
+  };
+
   // Handle product selection
   const handleProductSelect = async (product) => {
-    // Fetch packing options for the selected product
-    const packingOptions = await fetchPackingForProduct(product.productId);
+    // Fetch packing options and expiry notes for the selected product
+    const [packingOptions, expiryOptions] = await Promise.all([
+      fetchPackingForProduct(product.productId),
+      fetchExpiryForProduct(product.productId),
+    ]);
     
     if (packingOptions.length === 0) {
-      alert('No packing options available for this product');
+      notify.warning('No packing options available for this product');
       setShowDropdown(false);
       setSearchKey('');
       return;
@@ -258,7 +285,9 @@ const ShopTransfer = () => {
       quantity: 0,
       availableQuantity: 0,
       maxBags: 0,
-      packingOptions: packingOptions
+      packingOptions: packingOptions,
+      expiryOptions: expiryOptions,
+      expiryId: ''
     };
 
     setTransferItems([...transferItems, newItem]);
@@ -267,12 +296,24 @@ const ShopTransfer = () => {
   };
 
   // Handle store selection
-  const handleStoreSelect = (storeId) => {
+  const handleStoreSelect = async (storeId) => {
     const store = stores.find(s => s.storeId === parseInt(storeId));
+    setSupervisors([]);
+    setSelectedSupervisorId('');
     if (store) {
       setSelectedStore(storeId);
       setAvailableUsers(store.userList || []);
       setSelectedUser('');
+
+      // Main store can send straight to a supervisor of a sub store
+      if (canSendToSupervisor && store.storeType === 'SUB_STORE') {
+        try {
+          const response = await fetchSupervisorsByStore(store.storeId);
+          setSupervisors(response.data.payload || []);
+        } catch (error) {
+          console.error('Failed to load supervisors', error);
+        }
+      }
     } else {
       setSelectedStore('');
       setAvailableUsers([]);
@@ -297,7 +338,7 @@ const ShopTransfer = () => {
         );
 
         if (duplicateExists) {
-          alert('This product with the same packing size is already added to the transfer list');
+          notify.warning('This product with the same packing size is already added to the transfer list');
           return item;
         }
 
@@ -308,7 +349,7 @@ const ShopTransfer = () => {
             : null;
           
           if (!inventory) {
-            alert('No inventory available for this packing');
+            notify.warning('No inventory available for this packing');
             return item;
           }
 
@@ -343,7 +384,7 @@ const ShopTransfer = () => {
         const maxBagsFromQuantity = updated.availableQuantity / parseFloat(updated.packingSize);
         
         if (numValue > maxBagsFromQuantity) {
-          alert(`Maximum ${maxBagsFromQuantity.toFixed(2)} bags available`);
+          notify.warning(`Maximum ${maxBagsFromQuantity.toFixed(2)} bags available`);
           return item;
         }
         
@@ -360,7 +401,7 @@ const ShopTransfer = () => {
         
         // Check if exceeds available
         if (quantityInDefaultUnit > updated.availableQuantity) {
-          alert(`Maximum available: ${updated.availableQuantity} ${getUnitDisplay(updated.defaultUnit)}`);
+          notify.warning(`Maximum available: ${round3(updated.availableQuantity)} ${getUnitDisplay(updated.defaultUnit)}`);
           return item;
         }
         
@@ -385,7 +426,7 @@ const ShopTransfer = () => {
           );
           
           if (quantityInDefaultUnit > updated.availableQuantity) {
-            alert(`Maximum available: ${updated.availableQuantity} ${getUnitDisplay(updated.defaultUnit)}`);
+            notify.warning(`Maximum available: ${round3(updated.availableQuantity)} ${getUnitDisplay(updated.defaultUnit)}`);
             updated.directQuantity = '';
             updated.quantity = 0;
           } else {
@@ -399,26 +440,31 @@ const ShopTransfer = () => {
   };
 
   // Delete item
-  const handleDelete = (id) => {
-    if (window.confirm('Are you sure you want to delete this item?')) {
-      setTransferItems(transferItems.filter(item => item.id !== id));
+  const handleDelete = async (id) => {
+    const confirmed = await confirmAction('Are you sure you want to delete this item?', {
+      title: 'Remove item',
+      confirmText: 'Delete',
+      danger: true,
+    });
+    if (confirmed) {
+      setTransferItems(items => items.filter(item => item.id !== id));
     }
   };
 
   const handleSubmit = async () => {
     try {
       if (!selectedStore) {
-        alert("Please select a store to transfer to");
+        notify.warning("Please select a store to transfer to");
         return;
       }
 
       if (!selectedUser) {
-        alert("Please select a user");
+        notify.warning("Please select a user");
         return;
       }
 
       if (transferItems.length === 0) {
-        alert("Please add at least one item to transfer");
+        notify.warning("Please add at least one item to transfer");
         return;
       }
 
@@ -430,7 +476,7 @@ const ShopTransfer = () => {
       );
 
       if (invalidItems.length > 0) {
-        alert("Please fill all required fields for all items");
+        notify.warning("Please fill all required fields for all items");
         return;
       }
 
@@ -440,7 +486,7 @@ const ShopTransfer = () => {
       );
 
       if (exceededItems.length > 0) {
-        alert("Some items exceed available quantity");
+        notify.warning("Some items exceed available quantity");
         return;
       }
 
@@ -486,28 +532,38 @@ const ShopTransfer = () => {
             inventoryId: Number(item.inventoryId),
             packingId: Number(item.packingId),
             productId: Number(item.productId),
-            quantityToTransfer: Number(item.quantity), // Already in default unit
-            transferMetadata: transferMetadata
+            quantityToTransfer: round3(item.quantity), // Already in default unit, max 3 decimals
+            transferMetadata: transferMetadata,
+            expiryId: item.expiryId ? Number(item.expiryId) : null
           };
         }),
       };
 
+      // With a supervisor selected: OUT main store -> IN sub store -> OUT to supervisor, all in one request
+      if (selectedSupervisorId) {
+        transferDto.supervisorId = Number(selectedSupervisorId);
+      }
+
       console.log("Transfer DTO:", transferDto);
 
-      const response = await sendProductToStore(transferDto);
+      const response = selectedSupervisorId
+        ? await sendMainStoreToSupervisor(transferDto)
+        : await sendProductToStore(transferDto);
 
       if(response.data.status === "SUCCESS") {
-        alert(response.data.message || "Stock transferred successfully!");
+        notify.success(response.data.message || "Stock transferred successfully!");
         setTransferItems([]);
         setSelectedStore("");
         setSelectedUser("");
+        setSupervisors([]);
+        setSelectedSupervisorId("");
       } else {
-        alert(response.data.message || "Unable to transfer stock");
+        notify.error(response.data.message || "Unable to transfer stock");
       }
 
     } catch (error) {
       console.error("Transfer failed:", error);
-      alert(error.message || "Stock transfer failed");
+      notify.error(error.message || "Stock transfer failed");
     }
   };
 
@@ -615,7 +671,37 @@ const ShopTransfer = () => {
               ))}
             </select>
           </div>
+
+          {canSendToSupervisor && selectedStoreObj?.storeType === 'SUB_STORE' && (
+            <div className={styles.selectGroup}>
+              <label className={styles.inputLabel}>
+                <UserCheck size={16} />
+                Supervisor (optional):
+              </label>
+              <select
+                className={styles.selectInput}
+                value={selectedSupervisorId}
+                onChange={(e) => setSelectedSupervisorId(e.target.value)}
+                disabled={!selectedUser || supervisors.length === 0}
+              >
+                <option value="">
+                  {supervisors.length === 0 ? 'No supervisor in this store' : 'Deliver to sub store only'}
+                </option>
+                {supervisors.map(supervisor => (
+                  <option key={supervisor.supervisorId} value={supervisor.supervisorId}>
+                    {supervisor.name} - {supervisor.phoneNumber}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
+
+        {selectedSupervisorId && (
+          <div className={styles.chainInfo}>
+            Entries will be created: <strong>OUT main store</strong> → <strong>IN {selectedStoreObj?.storeName}</strong> → <strong>OUT to supervisor {supervisors.find(s => s.supervisorId === Number(selectedSupervisorId))?.name}</strong>
+          </div>
+        )}
 
         {/* Items Table */}
         <div className={styles.tableContainer}>
@@ -629,6 +715,7 @@ const ShopTransfer = () => {
                 <th>Input Type</th>
                 <th>Input</th>
                 <th>Transfer Qty</th>
+                <th>Expiry</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -656,7 +743,7 @@ const ShopTransfer = () => {
                     <td>
                       {item.packingId && (
                         <div className={styles.availableText}>
-                          {item.availableQuantity} {getUnitDisplay(item.defaultUnit)}
+                          {round3(item.availableQuantity)} {getUnitDisplay(item.defaultUnit)}
                         </div>
                       )}
                     </td>
@@ -740,7 +827,17 @@ const ShopTransfer = () => {
                         '-'
                       )}
                     </td>
-                    
+
+                    <td>
+                      <ExpirySelect
+                        className={styles.tableSelect}
+                        options={(item.expiryOptions || []).filter(expiry => !expiry.packingId || expiry.packingId === Number(item.packingId))}
+                        value={item.expiryId}
+                        onChange={(value) => updateItem(item.id, 'expiryId', value)}
+                        disabled={!item.packingId}
+                      />
+                    </td>
+
                     <td>
                       <button
                         className={styles.deleteBtn}
@@ -754,7 +851,7 @@ const ShopTransfer = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="8" className={styles.emptyRow}>
+                  <td colSpan="9" className={styles.emptyRow}>
                     <Package size={48} />
                     <p>No items added yet. Search and add products to create a transfer.</p>
                   </td>

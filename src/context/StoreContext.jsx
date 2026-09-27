@@ -1,6 +1,7 @@
 import { createContext, useContext, useState } from "react";
 import { fetchAllStores } from "../api/fetchAllStores";
-import { getSessionData } from "../component/utils/getSessionData"; 
+import { getSessionData } from "../component/utils/getSessionData";
+import { notify } from "../component/utils/feedback";
 
 const StoreContext = createContext();
 const STORE_CACHE_KEY = "STORE_LIST";
@@ -35,7 +36,7 @@ export const StoreProvider = ({ children }) => {
     const response = await fetchAllStores();
 
     if (response.data.status !== "SUCCESS") {
-      alert(response.data.message || "Store not found");
+      notify.error(response.data.message || "Store not found");
       return [];
     }
 

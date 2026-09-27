@@ -1,0 +1,354 @@
+.container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #f5f5f5;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  overflow: hidden;
+}
+
+.header {
+  background: #0f4776;
+  padding: 1rem 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.headerRow {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.title {
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.headerMeta {
+  color: #cfe3f5;
+  font-size: 0.95rem;
+}
+
+.storeSelect {
+  height: 38px;
+  padding: 0 0.8rem;
+  border-radius: 4px;
+  border: none;
+  font-size: 0.95rem;
+  min-width: 200px;
+}
+
+.mainContent {
+  flex: 1;
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 1.5rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  overflow-y: auto;
+}
+
+.card {
+  background: white;
+  padding: 1rem;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.selectorRow {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.selectorRow .input {
+  flex: 1;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr auto;
+  gap: 0.75rem;
+}
+
+.cardTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #0f4776;
+}
+
+.loginRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.inlineForm {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  flex-basis: 100%;
+}
+
+.input {
+  height: 40px;
+  padding: 0.4rem 0.8rem;
+  background: white;
+  color: black;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  outline: none;
+}
+
+.input:focus {
+  border-color: #1e88e5;
+}
+
+.input:disabled {
+  background: #f5f5f5;
+}
+
+.primaryBtn,
+.secondaryBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  height: 40px;
+  padding: 0 1.2rem;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  white-space: nowrap;
+}
+
+.primaryBtn {
+  background: #0f4776;
+  color: white;
+}
+
+.primaryBtn:hover {
+  background: #1e88e5;
+}
+
+.secondaryBtn {
+  height: 34px;
+  background: #eef3f8;
+  color: #0f4776;
+  font-size: 0.85rem;
+}
+
+.secondaryBtn:hover {
+  background: #dbe7f3;
+}
+
+.tableCard {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  background: white;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  min-height: 300px;
+}
+
+.tabs {
+  display: flex;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.tab {
+  padding: 0.75rem 1.25rem;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  font-weight: 600;
+  color: #666;
+  cursor: pointer;
+}
+
+.activeTab {
+  color: #0f4776;
+  border-bottom-color: #0f4776;
+}
+
+.tableContainer {
+  overflow: auto;
+  flex: 1;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 800px;
+}
+
+.table thead {
+  background: #0f4776;
+}
+
+.table th {
+  padding: 0.5rem 1rem;
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: white;
+}
+
+.table td {
+  padding: 0.6rem 1rem;
+  text-align: center;
+  border-bottom: 1px solid #e0e0e0;
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.itemsCell {
+  text-align: left !important;
+}
+
+.positive {
+  color: #2e7d32 !important;
+  font-weight: 600;
+}
+
+.negative {
+  color: #c62828 !important;
+  font-weight: 600;
+}
+
+.muted {
+  color: #999 !important;
+}
+
+.qtyInput {
+  display: flex;
+  gap: 0.4rem;
+  justify-content: center;
+}
+
+.qtyInput .input {
+  width: 110px;
+}
+
+.qtyInput select.input {
+  width: 70px;
+}
+
+.logFooter {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem;
+}
+
+.logFooter .input {
+  flex: 1;
+}
+
+.filterChip {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.75rem 1rem;
+  padding: 0.4rem 0.8rem;
+  background: #e3f2fd;
+  border-radius: 16px;
+  width: fit-content;
+  font-size: 0.85rem;
+  color: #0f4776;
+}
+
+.filterChip button {
+  display: flex;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #0f4776;
+}
+
+.badge {
+  padding: 0.15rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.ok {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.expired {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.iconBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: none;
+  border: 1px solid #cfdcea;
+  border-radius: 4px;
+  color: #0f4776;
+  cursor: pointer;
+  padding: 0.25rem 0.6rem;
+  margin: 0 0.2rem;
+  font-size: 0.8rem;
+}
+
+.iconBtn:hover {
+  background: #eef3f8;
+}
+
+.placeholder {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: #999;
+  background: white;
+  border-radius: 4px;
+  min-height: 300px;
+}
+
+.emptyRow {
+  padding: 3rem 1rem !important;
+  color: #999 !important;
+}
+
+.emptyRow p {
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 768px) {
+  .mainContent {
+    padding: 1rem;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .selectorRow,
+  .inlineForm,
+  .logFooter {
+    flex-direction: column;
+  }
+}

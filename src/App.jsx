@@ -18,6 +18,16 @@ import StockImport from "./component/mainstore/StockImport";
 import SupervisorTransfer from "./component/mainstore/SupervisorTransfer";
 import Dashboard from "./component/mainstore/Dashboard";
 import CreateStore from "./component/admin/CreateStore";
+
+// ===== Release branch =====
+import ProductExpiry from "./component/stock/ProductExpiry";
+import SupervisorActivity from "./component/supervisor/SupervisorActivity";
+import SupervisorManagement from "./component/supervisor/SupervisorManagement";
+import SupervisorPortal from "./supervisor/SupervisorPortal";
+import InventoryCorrection from "./inventoryCorrection/InventoryCorrection";
+import InventoryCorrectionAdmin from "./inventoryCorrection/InventoryCorrectionAdmin";
+
+// ===== Test branch =====
 import ViewSupervisorInventory from "./component/supervisor/ViewSupervisorInventory";
 import SupervisorInternalTransfer from "./component/supervisor/SupervisorInternalTransfer";
 import SupervisorReturnToStore from "./component/supervisor/SupervisorReturnToStore";
@@ -33,10 +43,11 @@ const ROLE_PATH_MAP = {
   supervisor: "SUPERVISOR",
 };
 
+
 /* ================= PROTECTED ROUTE ================= */
 const ProtectedRoute = ({ allowedRoles, children }) => {
   const user = JSON.parse(sessionStorage.getItem("user"));
-  const { scope } = useParams(); // admin | mainstore | substore
+  const { scope } = useParams();
 
   if (!user) {
     return <Navigate to="/login" replace />;
@@ -46,9 +57,10 @@ const ProtectedRoute = ({ allowedRoles, children }) => {
     return <Navigate to="/unauthorized" replace />;
   }
 
-  // If route has dynamic scope, validate it
+  // Validate dynamic scope when present
   if (scope) {
     const expectedRole = ROLE_PATH_MAP[scope];
+
     if (expectedRole && expectedRole !== user.userRole) {
       return <Navigate to="/unauthorized" replace />;
     }
@@ -56,6 +68,7 @@ const ProtectedRoute = ({ allowedRoles, children }) => {
 
   return children;
 };
+
 
 function App() {
   const location = useLocation();
@@ -65,32 +78,46 @@ function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
 
+
   /* ================= RESPONSIVE SIDEBAR ================= */
   useEffect(() => {
     const checkMobile = () => {
       const mobile = window.innerWidth <= 768;
+
       setIsMobile(mobile);
       setIsSidebarOpen(!mobile);
     };
 
     checkMobile();
+
     window.addEventListener("resize", checkMobile);
+
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  /* ================= ROLE FROM SESSION (NOT URL) ================= */
+
+  /* ================= ROLE FROM SESSION ================= */
   useEffect(() => {
-    const authPages = ["/", "/login", "/register", "/unauthorized"];
+    const authPages = [
+      "/",
+      "/login",
+      "/register",
+      "/unauthorized",
+    ];
+
     if (authPages.includes(pathname)) {
       setUserRole(null);
       return;
     }
 
     const user = JSON.parse(sessionStorage.getItem("user"));
+
     setUserRole(user?.userRole || null);
   }, [pathname]);
 
+
   const showSidebar = Boolean(userRole);
+
 
   return (
     <>
@@ -113,11 +140,14 @@ function App() {
         <Routes>
 
           {/* ============ PUBLIC ============ */}
+
           <Route path="/" element={<LoginForm />} />
+
           <Route path="/login" element={<LoginForm />} />
-          
+
 
           {/* ============ ADMIN ============ */}
+
           <Route
             path="/admin"
             element={
@@ -136,23 +166,26 @@ function App() {
             }
           />
 
-  
 
+          {/* ============ COMMON DASHBOARD ============ */}
 
-          {/* ============ 🔥 DYNAMIC COMMON ROUTE (KEY FIX) 🔥 ============ */}
-         
-         
-                 <Route
+          <Route
             path="/:scope/dashboard"
             element={
-              <ProtectedRoute allowedRoles={["MAIN_STORE_MANAGER", "SUB_STORE_MANAGER"]}>
+              <ProtectedRoute
+                allowedRoles={[
+                  "MAIN_STORE_MANAGER",
+                  "SUB_STORE_MANAGER",
+                ]}
+              >
                 <Dashboard />
               </ProtectedRoute>
             }
           />
 
-         
-         
+
+          {/* ============ STOCK TRANSFER HISTORY ============ */}
+
           <Route
             path="/:scope/view/tranferHistory"
             element={
@@ -167,6 +200,9 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+
+          {/* ============ INVENTORY ============ */}
 
           <Route
             path="/:scope/view/inventory"
@@ -184,80 +220,255 @@ function App() {
           />
 
 
+          {/* ============ STORE TRANSFER ============ */}
 
           <Route
             path="/:scope/transfer"
             element={
-              <ProtectedRoute allowedRoles={["MAIN_STORE_MANAGER","SUB_STORE_MANAGER"]}>
+              <ProtectedRoute
+                allowedRoles={[
+                  "MAIN_STORE_MANAGER",
+                  "SUB_STORE_MANAGER",
+                ]}
+              >
                 <ShopTransfer />
               </ProtectedRoute>
             }
           />
 
+
+          {/* ============ STOCK IMPORT ============ */}
+
           <Route
             path="/:scope/import"
             element={
-              <ProtectedRoute allowedRoles={["MAIN_STORE_MANAGER","SUB_STORE_MANAGER"]}>
+              <ProtectedRoute
+                allowedRoles={[
+                  "MAIN_STORE_MANAGER",
+                  "SUB_STORE_MANAGER",
+                ]}
+              >
                 <StockImport />
               </ProtectedRoute>
             }
           />
 
-      <Route
+
+          {/* ============ SUPERVISOR TRANSFER FROM STORE ============ */}
+
+          <Route
             path="/:scope/supervisor/transfer"
             element={
-              <ProtectedRoute allowedRoles={["ADMIN","MAIN_STORE_MANAGER","SUB_STORE_MANAGER"]}>
+              <ProtectedRoute
+                allowedRoles={[
+                  "ADMIN",
+                  "MAIN_STORE_MANAGER",
+                  "SUB_STORE_MANAGER",
+                ]}
+              >
                 <SupervisorTransfer />
               </ProtectedRoute>
             }
-          /> 
+          />
 
-          {/* ===== SUPERVISOR SCOPE ===== */}
+
+          {/* =====================================================
+              SUPERVISOR FEATURES
+              ===================================================== */}
+
+          {/* Supervisor's own inventory */}
           <Route
             path="/:scope/my/inventory"
             element={
-              <ProtectedRoute allowedRoles={["ADMIN","SUPERVISOR"]}>
+              <ProtectedRoute
+                allowedRoles={[
+                  "ADMIN",
+                  "SUPERVISOR",
+                ]}
+              >
                 <ViewSupervisorInventory />
               </ProtectedRoute>
             }
           />
 
+
+          {/* Supervisor → Supervisor transfer */}
           <Route
             path="/:scope/transfer/supervisor"
             element={
-              <ProtectedRoute allowedRoles={["ADMIN","SUPERVISOR"]}>
+              <ProtectedRoute
+                allowedRoles={[
+                  "ADMIN",
+                  "SUPERVISOR",
+                ]}
+              >
                 <SupervisorInternalTransfer />
               </ProtectedRoute>
             }
           />
 
+
+          {/* Supervisor → Store return */}
           <Route
             path="/:scope/transfer/store"
             element={
-              <ProtectedRoute allowedRoles={["ADMIN","SUPERVISOR"]}>
+              <ProtectedRoute
+                allowedRoles={[
+                  "ADMIN",
+                  "SUPERVISOR",
+                ]}
+              >
                 <SupervisorReturnToStore />
               </ProtectedRoute>
             }
           />
 
+
+          {/* Supervisor usage */}
           <Route
             path="/:scope/usage"
             element={
-              <ProtectedRoute allowedRoles={["ADMIN","SUPERVISOR"]}>
+              <ProtectedRoute
+                allowedRoles={[
+                  "ADMIN",
+                  "SUPERVISOR",
+                ]}
+              >
                 <SupervisorUsage />
               </ProtectedRoute>
             }
           />
 
-           <Route
+
+          {/* Manager/Admin view of supervisor inventory */}
+          <Route
             path="/:scope/supervisor/inventory"
             element={
-              <ProtectedRoute allowedRoles={["ADMIN","MAIN_STORE_MANAGER","SUB_STORE_MANAGER"]}>
-                <ViewSupervisorInventory />
+              <ProtectedRoute
+                allowedRoles={[
+                  "ADMIN",
+                  "SUB_STORE_MANAGER",
+                ]}
+              >
+                <SupervisorActivity />
               </ProtectedRoute>
             }
-          /> 
+          />
 
+
+          {/* ============ PRODUCT EXPIRY ============ */}
+
+          <Route
+            path="/:scope/product/expiry"
+            element={
+              <ProtectedRoute
+                allowedRoles={[
+                  "ADMIN",
+                  "MAIN_STORE_MANAGER",
+                  "SUB_STORE_MANAGER",
+                ]}
+              >
+                <ProductExpiry />
+              </ProtectedRoute>
+            }
+          />
+
+
+          {/* ============ INVENTORY CORRECTION ============ */}
+
+          <Route
+            path="/admin/inventory-correction"
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN"]}>
+                <InventoryCorrectionAdmin />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/:scope/inventory-correction"
+            element={
+              <ProtectedRoute
+                allowedRoles={[
+                  "MAIN_STORE_MANAGER",
+                  "SUB_STORE_MANAGER",
+                ]}
+              >
+                <InventoryCorrection />
+              </ProtectedRoute>
+            }
+          />
+
+
+          {/* ============ SUPERVISOR MANAGEMENT ============ */}
+
+          <Route
+            path="/:scope/supervisors"
+            element={
+              <ProtectedRoute
+                allowedRoles={[
+                  "ADMIN",
+                  "SUB_STORE_MANAGER",
+                ]}
+              >
+                <SupervisorManagement />
+              </ProtectedRoute>
+            }
+          />
+
+
+          {/* ============ SUPERVISOR PORTAL ============ */}
+
+          <Route
+            path="/supervisor/stock"
+            element={
+              <ProtectedRoute allowedRoles={["SUPERVISOR"]}>
+                <SupervisorPortal
+                  key="stock"
+                  initialTab="stock"
+                />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/supervisor/log-usage"
+            element={
+              <ProtectedRoute allowedRoles={["SUPERVISOR"]}>
+                <SupervisorPortal
+                  key="log"
+                  initialTab="log"
+                />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/supervisor/usage"
+            element={
+              <ProtectedRoute allowedRoles={["SUPERVISOR"]}>
+                <SupervisorPortal
+                  key="usage"
+                  initialTab="usage"
+                />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/supervisor/received"
+            element={
+              <ProtectedRoute allowedRoles={["SUPERVISOR"]}>
+                <SupervisorPortal
+                  key="received"
+                  initialTab="received"
+                />
+              </ProtectedRoute>
+            }
+          />
+
+
+          {/* ============ ADD PRODUCT ============ */}
 
           <Route
             path="/:scope/product/add"
@@ -275,20 +486,25 @@ function App() {
           />
 
 
-
           {/* ============ SUB STORE ============ */}
+
           <Route
             path="/substore"
             element={
               <ProtectedRoute
-                allowedRoles={["SUB_STORE_MANAGER", "SUB_STORE_SUPERVISOR"]}
+                allowedRoles={[
+                  "SUB_STORE_MANAGER",
+                  "SUB_STORE_SUPERVISOR",
+                ]}
               >
                 <h2>Sub Store Dashboard</h2>
               </ProtectedRoute>
             }
           />
 
-          {/* ============ STORE HOUSE ============ */}
+
+          {/* ============ CREATE STORE ============ */}
+
           <Route
             path="/admin/create/store"
             element={
@@ -298,9 +514,14 @@ function App() {
             }
           />
 
+
           {/* ============ UNAUTHORIZED ============ */}
-           <Route path="/unauthorized" element={<UnauthorizedPage />} />
-     
+
+          <Route
+            path="/unauthorized"
+            element={<UnauthorizedPage />}
+          />
+
         </Routes>
       </div>
     </>

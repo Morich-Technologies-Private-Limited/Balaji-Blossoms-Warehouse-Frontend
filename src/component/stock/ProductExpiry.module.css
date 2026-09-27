@@ -1,0 +1,348 @@
+.container,
+.container * {
+  box-sizing: border-box;
+}
+
+.container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #f5f5f5;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  overflow: hidden;
+}
+
+.header {
+  background: #0f4776;
+  padding: 1rem 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.headerRow {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.title {
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.storeSelect {
+  height: 38px;
+  padding: 0 0.8rem;
+  border-radius: 4px;
+  border: none;
+  font-size: 0.95rem;
+  min-width: 200px;
+}
+
+.mainContent {
+  flex: 1;
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 1.5rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  overflow-y: auto;
+}
+
+/* Two rows: Product | Packing | Enter as | Quantity  /  Rack ID | Expiry Date | actions */
+.formCard {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 1.6fr);
+  align-items: start;
+  gap: 1rem 1.25rem;
+  background: white;
+  padding: 1.25rem;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.formTitle {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #0f4776;
+}
+
+.formGroup {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.qtyRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.qtyRow .input {
+  flex: 1;
+}
+
+.unitSelect {
+  flex: 0 0 76px !important;
+}
+
+.qtySuffix {
+  flex: 0 0 auto;
+  min-width: 52px;
+  color: #555;
+  font-size: 0.9rem;
+}
+
+.label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #333;
+}
+
+.input {
+  width: 100%;
+  min-width: 0;
+}
+
+.input,
+.filterInput {
+  height: 42px;
+  padding: 0.5rem 0.8rem;
+  background: white;
+  color: black;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  outline: none;
+}
+
+.input:focus,
+.filterInput:focus {
+  border-color: #1e88e5;
+}
+
+.input:disabled {
+  background: #f9f9f9;
+  color: #666;
+}
+
+.dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 240px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+}
+
+.dropdownItem {
+  padding: 0.6rem 0.8rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.dropdownItem:hover {
+  background: #e3f2fd;
+}
+
+.hint {
+  font-size: 0.75rem;
+  color: #2e7d32;
+  line-height: 1.3;
+}
+
+.hintError {
+  font-size: 0.75rem;
+  color: #c62828;
+  line-height: 1.3;
+}
+
+/* sits next to Rack ID / Expiry Date, aligned with their inputs */
+.formActions {
+  grid-column: 3 / -1;
+  align-self: end;
+  justify-self: end;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.primaryBtn,
+.secondaryBtn {
+  height: 42px;
+  padding: 0 1.5rem;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+}
+
+.primaryBtn {
+  background: #0f4776;
+  color: white;
+}
+
+.primaryBtn:hover {
+  background: #1e88e5;
+}
+
+.secondaryBtn {
+  background: #e0e0e0;
+  color: #333;
+}
+
+.tableCard {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  background: white;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  min-height: 300px;
+}
+
+.tableToolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  color: #0f4776;
+  font-weight: 600;
+}
+
+.filterInput {
+  margin-left: auto;
+  width: 300px;
+  max-width: 50%;
+  font-weight: 400;
+}
+
+.tableContainer {
+  overflow: auto;
+  flex: 1;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 800px;
+}
+
+.table thead {
+  background: #0f4776;
+}
+
+.table th {
+  padding: 0.5rem 1rem;
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: white;
+}
+
+.table td {
+  padding: 0.6rem 1rem;
+  text-align: center;
+  border-bottom: 1px solid #e0e0e0;
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.badge {
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.expired {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.expiringSoon {
+  background: #fff3e0;
+  color: #e65100;
+}
+
+.ok {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.iconBtn {
+  background: none;
+  border: none;
+  color: #0f4776;
+  cursor: pointer;
+  padding: 0.3rem;
+  margin: 0 0.2rem;
+}
+
+.deleteBtn {
+  color: #d32f2f;
+}
+
+.emptyRow {
+  padding: 3rem 1rem !important;
+  color: #999 !important;
+}
+
+.emptyRow p {
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 1100px) {
+  .formCard {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .formActions {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 768px) {
+  .formCard {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .formActions {
+    justify-self: stretch;
+  }
+
+  .formActions button {
+    flex: 1;
+  }
+
+  .mainContent {
+    padding: 1rem;
+  }
+
+  .tableToolbar {
+    flex-wrap: wrap;
+  }
+
+  .filterInput {
+    width: 100%;
+    max-width: 100%;
+  }
+}

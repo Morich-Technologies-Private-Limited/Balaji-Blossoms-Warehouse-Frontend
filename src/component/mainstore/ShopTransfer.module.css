@@ -144,9 +144,18 @@
 }
 
 /* Selection Row */
+.chainInfo {
+  background: #e3f2fd;
+  color: #0f4776;
+  border-left: 4px solid #0f4776;
+  padding: 0.6rem 1rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
 .selectionRow {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 1.5rem;
   background: white;
   padding: 0.5rem;
@@ -258,6 +267,12 @@
 
 .table th:nth-child(8),
 .table td:nth-child(8) {
+  width: 220px;
+  min-width: 180px;
+}
+
+.table th:nth-child(9),
+.table td:nth-child(9) {
   width: 80px;
   min-width: 70px;
 }

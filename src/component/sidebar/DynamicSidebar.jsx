@@ -1,4 +1,3 @@
-```jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import styles from './DynamicSidebar.module.css';
@@ -121,14 +120,6 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
           text: 'Inventory Correction',
           link: '/admin/inventory-correction'
         },
-
-        // Test branch
-        {
-          icon: 'bi-arrow-up-circle',
-          text: 'Supervisor Transfer',
-          link: '/admin/supervisor/transfer'
-        },
-
         {
           icon: 'bi-clock-history',
           text: 'Transfer History',
@@ -183,19 +174,11 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
           text: 'Inventory Correction',
           link: '/mainstore/inventory-correction'
         },
-
-        // Test branch
-        {
-          icon: 'bi-arrow-up-circle',
-          text: 'Supervisor Transfer',
-          link: '/mainstore/supervisor/transfer'
-        },
         {
           icon: 'bi-person-lines-fill',
           text: 'Supervisor Inventory',
           link: '/mainstore/supervisor/inventory'
         },
-
         {
           icon: 'bi-clock-history',
           text: 'Transfer History',
@@ -229,9 +212,9 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
           link: '/substore/import'
         },
         {
-          icon: 'bi-arrow-up-circle',
+          icon: 'bi-box-arrow-up',
           text: 'Out Entry',
-          link: '/substore/supervisor/transfer'
+          link: '/substore/out-entry'
         },
         {
           icon: 'bi-file-text',
@@ -279,48 +262,15 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
       title: 'Supervisor',
 
       navItems: [
-        // Release branch
         {
           icon: 'bi-box-seam',
           text: 'My Stock',
           link: '/supervisor/stock'
         },
         {
-          icon: 'bi-pencil-square',
-          text: 'Log Usage',
-          link: '/supervisor/log-usage'
-        },
-        {
           icon: 'bi-clock-history',
-          text: 'Usage History',
-          link: '/supervisor/usage'
-        },
-        {
-          icon: 'bi-box-arrow-in-down',
-          text: 'Received Stock',
-          link: '/supervisor/received'
-        },
-
-        // Test branch
-        {
-          icon: 'bi-boxes',
-          text: 'My Inventory',
-          link: '/supervisor/my/inventory'
-        },
-        {
-          icon: 'bi-arrow-left-right',
-          text: 'Transfer to Supervisor',
-          link: '/supervisor/transfer/supervisor'
-        },
-        {
-          icon: 'bi-arrow-return-left',
-          text: 'Return to Store',
-          link: '/supervisor/transfer/store'
-        },
-        {
-          icon: 'bi-clipboard-check',
-          text: 'Record Usage',
-          link: '/supervisor/usage'
+          text: 'History',
+          link: '/supervisor/history'
         }
       ]
     }
@@ -531,4 +481,3 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
 };
 
 export default DynamicSidebar;
-```

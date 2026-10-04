@@ -328,6 +328,185 @@
   min-height: 300px;
 }
 
+.toolbar {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.toolbar .input {
+  width: 100%;
+  max-width: 340px;
+}
+
+.useBtn,
+.returnBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.useBtn {
+  padding: 0.35rem 0.9rem;
+  border: none;
+  background: #0f4776;
+  color: white;
+  font-size: 0.85rem;
+}
+
+.useBtn:hover:not(:disabled) {
+  background: #1e88e5;
+}
+
+.useBtn:disabled {
+  background: #cfd8dc;
+  cursor: default;
+}
+
+.rowActions {
+  display: flex;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.returnRowBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.9rem;
+  border: 1px solid #c62828;
+  border-radius: 4px;
+  background: white;
+  color: #c62828;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.returnRowBtn:hover:not(:disabled) {
+  background: #ffebee;
+}
+
+.returnRowBtn:disabled {
+  border-color: #cfd8dc;
+  color: #b0bec5;
+  cursor: default;
+}
+
+.returnBtn {
+  height: 40px;
+  padding: 0 1.2rem;
+  border: 1px solid #c62828;
+  background: #c62828;
+  color: white;
+}
+
+.returnBtn:hover:not(:disabled) {
+  background: #a51f1f;
+}
+
+.primaryBtn:disabled,
+.returnBtn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* ---------- Use / Return modal ---------- */
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.modal {
+  width: 100%;
+  max-width: 460px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+
+.modalHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.modalTitle {
+  margin: 0 0 0.2rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #0f4776;
+}
+
+.closeBtn {
+  display: flex;
+  padding: 0.25rem;
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+}
+
+.modalBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 1.1rem 1.25rem;
+}
+
+.modalBody .qtyInput {
+  justify-content: flex-start;
+}
+
+.modalBody .qtyInput .input:first-child {
+  flex: 1;
+  width: auto;
+}
+
+.modalBody .qtyInput select.input {
+  width: 100px;
+}
+
+.label {
+  margin-top: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.errorText {
+  color: #c62828;
+}
+
+.modalFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  padding: 0.9rem 1.25rem;
+  background: #f9f9f9;
+  border-top: 1px solid #e0e0e0;
+}
+
+.modalFooter .secondaryBtn {
+  height: 40px;
+  font-size: 0.95rem;
+}
+
 .emptyRow {
   padding: 3rem 1rem !important;
   color: #999 !important;
@@ -348,7 +527,8 @@
 
   .selectorRow,
   .inlineForm,
-  .logFooter {
+  .logFooter,
+  .modalFooter {
     flex-direction: column;
   }
 }

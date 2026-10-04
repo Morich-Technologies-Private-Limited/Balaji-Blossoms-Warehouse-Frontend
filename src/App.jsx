@@ -15,7 +15,6 @@ import AddProduct from "./component/mainstore/AddProduct";
 import UnauthorizedPage from "./component/auth/UnauthorizedPage";
 import ShopTransfer from "./component/mainstore/ShopTransfer";
 import StockImport from "./component/mainstore/StockImport";
-import SupervisorTransfer from "./component/mainstore/SupervisorTransfer";
 import Dashboard from "./component/mainstore/Dashboard";
 import CreateStore from "./component/admin/CreateStore";
 
@@ -26,12 +25,6 @@ import SupervisorManagement from "./component/supervisor/SupervisorManagement";
 import SupervisorPortal from "./supervisor/SupervisorPortal";
 import InventoryCorrection from "./inventoryCorrection/InventoryCorrection";
 import InventoryCorrectionAdmin from "./inventoryCorrection/InventoryCorrectionAdmin";
-
-// ===== Test branch =====
-import ViewSupervisorInventory from "./component/supervisor/ViewSupervisorInventory";
-import SupervisorInternalTransfer from "./component/supervisor/SupervisorInternalTransfer";
-import SupervisorReturnToStore from "./component/supervisor/SupervisorReturnToStore";
-import SupervisorUsage from "./component/supervisor/SupervisorUsage";
 
 
 /* ================= ROLE ↔ PATH MAP ================= */
@@ -237,6 +230,18 @@ function App() {
           />
 
 
+          {/* ============ SUB STORE OUT ENTRY (own supervisors only) ============ */}
+
+          <Route
+            path="/:scope/out-entry"
+            element={
+              <ProtectedRoute allowedRoles={["SUB_STORE_MANAGER"]}>
+                <ShopTransfer ownSupervisorOnly />
+              </ProtectedRoute>
+            }
+          />
+
+
           {/* ============ STOCK IMPORT ============ */}
 
           <Route
@@ -254,99 +259,14 @@ function App() {
           />
 
 
-          {/* ============ SUPERVISOR TRANSFER FROM STORE ============ */}
-
-          <Route
-            path="/:scope/supervisor/transfer"
-            element={
-              <ProtectedRoute
-                allowedRoles={[
-                  "ADMIN",
-                  "MAIN_STORE_MANAGER",
-                  "SUB_STORE_MANAGER",
-                ]}
-              >
-                <SupervisorTransfer />
-              </ProtectedRoute>
-            }
-          />
-
-
-          {/* =====================================================
-              SUPERVISOR FEATURES
-              ===================================================== */}
-
-          {/* Supervisor's own inventory */}
-          <Route
-            path="/:scope/my/inventory"
-            element={
-              <ProtectedRoute
-                allowedRoles={[
-                  "ADMIN",
-                  "SUPERVISOR",
-                ]}
-              >
-                <ViewSupervisorInventory />
-              </ProtectedRoute>
-            }
-          />
-
-
-          {/* Supervisor → Supervisor transfer */}
-          <Route
-            path="/:scope/transfer/supervisor"
-            element={
-              <ProtectedRoute
-                allowedRoles={[
-                  "ADMIN",
-                  "SUPERVISOR",
-                ]}
-              >
-                <SupervisorInternalTransfer />
-              </ProtectedRoute>
-            }
-          />
-
-
-          {/* Supervisor → Store return */}
-          <Route
-            path="/:scope/transfer/store"
-            element={
-              <ProtectedRoute
-                allowedRoles={[
-                  "ADMIN",
-                  "SUPERVISOR",
-                ]}
-              >
-                <SupervisorReturnToStore />
-              </ProtectedRoute>
-            }
-          />
-
-
-          {/* Supervisor usage */}
-          <Route
-            path="/:scope/usage"
-            element={
-              <ProtectedRoute
-                allowedRoles={[
-                  "ADMIN",
-                  "SUPERVISOR",
-                ]}
-              >
-                <SupervisorUsage />
-              </ProtectedRoute>
-            }
-          />
-
-
-          {/* Manager/Admin view of supervisor inventory */}
+          {/* Manager/Admin view of supervisor inventory (own store's supervisors) */}
           <Route
             path="/:scope/supervisor/inventory"
             element={
               <ProtectedRoute
                 allowedRoles={[
                   "ADMIN",
+                  "MAIN_STORE_MANAGER",
                   "SUB_STORE_MANAGER",
                 ]}
               >
@@ -423,49 +343,26 @@ function App() {
             path="/supervisor/stock"
             element={
               <ProtectedRoute allowedRoles={["SUPERVISOR"]}>
-                <SupervisorPortal
-                  key="stock"
-                  initialTab="stock"
-                />
+                <SupervisorPortal key="stock" view="stock" />
               </ProtectedRoute>
             }
           />
 
           <Route
-            path="/supervisor/log-usage"
+            path="/supervisor/history"
             element={
               <ProtectedRoute allowedRoles={["SUPERVISOR"]}>
-                <SupervisorPortal
-                  key="log"
-                  initialTab="log"
-                />
+                <SupervisorPortal key="history" view="history" />
               </ProtectedRoute>
             }
           />
 
-          <Route
-            path="/supervisor/usage"
-            element={
-              <ProtectedRoute allowedRoles={["SUPERVISOR"]}>
-                <SupervisorPortal
-                  key="usage"
-                  initialTab="usage"
-                />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/supervisor/received"
-            element={
-              <ProtectedRoute allowedRoles={["SUPERVISOR"]}>
-                <SupervisorPortal
-                  key="received"
-                  initialTab="received"
-                />
-              </ProtectedRoute>
-            }
-          />
+          {/* old supervisor URLs -> the two pages above */}
+          <Route path="/supervisor/log-usage" element={<Navigate to="/supervisor/stock" replace />} />
+          <Route path="/supervisor/return" element={<Navigate to="/supervisor/stock" replace />} />
+          <Route path="/supervisor/my/inventory" element={<Navigate to="/supervisor/stock" replace />} />
+          <Route path="/supervisor/usage" element={<Navigate to="/supervisor/history" replace />} />
+          <Route path="/supervisor/received" element={<Navigate to="/supervisor/history" replace />} />
 
 
           {/* ============ ADD PRODUCT ============ */}

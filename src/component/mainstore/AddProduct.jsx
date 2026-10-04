@@ -135,9 +135,12 @@ const AddProduct = () => {
     try {
       const response = await addProduct(productData);
       if (response.data.status === 'SUCCESS') {
+        // NOS / BUNDLE / PACKET: backend also creates their single packing (1 of the same unit)
         setSubmitStatus({
           type: 'success',
-          message: 'Product created successfully!'
+          message: isCountUnit(productData.category)
+            ? `Product created with packing 1 ${UNIT_LABEL[productData.category] || productData.category}`
+            : 'Product created successfully! Add its packings below.'
         });
         setShowCreateProductModal(false);
         setProductName('');
@@ -145,6 +148,11 @@ const AddProduct = () => {
         setProductNameError('');
         setCategoryError('');
         setTimeout(() => setSubmitStatus(null), 3000);
+
+        // open the new product right away (shows its packing / lets you add packings)
+        if (response.data.payload) {
+          handleSelectProduct({ productId: response.data.payload, ...productData });
+        }
       } else {
         setSubmitStatus({
           type: 'error',

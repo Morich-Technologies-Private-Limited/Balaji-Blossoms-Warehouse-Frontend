@@ -354,6 +354,12 @@
   padding: 0.4rem;
 }
 
+/* bags / bottles / packs label: fixed width so the inputs line up in every row */
+.qtyCell > span {
+  width: 70px;
+  text-align: left;
+}
+
 .subText {
   display: block;
   margin-top: 2px;

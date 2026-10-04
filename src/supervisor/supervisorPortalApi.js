@@ -5,6 +5,7 @@ import {
   SELF_SUPERVISOR_INVENTORY_URL,
   SELF_SUPERVISOR_USAGE_URL,
   SELF_SUPERVISOR_TRANSFER_HISTORY_URL,
+  SELF_SUPERVISOR_RETURN_URL,
 } from "../constants/apiConstants";
 import { getSessionData } from "../component/utils/getSessionData";
 
@@ -102,5 +103,15 @@ export const logMyUsage = async (usage) => {
     return await axios.post(SELF_SUPERVISOR_USAGE_URL, usage, { headers: authHeaders() });
   } catch (error) {
     handleError(error, "Failed to log usage");
+  }
+};
+
+// Return unused stock to own store
+// returnDto: { remark, returnList: [{ supervisorInventoryId, quantity, transferMetadata }] }
+export const returnToStore = async (returnDto) => {
+  try {
+    return await axios.post(SELF_SUPERVISOR_RETURN_URL, returnDto, { headers: authHeaders() });
+  } catch (error) {
+    handleError(error, "Failed to return stock to store");
   }
 };

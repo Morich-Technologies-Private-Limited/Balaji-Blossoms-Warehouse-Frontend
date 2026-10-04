@@ -209,6 +209,16 @@
   font-size: 0.95rem;
   color: white;
   border-right: 1px solid #6a6a6a;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+/* "(optional)" under the header text */
+.table th small {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 400;
+  opacity: 0.8;
 }
 
 /* Column widths */
@@ -220,8 +230,8 @@
 
 .table th:nth-child(2),
 .table td:nth-child(2) {
-  width: 280px;
-  min-width: 200px;
+  width: 200px;
+  min-width: 150px;
 }
 
 .table th:nth-child(3),
@@ -232,8 +242,8 @@
 
 .table th:nth-child(4),
 .table td:nth-child(4) {
-  width: 150px;
-  min-width: 120px;
+  width: 160px;
+  min-width: 150px;
 }
 
 .table th:nth-child(5),

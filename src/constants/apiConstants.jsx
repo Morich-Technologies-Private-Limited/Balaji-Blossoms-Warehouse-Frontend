@@ -11,20 +11,11 @@ export const FIND_TRANSFER_HISTORY_URL = `${API_BASE_URL}/store/find/transfer-hi
 export const FETCH_STORE_INVENTORY_URL = `${API_BASE_URL}/store/inventory`;
 
 
-
-export const FIND_SUPERVISORS_URL = `${API_BASE_URL}/product/supervisors`;
-export const FETCH_SUPERVISOR_INVENTORY_URL = `${API_BASE_URL}/product/supervisor/inventory`;
-
-
 export const FIND_PRODUCT_SEARCH_URL = `${API_BASE_URL}/product/search`;
 export const FIND_PRODUCT_PACKING_URL = `${API_BASE_URL}/product/find/packing`;
 export const FIND_PRODUCT_PACKING_WITHOUT_INVENTORY_URL = `${API_BASE_URL}/product/findProductPackingWithoutInventory`;
 
 export const SEND_PRODUCT_URL = `${API_BASE_URL}/product/transfer-stock`;
-export const SEND_PRODUCT_TO_SUPERVISOR_URL = `${API_BASE_URL}/product/supervisor/transfer-stock`;
-export const TRANSFER_BETWEEN_SUPERVISORS_URL = `${API_BASE_URL}/product/supervisor/transfer-between-supervisors`;
-export const RETURN_STOCK_TO_STORE_URL = `${API_BASE_URL}/product/supervisor/return-to-store`;
-export const SUPERVISOR_CONSUME_URL = `${API_BASE_URL}/product/supervisor/consume`;
 
 export const ADD_INVENROTY_URL = `${API_BASE_URL}/product/add/inventory`;
 
@@ -43,6 +34,11 @@ export const PRODUCT_EXPIRY_ADD_URL = `${API_BASE_URL}/product/expiry/add`;
 export const PRODUCT_EXPIRY_UPDATE_URL = `${API_BASE_URL}/product/expiry/update`;
 export const PRODUCT_EXPIRY_DELETE_URL = `${API_BASE_URL}/product/expiry/delete`;
 
+// In entry lines saved without expiry / rack (reminders dashboard)
+export const EXPIRY_REMINDER_LIST_URL = `${API_BASE_URL}/product/expiry/reminder/list`;
+export const EXPIRY_REMINDER_RESOLVE_URL = `${API_BASE_URL}/product/expiry/reminder/resolve`;
+export const EXPIRY_REMINDER_DISMISS_URL = `${API_BASE_URL}/product/expiry/reminder/dismiss`;
+
 export const SUPERVISOR_LOGIN_URL = `${API_BASE_URL}/auth/supervisor/login`;
 
 // Sub store manager: supervisor management
@@ -56,6 +52,7 @@ export const SELF_SUPERVISOR_PROFILE_URL = `${API_BASE_URL}/supervisor/me`;
 export const SELF_SUPERVISOR_INVENTORY_URL = `${API_BASE_URL}/supervisor/inventory`;
 export const SELF_SUPERVISOR_USAGE_URL = `${API_BASE_URL}/supervisor/usage`;
 export const SELF_SUPERVISOR_TRANSFER_HISTORY_URL = `${API_BASE_URL}/supervisor/transfer-history`;
+export const SELF_SUPERVISOR_RETURN_URL = `${API_BASE_URL}/supervisor/return-to-store`;
 export const PRODUCT_EXPIRY_PACKING_AVAILABILITY_URL = `${API_BASE_URL}/product/expiry/packing-availability`;
 
 // Main store -> sub store -> supervisor direct transfer

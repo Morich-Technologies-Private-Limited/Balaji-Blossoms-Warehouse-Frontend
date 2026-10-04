@@ -3,10 +3,11 @@ import axios from "axios";
 
 const getNavLinkByRole = (userRole) => {
   const navLinks = {
+    // must match an existing route in App.jsx (same as the sidebar "Home" links)
     ADMIN: "/admin",
-    MAIN_STORE_MANAGER: "/mainstore",
-    SUB_STORE_MANAGER: "/substore",
-    SUPERVISOR: "/supervisor/my/inventory",
+    MAIN_STORE_MANAGER: "/mainstore/dashboard",
+    SUB_STORE_MANAGER: "/substore/dashboard",
+    SUPERVISOR: "/supervisor/stock",
     SUB_STORE_SUPERVISOR: "/sales/substore",
     SHOP_MANAGER: "/shop",
   };

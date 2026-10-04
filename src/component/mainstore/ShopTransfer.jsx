@@ -9,11 +9,13 @@ import { fetchProductExpiry } from '../../api/productExpiryApi';
 import { fetchSupervisorsByStore, sendMainStoreToSupervisor } from '../../api/supervisorApi';
 import { getSessionData } from '../utils/getSessionData';
 import ExpirySelect from '../stock/ExpirySelect';
+import { isExpiringSoon, daysLeft, expiryLabel, expiryText } from '../utils/expiry';
 import { notify, confirmAction } from '../utils/feedback';
-import { round3 } from '../utils/units';
+import { round3, formatQuantity } from '../utils/units';
 
-const ShopTransfer = () => {
-  
+// ownSupervisorOnly: sub store Out Entry, stock can only go to the store's own supervisors
+const ShopTransfer = ({ ownSupervisorOnly = false }) => {
+
   const [searchKey, setSearchKey] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
   const [filteredProducts, setFilteredProducts] = useState([]);
@@ -27,14 +29,48 @@ const ShopTransfer = () => {
   const [availableUsers, setAvailableUsers] = useState([]);
 
   // Main store only: optional supervisor of the selected sub store (direct delivery)
-  const { role } = getSessionData();
+  const { role, storeId: ownStoreId } = getSessionData();
   const canSendToSupervisor = role === 'MAIN_STORE_MANAGER';
   const [supervisors, setSupervisors] = useState([]);
   const [selectedSupervisorId, setSelectedSupervisorId] = useState('');
   const selectedStoreObj = stores.find(s => s.storeId === parseInt(selectedStore));
 
+  // Send to one of the store's own supervisors (single OUT entry of this store):
+  // optional checkbox for main store, always on for the sub store Out Entry
+  const [sendToOwnSupervisor, setSendToOwnSupervisor] = useState(ownSupervisorOnly);
+  const [ownSupervisors, setOwnSupervisors] = useState([]);
+  const [ownSupervisorId, setOwnSupervisorId] = useState('');
+
+  const loadOwnSupervisors = async () => {
+    try {
+      const response = await fetchSupervisorsByStore(ownStoreId);
+      setOwnSupervisors(response.data.payload || []);
+    } catch (error) {
+      console.error('Failed to load own supervisors', error);
+      notify.error(error.message || 'Failed to load supervisors');
+    }
+  };
+
+  const handleOwnSupervisorToggle = async (checked) => {
+    setSendToOwnSupervisor(checked);
+    setOwnSupervisorId('');
+    setSelectedStore('');
+    setSelectedUser('');
+    setAvailableUsers([]);
+    setSupervisors([]);
+    setSelectedSupervisorId('');
+
+    if (checked && ownSupervisors.length === 0) {
+      await loadOwnSupervisors();
+    }
+  };
+
   const searchInputRef = useRef(null);
   const dropdownRef = useRef(null);
+
+  // blocks a second submit while a transfer request is running
+  const submittingRef = useRef(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const loadStores = async () => {
     try {
@@ -52,8 +88,12 @@ const ShopTransfer = () => {
   };
 
   useEffect(() => {
-    loadStores();
-  }, []);
+    if (ownSupervisorOnly) {
+      loadOwnSupervisors();
+    } else {
+      loadStores();
+    }
+  }, [ownSupervisorOnly]);
 
   // Get unit display
   const getUnitDisplay = (unit) => {
@@ -452,15 +492,27 @@ const ShopTransfer = () => {
   };
 
   const handleSubmit = async () => {
-    try {
-      if (!selectedStore) {
-        notify.warning("Please select a store to transfer to");
-        return;
-      }
+    // ignore double clicks: a second request would deduct the stock twice
+    if (submittingRef.current) return;
+    submittingRef.current = true;
+    setIsSubmitting(true);
 
-      if (!selectedUser) {
-        notify.warning("Please select a user");
-        return;
+    try {
+      if (sendToOwnSupervisor) {
+        if (!ownSupervisorId) {
+          notify.warning("Please select the supervisor");
+          return;
+        }
+      } else {
+        if (!selectedStore) {
+          notify.warning("Please select a store to transfer to");
+          return;
+        }
+
+        if (!selectedUser) {
+          notify.warning("Please select a user");
+          return;
+        }
       }
 
       if (transferItems.length === 0) {
@@ -539,14 +591,22 @@ const ShopTransfer = () => {
         }),
       };
 
-      // With a supervisor selected: OUT main store -> IN sub store -> OUT to supervisor, all in one request
-      if (selectedSupervisorId) {
+      // Own supervisor: receiver store is the main store itself -> single OUT entry of the main store
+      if (sendToOwnSupervisor) {
+        transferDto.receiverStoreId = Number(ownStoreId);
+        transferDto.userId = null;
+        transferDto.userName = "";
+        transferDto.supervisorId = Number(ownSupervisorId);
+      }
+
+      // With a sub store supervisor selected: OUT main store -> IN sub store -> OUT to supervisor, all in one request
+      if (!sendToOwnSupervisor && selectedSupervisorId) {
         transferDto.supervisorId = Number(selectedSupervisorId);
       }
 
       console.log("Transfer DTO:", transferDto);
 
-      const response = selectedSupervisorId
+      const response = transferDto.supervisorId
         ? await sendMainStoreToSupervisor(transferDto)
         : await sendProductToStore(transferDto);
 
@@ -557,6 +617,7 @@ const ShopTransfer = () => {
         setSelectedUser("");
         setSupervisors([]);
         setSelectedSupervisorId("");
+        setOwnSupervisorId("");
       } else {
         notify.error(response.data.message || "Unable to transfer stock");
       }
@@ -564,6 +625,9 @@ const ShopTransfer = () => {
     } catch (error) {
       console.error("Transfer failed:", error);
       notify.error(error.message || "Stock transfer failed");
+    } finally {
+      submittingRef.current = false;
+      setIsSubmitting(false);
     }
   };
 
@@ -582,7 +646,7 @@ const ShopTransfer = () => {
       {/* Header */}
       <div className={styles.header}>
         <div className={styles.headerContent}>
-          <h1 className={styles.title}> Stock Transfer</h1>
+          <h1 className={styles.title}>{ownSupervisorOnly ? 'Out Entry' : 'Stock Transfer'}</h1>
         </div>
       </div>
 
@@ -631,77 +695,121 @@ const ShopTransfer = () => {
           </div>
         </div>
 
-        {/* Store and User Selection */}
+        {/* Store / receiver selection (or own supervisor), with the own-supervisor checkbox at the end */}
         <div className={styles.selectionRow}>
-          <div className={styles.selectGroup}>
-            <label className={styles.inputLabel}>
-              <Building2 size={16} />
-              Store Name:
-            </label>
-            <select
-              className={styles.selectInput}
-              value={selectedStore}
-              onChange={(e) => handleStoreSelect(e.target.value)}
-            >
-              <option value="">Select a store</option>
-              {stores.map(store => (
-                <option key={store.storeId} value={store.storeId}>
-                  {store.storeName} - {getStoreTypeDisplay(store.storeType)}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className={styles.selectGroup}>
-            <label className={styles.inputLabel}>
-              <User size={16} />
-              Receiver Name:
-            </label>
-            <select
-              className={styles.selectInput}
-              value={selectedUser}
-              onChange={(e) => setSelectedUser(e.target.value)}
-              disabled={!selectedStore || availableUsers.length === 0}
-            >
-              <option value="">Select a user</option>
-              {availableUsers.map(user => (
-                <option key={user.userId} value={user.userId}>
-                  {user.name} - {user.userRole}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {canSendToSupervisor && selectedStoreObj?.storeType === 'SUB_STORE' && (
+          {sendToOwnSupervisor ? (
             <div className={styles.selectGroup}>
               <label className={styles.inputLabel}>
                 <UserCheck size={16} />
-                Supervisor (optional):
+                Supervisor:
               </label>
               <select
                 className={styles.selectInput}
-                value={selectedSupervisorId}
-                onChange={(e) => setSelectedSupervisorId(e.target.value)}
-                disabled={!selectedUser || supervisors.length === 0}
+                value={ownSupervisorId}
+                onChange={(e) => setOwnSupervisorId(e.target.value)}
+                disabled={ownSupervisors.length === 0}
               >
                 <option value="">
-                  {supervisors.length === 0 ? 'No supervisor in this store' : 'Deliver to sub store only'}
+                  {ownSupervisors.length === 0 ? 'No supervisor in this store' : 'Select supervisor'}
                 </option>
-                {supervisors.map(supervisor => (
+                {ownSupervisors.map(supervisor => (
                   <option key={supervisor.supervisorId} value={supervisor.supervisorId}>
                     {supervisor.name} - {supervisor.phoneNumber}
                   </option>
                 ))}
               </select>
             </div>
+          ) : (
+            <>
+              <div className={styles.selectGroup}>
+                <label className={styles.inputLabel}>
+                  <Building2 size={16} />
+                  Store Name:
+                </label>
+                <select
+                  className={styles.selectInput}
+                  value={selectedStore}
+                  onChange={(e) => handleStoreSelect(e.target.value)}
+                >
+                  <option value="">Select a store</option>
+                  {stores.map(store => (
+                    <option key={store.storeId} value={store.storeId}>
+                      {store.storeName} - {getStoreTypeDisplay(store.storeType)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className={styles.selectGroup}>
+                <label className={styles.inputLabel}>
+                  <User size={16} />
+                  Receiver Name:
+                </label>
+                <select
+                  className={styles.selectInput}
+                  value={selectedUser}
+                  onChange={(e) => setSelectedUser(e.target.value)}
+                  disabled={!selectedStore || availableUsers.length === 0}
+                >
+                  <option value="">Select a user</option>
+                  {availableUsers.map(user => (
+                    <option key={user.userId} value={user.userId}>
+                      {user.name} - {user.userRole}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {canSendToSupervisor && selectedStoreObj?.storeType === 'SUB_STORE' && (
+                <div className={styles.selectGroup}>
+                  <label className={styles.inputLabel}>
+                    <UserCheck size={16} />
+                    Supervisor (optional):
+                  </label>
+                  <select
+                    className={styles.selectInput}
+                    value={selectedSupervisorId}
+                    onChange={(e) => setSelectedSupervisorId(e.target.value)}
+                    disabled={!selectedUser || supervisors.length === 0}
+                  >
+                    <option value="">
+                      {supervisors.length === 0 ? 'No supervisor in this store' : 'Deliver to sub store only'}
+                    </option>
+                    {supervisors.map(supervisor => (
+                      <option key={supervisor.supervisorId} value={supervisor.supervisorId}>
+                        {supervisor.name} - {supervisor.phoneNumber}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </>
+          )}
+
+          {canSendToSupervisor && !ownSupervisorOnly && (
+            <label className={styles.inputLabel} style={{ gap: 8, cursor: 'pointer', whiteSpace: 'nowrap', flex: '0 0 auto' }}>
+              <input
+                type="checkbox"
+                checked={sendToOwnSupervisor}
+                onChange={(e) => handleOwnSupervisorToggle(e.target.checked)}
+              />
+              Send to own supervisor
+            </label>
           )}
         </div>
 
-        {selectedSupervisorId && (
+        {sendToOwnSupervisor && ownSupervisorId && (
+          <div className={styles.chainInfo}>
+            Entry will be created: <strong>OUT {ownSupervisorOnly ? 'sub store' : 'main store'}</strong> to supervisor <strong>{ownSupervisors.find(s => s.supervisorId === Number(ownSupervisorId))?.name}</strong>
+          </div>
+        )}
+
+        {!sendToOwnSupervisor && selectedSupervisorId && (
           <div className={styles.chainInfo}>
             Entries will be created: <strong>OUT main store</strong> → <strong>IN {selectedStoreObj?.storeName}</strong> → <strong>OUT to supervisor {supervisors.find(s => s.supervisorId === Number(selectedSupervisorId))?.name}</strong>
           </div>
         )}
+
 
         {/* Items Table */}
         <div className={styles.tableContainer}>
@@ -829,13 +937,39 @@ const ShopTransfer = () => {
                     </td>
 
                     <td>
-                      <ExpirySelect
-                        className={styles.tableSelect}
-                        options={(item.expiryOptions || []).filter(expiry => !expiry.packingId || expiry.packingId === Number(item.packingId))}
-                        value={item.expiryId}
-                        onChange={(value) => updateItem(item.id, 'expiryId', value)}
-                        disabled={!item.packingId}
-                      />
+                      {(() => {
+                        const packingNotes = (item.expiryOptions || []).filter(expiry => !expiry.packingId || expiry.packingId === Number(item.packingId));
+                        // earliest note of this packing that expires soon (or already expired)
+                        const soonest = item.packingId
+                          ? [...packingNotes].sort((a, b) => String(a.expiryDate).localeCompare(String(b.expiryDate))).find(note => isExpiringSoon(note.expiryDate))
+                          : null;
+                        const selected = packingNotes.find(note => note.expiryId === Number(item.expiryId));
+                        return (
+                          <>
+                            <ExpirySelect
+                              className={styles.tableSelect}
+                              options={packingNotes}
+                              value={item.expiryId}
+                              onChange={(value) => updateItem(item.id, 'expiryId', value)}
+                              disabled={!item.packingId}
+                            />
+                            {soonest && !item.expiryId && (
+                              <div
+                                className={`${styles.expiryHint} ${daysLeft(soonest.expiryDate) < 0 ? styles.expiryHintExpired : ''}`}
+                                title={`${formatQuantity(soonest.quantity, soonest.quantityUnit)} ${daysLeft(soonest.expiryDate) < 0 ? 'expired' : 'expiring'} ${expiryText(soonest.expiryDate)}${soonest.rackId ? ` • Rack ${soonest.rackId}` : ''}`}
+                              >
+                                <span className={styles.expiryHintText}>
+                                  {formatQuantity(soonest.quantity, soonest.quantityUnit)} • {expiryLabel(soonest.expiryDate)}
+                                </span>
+                                <button type="button" onClick={() => updateItem(item.id, 'expiryId', soonest.expiryId)}>Use first</button>
+                              </div>
+                            )}
+                            {selected && isExpiringSoon(selected.expiryDate) && (
+                              <small className={styles.expirySelected}>{expiryLabel(selected.expiryDate)} - good, using it first</small>
+                            )}
+                          </>
+                        );
+                      })()}
                     </td>
 
                     <td>
@@ -878,9 +1012,9 @@ const ShopTransfer = () => {
           <button 
             className={styles.submitBtn}
             onClick={handleSubmit}
-            disabled={transferItems.length === 0}
+            disabled={transferItems.length === 0 || isSubmitting}
           >
-            Transfer
+            {isSubmitting ? 'Transferring...' : 'Transfer'}
           </button>
         </div>
       </div>

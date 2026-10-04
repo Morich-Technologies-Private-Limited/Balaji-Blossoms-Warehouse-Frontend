@@ -5,6 +5,9 @@ import {
   PRODUCT_EXPIRY_UPDATE_URL,
   PRODUCT_EXPIRY_DELETE_URL,
   PRODUCT_EXPIRY_PACKING_AVAILABILITY_URL,
+  EXPIRY_REMINDER_LIST_URL,
+  EXPIRY_REMINDER_RESOLVE_URL,
+  EXPIRY_REMINDER_DISMISS_URL,
 } from "../constants/apiConstants";
 import { getSessionData } from "../component/utils/getSessionData";
 
@@ -72,6 +75,33 @@ export const updateProductExpiry = async (expiry, storeId) => {
     return await axios.put(PRODUCT_EXPIRY_UPDATE_URL, expiry, { params: withStore({}, storeId), headers: authHeaders() });
   } catch (error) {
     handleError(error, "Failed to update expiry");
+  }
+};
+
+/* ============ Reminders: in entry lines saved without expiry / rack ============ */
+
+export const fetchExpiryReminders = async (storeId) => {
+  try {
+    return await axios.get(EXPIRY_REMINDER_LIST_URL, { params: withStore({}, storeId), headers: authHeaders() });
+  } catch (error) {
+    handleError(error, "Failed to fetch reminders");
+  }
+};
+
+// details: { expiryDate, rackId, quantity, quantityUnit } (MISSING_RACK only needs rackId)
+export const resolveExpiryReminder = async (reminderId, details, storeId) => {
+  try {
+    return await axios.post(EXPIRY_REMINDER_RESOLVE_URL, details, { params: withStore({ reminderId }, storeId), headers: authHeaders() });
+  } catch (error) {
+    handleError(error, "Failed to save details");
+  }
+};
+
+export const dismissExpiryReminder = async (reminderId, storeId) => {
+  try {
+    return await axios.post(EXPIRY_REMINDER_DISMISS_URL, null, { params: withStore({ reminderId }, storeId), headers: authHeaders() });
+  } catch (error) {
+    handleError(error, "Failed to dismiss reminder");
   }
 };
 

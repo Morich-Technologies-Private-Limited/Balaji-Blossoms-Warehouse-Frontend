@@ -9,8 +9,9 @@ import { fetchProductExpiry } from '../../api/productExpiryApi';
 import { fetchSupervisorsByStore, sendMainStoreToSupervisor } from '../../api/supervisorApi';
 import { getSessionData } from '../utils/getSessionData';
 import ExpirySelect from '../stock/ExpirySelect';
+import { isExpiringSoon, daysLeft, expiryLabel, expiryText } from '../utils/expiry';
 import { notify, confirmAction } from '../utils/feedback';
-import { round3 } from '../utils/units';
+import { round3, formatQuantity } from '../utils/units';
 
 // ownSupervisorOnly: sub store Out Entry, stock can only go to the store's own supervisors
 const ShopTransfer = ({ ownSupervisorOnly = false }) => {
@@ -936,13 +937,39 @@ const ShopTransfer = ({ ownSupervisorOnly = false }) => {
                     </td>
 
                     <td>
-                      <ExpirySelect
-                        className={styles.tableSelect}
-                        options={(item.expiryOptions || []).filter(expiry => !expiry.packingId || expiry.packingId === Number(item.packingId))}
-                        value={item.expiryId}
-                        onChange={(value) => updateItem(item.id, 'expiryId', value)}
-                        disabled={!item.packingId}
-                      />
+                      {(() => {
+                        const packingNotes = (item.expiryOptions || []).filter(expiry => !expiry.packingId || expiry.packingId === Number(item.packingId));
+                        // earliest note of this packing that expires soon (or already expired)
+                        const soonest = item.packingId
+                          ? [...packingNotes].sort((a, b) => String(a.expiryDate).localeCompare(String(b.expiryDate))).find(note => isExpiringSoon(note.expiryDate))
+                          : null;
+                        const selected = packingNotes.find(note => note.expiryId === Number(item.expiryId));
+                        return (
+                          <>
+                            <ExpirySelect
+                              className={styles.tableSelect}
+                              options={packingNotes}
+                              value={item.expiryId}
+                              onChange={(value) => updateItem(item.id, 'expiryId', value)}
+                              disabled={!item.packingId}
+                            />
+                            {soonest && !item.expiryId && (
+                              <div
+                                className={`${styles.expiryHint} ${daysLeft(soonest.expiryDate) < 0 ? styles.expiryHintExpired : ''}`}
+                                title={`${formatQuantity(soonest.quantity, soonest.quantityUnit)} ${daysLeft(soonest.expiryDate) < 0 ? 'expired' : 'expiring'} ${expiryText(soonest.expiryDate)}${soonest.rackId ? ` • Rack ${soonest.rackId}` : ''}`}
+                              >
+                                <span className={styles.expiryHintText}>
+                                  {formatQuantity(soonest.quantity, soonest.quantityUnit)} • {expiryLabel(soonest.expiryDate)}
+                                </span>
+                                <button type="button" onClick={() => updateItem(item.id, 'expiryId', soonest.expiryId)}>Use first</button>
+                              </div>
+                            )}
+                            {selected && isExpiringSoon(selected.expiryDate) && (
+                              <small className={styles.expirySelected}>{expiryLabel(selected.expiryDate)} - good, using it first</small>
+                            )}
+                          </>
+                        );
+                      })()}
                     </td>
 
                     <td>

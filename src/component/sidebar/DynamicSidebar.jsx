@@ -74,6 +74,11 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
 
       navItems: [
         {
+          icon: 'bi-bell',
+          text: 'Expiry Alerts',
+          link: '/admin/reminders'
+        },
+        {
           icon: 'bi-house-door-fill',
           text: 'Home',
           link: '/admin'
@@ -138,6 +143,11 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
 
       navItems: [
         {
+          icon: 'bi-bell',
+          text: 'Expiry Alerts',
+          link: '/mainstore/reminders'
+        },
+        {
           icon: 'bi-house-door-fill',
           text: 'Home',
           link: '/mainstore/dashboard'
@@ -196,6 +206,11 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
       title: 'Sub Store',
 
       navItems: [
+        {
+          icon: 'bi-bell',
+          text: 'Expiry Alerts',
+          link: '/substore/reminders'
+        },
         {
           icon: 'bi-house-door-fill',
           text: 'Home',

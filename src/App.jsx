@@ -20,6 +20,7 @@ import CreateStore from "./component/admin/CreateStore";
 
 // ===== Release branch =====
 import ProductExpiry from "./component/stock/ProductExpiry";
+import Reminders from "./component/stock/Reminders";
 import SupervisorActivity from "./component/supervisor/SupervisorActivity";
 import SupervisorManagement from "./component/supervisor/SupervisorManagement";
 import SupervisorPortal from "./supervisor/SupervisorPortal";
@@ -289,6 +290,16 @@ function App() {
                 ]}
               >
                 <ProductExpiry />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* expiring stock + in entries missing expiry / rack */}
+          <Route
+            path="/:scope/reminders"
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN", "MAIN_STORE_MANAGER", "SUB_STORE_MANAGER"]}>
+                <Reminders />
               </ProtectedRoute>
             }
           />

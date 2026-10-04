@@ -34,6 +34,11 @@ export const PRODUCT_EXPIRY_ADD_URL = `${API_BASE_URL}/product/expiry/add`;
 export const PRODUCT_EXPIRY_UPDATE_URL = `${API_BASE_URL}/product/expiry/update`;
 export const PRODUCT_EXPIRY_DELETE_URL = `${API_BASE_URL}/product/expiry/delete`;
 
+// In entry lines saved without expiry / rack (reminders dashboard)
+export const EXPIRY_REMINDER_LIST_URL = `${API_BASE_URL}/product/expiry/reminder/list`;
+export const EXPIRY_REMINDER_RESOLVE_URL = `${API_BASE_URL}/product/expiry/reminder/resolve`;
+export const EXPIRY_REMINDER_DISMISS_URL = `${API_BASE_URL}/product/expiry/reminder/dismiss`;
+
 export const SUPERVISOR_LOGIN_URL = `${API_BASE_URL}/auth/supervisor/login`;
 
 // Sub store manager: supervisor management

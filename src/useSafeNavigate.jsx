@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
+import { APP_BASE_PATH } from "./constants/basePath";
 
-export function useSafeNavigate(appBase = "/smss") {
+export function useSafeNavigate(appBase = APP_BASE_PATH) {
   const navigate = useNavigate();
   const isFederated = window.__IS_FEDERATED__ === true;
 

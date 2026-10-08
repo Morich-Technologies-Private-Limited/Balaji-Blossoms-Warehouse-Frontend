@@ -5,7 +5,7 @@ import { checkProductAvaliablity } from '../../api/checkProductAvaliablity';
 import { findProducts } from '../../api/findProducts';
 import { addPacking } from '../../api/addPacking';
 import { findProductPackingWithoutInventory } from '../../api/findProductPackingWithoutInventory';
-import { CATEGORY_OPTIONS, CATEGORY_UNITS, UNIT_LABEL, isCountUnit } from '../utils/units';
+import { CATEGORY_OPTIONS, CATEGORY_UNITS, UNIT_LABEL, isCountUnit, hasSinglePacking } from '../utils/units';
 
 const AddProduct = () => {
   const [showCreateProductModal, setShowCreateProductModal] = useState(false);
@@ -60,19 +60,22 @@ const AddProduct = () => {
     }
   }, [highlightedIndex]);
 
-  // SOLID: KG/G, LIQUID: L/ML, NOS / BUNDLE / PACKET: only their own count unit (same rules as backend)
+  // SOLID: KG/G, LIQUID: L/ML, NOS / BUNDLE / PACKET / BAG: only their own count unit (same rules as backend)
   const getValidUnits = (selectedCategory) => CATEGORY_UNITS[selectedCategory] || [];
 
-  // NOS / BUNDLE / PACKET products: only one packing, always size 1 of their own unit
-  const isCountProduct = (product) => !!product && isCountUnit(product.category);
+  // NOS products: only one packing, always size 1
+  const isCountProduct = (product) => !!product && hasSinglePacking(product.category);
 
-  const newPackingRow = (product) => isCountProduct(product)
-    ? { packingSize: '1', packingUnit: product.category }
-    : { packingSize: '', packingUnit: '' };
+  // BUNDLE / PACKET / BAG products: any packing size (25 PACKET = 25 pieces in a packet), unit is always their own
+  const newPackingRow = (product) => {
+    if (isCountProduct(product)) return { packingSize: '1', packingUnit: product.category };
+    if (product && isCountUnit(product.category)) return { packingSize: '', packingUnit: product.category };
+    return { packingSize: '', packingUnit: '' };
+  };
 
   const countPackingExists = isCountProduct(selectedProduct) && existingPackings.length > 0;
 
-  // packing size must be a whole number for G / ML and for count units (1 NOS, 10 PACKET ...)
+  // packing size must be a whole number for G / ML and for count units (1 NOS, 25 PACKET ...)
   const isSmallUnit = (unit) => {
     return unit === 'GRAM' || unit === 'MILLILITER' || isCountUnit(unit);
   };
@@ -135,10 +138,10 @@ const AddProduct = () => {
     try {
       const response = await addProduct(productData);
       if (response.data.status === 'SUCCESS') {
-        // NOS / BUNDLE / PACKET: backend also creates their single packing (1 of the same unit)
+        // NOS: backend also creates its single packing (size 1)
         setSubmitStatus({
           type: 'success',
-          message: isCountUnit(productData.category)
+          message: hasSinglePacking(productData.category)
             ? `Product created with packing 1 ${UNIT_LABEL[productData.category] || productData.category}`
             : 'Product created successfully! Add its packings below.'
         });
@@ -276,7 +279,7 @@ const AddProduct = () => {
       return 'Packing size must be a valid number greater than 0';
     }
 
-    if (isCountUnit(packing.packingUnit) && sizeValue !== 1) {
+    if (hasSinglePacking(packing.packingUnit) && sizeValue !== 1) {
       return `Packing size must be 1 for ${UNIT_LABEL[packing.packingUnit] || packing.packingUnit}`;
     }
 
@@ -349,10 +352,10 @@ const AddProduct = () => {
       const previousUnit = newPackingList[index].packingUnit;
       newPackingList[index][field] = value;
 
-      // count units (NOS / BUNDLE / PACKET): packing size is always 1
-      if (field === 'packingUnit' && isCountUnit(value)) {
+      // NOS: packing size is always 1
+      if (field === 'packingUnit' && hasSinglePacking(value)) {
         newPackingList[index].packingSize = '1';
-      } else if (field === 'packingUnit' && isCountUnit(previousUnit)) {
+      } else if (field === 'packingUnit' && hasSinglePacking(previousUnit)) {
         newPackingList[index].packingSize = '';
       } else if (field === 'packingUnit' && isSmallUnit(value) && newPackingList[index].packingSize.includes('.')) {
         newPackingList[index].packingSize = '';
@@ -555,7 +558,7 @@ const AddProduct = () => {
             </div>
           )}
 
-          {/* Count products (NOS / BUNDLE / PACKET) have only one packing */}
+          {/* NOS products have only one packing */}
           {selectedProduct && !loadingPackings && countPackingExists && (
             <div className={styles.loadingSection}>
               <p>{selectedProduct.category} products can have only one packing, and it is already added.</p>
@@ -599,7 +602,7 @@ const AddProduct = () => {
                               className={`${styles.tableSelect} ${errors[`packing_${index}`] ? styles.isInvalid : ''}`}
                               value={packing.packingUnit}
                               onChange={(e) => handlePackingChange(index, 'packingUnit', e.target.value)}
-                              disabled={isCountProduct(selectedProduct)}
+                              disabled={!!selectedProduct && isCountUnit(selectedProduct.category)}
                             >
                               <option value="">Select unit</option>
                               {selectedProduct && getValidUnits(selectedProduct.category).map(unit => (
@@ -614,7 +617,7 @@ const AddProduct = () => {
                               value={packing.packingSize}
                               onChange={(e) => handlePackingChange(index, 'packingSize', e.target.value)}
                               placeholder="Enter size"
-                              disabled={!packing.packingUnit || isCountUnit(packing.packingUnit)}
+                              disabled={!packing.packingUnit || hasSinglePacking(packing.packingUnit)}
                             />
                             {errors[`packing_${index}`] && (
                               <div className={styles.errorText}>

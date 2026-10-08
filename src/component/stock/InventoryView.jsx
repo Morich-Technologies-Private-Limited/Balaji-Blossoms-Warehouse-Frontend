@@ -5,7 +5,7 @@ import { useStores } from "../../context/StoreContext";
 import { getSessionData } from '../utils/getSessionData';
 import { fetchStoreProducts, fetchInventoryItems, groupItemsByProduct, INVENTORY_BATCH_SIZE } from '../../api/storeInventoryApi';
 import { notify } from '../utils/feedback';
-import { round3 } from '../utils/units';
+import { round3, isCountUnit } from '../utils/units';
 
 
 const InventoryView = () => {
@@ -468,7 +468,8 @@ const InventoryView = () => {
                             )}
                             <td className={styles.regularCell}>{round3(inventory.availableQuantity)} {getShortUnit(inventory.packingUnit)}</td>
                             <td className={styles.regularCell}>
-                              {calculateBags(inventory.availableQuantity, packing.packingSize)}
+                              {/* count unit stock already is the number of packets (never divided by the packing size) */}
+                              {isCountUnit(packing.packingUnit) ? round3(inventory.availableQuantity) : calculateBags(inventory.availableQuantity, packing.packingSize)}
                             </td>
                           </tr>
                         ));

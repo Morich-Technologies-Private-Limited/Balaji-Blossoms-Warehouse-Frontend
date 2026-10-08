@@ -6,6 +6,7 @@ import { findProductsPacking } from '../../api/findProductsPacking';
 import { importProduct } from '../../api/importProduct';
 import { notify, confirmAction } from '../utils/feedback';
 import { round3, isCountUnit, hasLoosePieces, packsToStock, stockToPacks, piecesToStock, packName, PIECES_LABEL } from '../utils/units';
+import { showMessagePopUp } from '../modal/MessagePopUp';
 
 const StockImport = () => {
   const [searchKey, setSearchKey] = useState('');
@@ -316,43 +317,51 @@ const StockImport = () => {
 
   const handleSubmit = async () => {
     try {
-      // Validation
+      
+      var isValidationError = false;
+      var errorList = []; // Change to array
+
       if (!senderCompanyName.trim()) {
-        notify.warning("Please enter sender company name");
-        return;
+        errorList.push("Please enter sender company name.");
+        isValidationError = true;
       }
 
       if (!senderName.trim()) {
-        notify.warning("Please enter sender name");
-        return;
+        errorList.push("Please enter sender name.");
+        isValidationError = true;
       }
 
       if (!email.trim()) {
-        notify.warning("Please enter email");
-        return;
+        errorList.push("Please enter email address.");
+        isValidationError = true;
       }
 
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
-        notify.warning("Please enter a valid email address");
-        return;
+        errorList.push("Please enter a valid email address.");
+        isValidationError = true;
       }
 
       if (!contact.trim()) {
-        notify.warning("Please enter contact number");
-        return;
+        errorList.push("Please enter contact number.");
+        isValidationError = true;
       }
 
       if (!receiverName.trim()) {
-        notify.warning("Please enter receiver name");
-        return;
+        errorList.push("Please enter receiver name.");
+        isValidationError = true;
       }
 
       if (importItems.length === 0) {
-        notify.warning("Please add at least one item to import");
-        return;
+        errorList.push("No items added to import.");
+        isValidationError = true;
       }
 
+      if (isValidationError) {
+        showMessagePopUp("FAILED", "Validation Error", errorList);
+        return;
+      }
+  
       const invalidItems = importItems.filter(item =>
         !item.packingId ||
         !item.quantity ||
@@ -666,7 +675,7 @@ const StockImport = () => {
                             value={item.inputUnit}
                             onChange={(e) => updateItem(item.id, 'inputUnit', e.target.value)}
                             disabled={!item.packingId}
-                            style={{flex: '0 0 60px', fontSize: '0.85rem'}}
+                            style={{flex: '0 0 70px', fontSize: '0.85rem'}}
                           >
                             {item.defaultUnit && getAvailableUnits(item.defaultUnit).map(unit => (
                               <option key={unit} value={unit}>

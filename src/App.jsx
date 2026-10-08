@@ -17,6 +17,11 @@ import ShopTransfer from "./component/mainstore/ShopTransfer";
 import StockImport from "./component/mainstore/StockImport";
 import Dashboard from "./component/mainstore/Dashboard";
 import CreateStore from "./component/admin/CreateStore";
+import RequestView from "./component/admin/RequestView";
+import UserManagement from "./component/admin/UserManagment";
+import MessagePopUp from "./component/modal/MessagePopUp";
+import AdminDashboard from "./component/admin/AdminDashboard";
+import ForgotPassword from "./component/auth/ForgotPassword";
 
 // ===== Release branch =====
 import ProductExpiry from "./component/stock/ProductExpiry";
@@ -67,7 +72,6 @@ const ProtectedRoute = ({ allowedRoles, children }) => {
 function App() {
   const location = useLocation();
   const pathname = location.pathname;
-
   const [userRole, setUserRole] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
@@ -115,6 +119,8 @@ function App() {
 
   return (
     <>
+    <MessagePopUp />
+
       {showSidebar && (
         <DynamicSidebar
           role={userRole}
@@ -138,7 +144,10 @@ function App() {
           <Route path="/" element={<LoginForm />} />
 
           <Route path="/login" element={<LoginForm />} />
-
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          
+          
+          
 
           {/* ============ ADMIN ============ */}
 
@@ -146,7 +155,7 @@ function App() {
             path="/admin"
             element={
               <ProtectedRoute allowedRoles={["ADMIN"]}>
-                <h2>Admin Dashboard</h2>
+                <AdminDashboard />
               </ProtectedRoute>
             }
           />
@@ -160,11 +169,28 @@ function App() {
             }
           />
 
+          <Route
+            path="/admin/request/view"
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN"]}>
+                <RequestView />
+              </ProtectedRoute>
+            }
+          />
+  
+         <Route
+            path="/admin/user/management"
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN"]}>
+                <UserManagement />
+              </ProtectedRoute>
+            }
+          />
 
           {/* ============ COMMON DASHBOARD ============ */}
 
           <Route
-            path="/:scope/dashboard"
+            path="/:scope/"
             element={
               <ProtectedRoute
                 allowedRoles={[
@@ -177,9 +203,15 @@ function App() {
             }
           />
 
-
-          {/* ============ STOCK TRANSFER HISTORY ============ */}
-
+          <Route
+            path="/:scope/dashboard"
+            element={
+              <ProtectedRoute allowedRoles={["MAIN_STORE_MANAGER", "SUB_STORE_MANAGER"]}>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+         
           <Route
             path="/:scope/view/tranferHistory"
             element={
@@ -394,21 +426,8 @@ function App() {
           />
 
 
-          {/* ============ SUB STORE ============ */}
 
-          <Route
-            path="/substore"
-            element={
-              <ProtectedRoute
-                allowedRoles={[
-                  "SUB_STORE_MANAGER",
-                  "SUB_STORE_SUPERVISOR",
-                ]}
-              >
-                <h2>Sub Store Dashboard</h2>
-              </ProtectedRoute>
-            }
-          />
+  
 
 
           {/* ============ CREATE STORE ============ */}
@@ -431,7 +450,9 @@ function App() {
           />
 
         </Routes>
+
       </div>
+       
     </>
   );
 }

@@ -423,6 +423,7 @@ tr {
 .table td {
   padding: 4px 6px;
   line-height: 1.2;
+  font-size: 18px;
   vertical-align: middle;
   height: auto;
 }
@@ -469,7 +470,7 @@ tr {
 .headerCell {
   text-align: center !important;
   font-weight: 600 !important;
-  font-size: 13px !important;
+  font-size: 18px !important;
   color: white !important;
   border: 1px solid rgba(8, 0, 0, 0.2) !important;
   vertical-align: middle !important;
@@ -635,6 +636,23 @@ tr {
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+
+.exportButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: 1px solid #08b355;
+  background-color: #08b355;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+
+
 
 .spinning {
   animation: spin 1s linear infinite;

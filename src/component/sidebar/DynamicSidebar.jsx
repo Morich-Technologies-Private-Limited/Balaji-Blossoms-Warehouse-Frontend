@@ -4,6 +4,9 @@ import styles from './DynamicSidebar.module.css';
 import { Logout } from '../utils/Logout';
 import Logo2 from "../../assets/logo2.png";
 import Logo3 from "../../assets/logo3.png";
+import { createBackupApi } from '../../api/createBackupApi';
+import { showMessagePopUp } from '../modal/MessagePopUp';
+import { useSafeNavigate } from '../../useSafeNavigate';
 
 // 🔹 Build flag - set to false before the production deploy
 const IS_DEVELOPMENT_MODE = true;
@@ -11,8 +14,9 @@ const IS_DEVELOPMENT_MODE = true;
 const DynamicSidebar = ({ role, onSidebarChange }) => {
   const [isOpen, setIsOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
+  const [isCreatingBackup, setIsCreatingBackup] = useState(false);
 
-  const navigate = useNavigate();
+  const navigate = useSafeNavigate();
   const location = useLocation();
 
   // Detect mobile screen size
@@ -55,15 +59,36 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
     closeSidebarOnMobile();
   };
 
+  // 🔹 Handle item click (navigation or action)
+  const handleItemClick = (item) => {
+    if (item.action === 'backup') {
+      handleCreateBackup();
+    } else if (item.link) {
+      handleNavigation(item.link);
+    }
+  };
+
   const handleLogout = () => {
     Logout(navigate);
     closeSidebarOnMobile();
   };
 
-  // ============================================================
-  // SIDEBAR CONFIGURATION
-  // ============================================================
+  // 🔹 Handle Backup Creation
+  const handleCreateBackup = async () => {
+    setIsCreatingBackup(true);
+    try {
+      const response = await createBackupApi();
+      
+        showMessagePopUp("INFO", response.data, response.data.errorList || []);   
+    } catch (error) {
+      console.error('Backup creation error:', error);
+      showMessagePopUp("ERROR", `❌ Error creating backup: ${error.message || 'Server error'}`, []);
+    } finally {
+      setIsCreatingBackup(false);
+    }
+  };
 
+  // 🔹 Sidebar configuration
   const sidebarConfig = {
     // ==========================================================
     // ADMIN
@@ -96,7 +121,7 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
         {
           icon: 'bi-person-badge',
           text: 'User Management',
-          link: '/admin/manage/user'
+          link: '/admin/user/management'
         },
         {
           icon: 'bi-boxes',
@@ -129,6 +154,16 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
           icon: 'bi-clock-history',
           text: 'Transfer History',
           link: '/admin/view/tranferHistory'
+        },
+        {
+          icon: 'bi-boxes',
+          text: 'Request View',
+          link: '/admin/request/view'
+        },
+        {
+          icon: 'bi-database-fill-up',
+          text: 'Create Backup',
+          action: 'backup'
         }
       ]
     },
@@ -193,6 +228,11 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
           icon: 'bi-clock-history',
           text: 'Transfer History',
           link: '/mainstore/view/tranferHistory'
+        },
+        {
+          icon: 'bi-database-fill-up',
+          text: 'Create Backup',
+          action: 'backup'
         }
       ]
     },
@@ -264,6 +304,11 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
           icon: 'bi-person-lines-fill',
           text: 'Supervisor Inventory',
           link: '/substore/supervisor/inventory'
+        },
+        {
+          icon: 'bi-database-fill-up',
+          text: 'Create Backup',
+          action: 'backup'
         }
       ]
     },
@@ -396,21 +441,24 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
 
           {config.navItems.map((item, index) => {
 
-            const isActive = location.pathname === item.link;
+            const isActive = Boolean(item.link) && location.pathname === item.link;
+            const isBackup = item.action === 'backup';
 
             return (
               <div
-                key={`${item.link}-${index}`}
+                key={`${item.link || item.action}-${index}`}
                 className={`${styles.navItem} ${
                   isActive ? styles.active : ''
+                } ${isBackup ? styles.backupItem : ''} ${
+                  isCreatingBackup && isBackup ? styles.loading : ''
                 }`}
-                onClick={() => handleNavigation(item.link)}
+                onClick={() => handleItemClick(item)}
                 role="button"
                 tabIndex={0}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
-                    handleNavigation(item.link);
+                    handleItemClick(item);
                   }
                 }}
               >
@@ -418,13 +466,12 @@ const DynamicSidebar = ({ role, onSidebarChange }) => {
                 <i className={item.icon}></i>
 
                 <span className={styles.navText}>
-                  {item.text}
+                  {isCreatingBackup && isBackup ? 'Creating...' : item.text}
                 </span>
 
               </div>
             );
           })}
-
         </nav>
 
 

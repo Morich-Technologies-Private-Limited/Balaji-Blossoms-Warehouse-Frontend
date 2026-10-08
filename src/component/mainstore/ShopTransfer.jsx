@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Package, Trash2, Send, Building2, User, UserCheck } from 'lucide-react';
+import { Search, Package, Trash2, Send, Building2, User, UserCheck, Phone, Car } from 'lucide-react';
 import styles from './ShopTransfer.module.css';
 import { fetchStoresWithUserApi } from '../../api/findStoreAndEmployee';
 import { findProducts } from '../../api/findProducts';
 import { findProductsPacking } from '../../api/findProductsPacking';
 import { sendProductToStore } from '../../api/sendProductToStore';
+import { downloadTransferPdf } from '../../api/downloadTransferPdf';
 import { fetchProductExpiry } from '../../api/productExpiryApi';
 import { fetchSupervisorsByStore, sendMainStoreToSupervisor } from '../../api/supervisorApi';
 import { getSessionData } from '../utils/getSessionData';
@@ -71,6 +72,17 @@ const ShopTransfer = ({ ownSupervisorOnly = false }) => {
   // blocks a second submit while a transfer request is running
   const submittingRef = useRef(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Driver / vehicle details printed on the invoice
+  const [driverName, setDriverName] = useState('');
+  const [vehicleNo, setVehicleNo] = useState('');
+  const [contactNo, setContactNo] = useState('');
+
+  // Invoice (challan) preview shown after a successful transfer
+  const [transferId, setTransferId] = useState('');
+  const [showPdfModal, setShowPdfModal] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState('');
+  const [pdfBlob, setPdfBlob] = useState(null);
 
   const loadStores = async () => {
     try {
@@ -219,6 +231,15 @@ const ShopTransfer = ({ ownSupervisorOnly = false }) => {
       return value;
     }
     return e.target.value.slice(0, -1);
+  };
+
+  // Validate contact number (10 digits)
+  const handleContactNoInput = (e) => {
+    const value = e.target.value;
+    // Allow only digits and limit to 10 characters
+    if (value === '' || /^\d{0,10}$/.test(value)) {
+      setContactNo(value);
+    }
   };
 
   useEffect(() => {
@@ -517,6 +538,71 @@ const ShopTransfer = ({ ownSupervisorOnly = false }) => {
     }
   };
 
+  const handleClosePdfModal = () => {
+    setShowPdfModal(false);
+
+    // Cleanup blob URL to prevent memory leak
+    if (pdfUrl) {
+      window.URL.revokeObjectURL(pdfUrl);
+    }
+
+    setPdfUrl('');
+    setPdfBlob(null);
+    setTransferId('');
+  };
+
+  const handlePrintPdf = () => {
+    const iframe = document.getElementById('pdfIframe');
+    if (iframe && iframe.contentWindow) {
+      iframe.contentWindow.focus();
+      iframe.contentWindow.print();
+    }
+  };
+
+  const handleDownloadPdf = () => {
+    if (!pdfBlob) return;
+
+    try {
+      // Create download link from already fetched blob
+      const url = window.URL.createObjectURL(pdfBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Invoice-${transferId}.pdf`;
+
+      document.body.appendChild(link);
+      link.click();
+
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Failed to download PDF:', error);
+      notify.error("Failed to download invoice. Please try again.");
+    }
+  };
+
+  // Fetch PDF after successful transfer
+  const fetchAndShowPdf = async (newTransferId) => {
+    try {
+      const response = await downloadTransferPdf(newTransferId);
+
+      // the api returns an error object (not a blob) when the invoice could not be loaded
+      if (response.status !== 200 || !(response.data instanceof Blob)) {
+        throw new Error(response.data?.message || 'Invoice not available');
+      }
+
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+
+      // Store blob for later download, URL for iframe viewing
+      setPdfBlob(blob);
+      setPdfUrl(window.URL.createObjectURL(blob));
+      setTransferId(newTransferId);
+      setShowPdfModal(true);
+    } catch (error) {
+      console.error('Failed to load PDF:', error);
+      notify.error(error.message || 'Failed to load invoice preview. Please try again.');
+    }
+  };
+
   const handleSubmit = async () => {
     // ignore double clicks: a second request would deduct the stock twice
     if (submittingRef.current) return;
@@ -539,6 +625,23 @@ const ShopTransfer = ({ ownSupervisorOnly = false }) => {
           notify.warning("Please select a user");
           return;
         }
+
+        // transfer to another store goes by vehicle: driver details are required
+        if (!driverName.trim()) {
+          notify.warning("Please enter driver name");
+          return;
+        }
+
+        if (!vehicleNo.trim()) {
+          notify.warning("Please enter vehicle number");
+          return;
+        }
+      }
+
+      // optional for a supervisor hand over, but must be complete when entered
+      if ((!sendToOwnSupervisor || contactNo) && contactNo.length !== 10) {
+        notify.warning("Contact number must be 10 digits");
+        return;
       }
 
       if (transferItems.length === 0) {
@@ -578,6 +681,9 @@ const ShopTransfer = ({ ownSupervisorOnly = false }) => {
         receiverStoreId: Number(selectedStore),
         userId: selectedUser,
         userName: selectedUserObj?.name || "",
+        driverName: driverName.trim(),
+        vehicleNo: vehicleNo.trim(),
+        contactNo: contactNo,
         stockList: transferItems.map(item => {
           // Build transfer metadata
           let transferMetadata;
@@ -644,6 +750,14 @@ const ShopTransfer = ({ ownSupervisorOnly = false }) => {
         setSupervisors([]);
         setSelectedSupervisorId("");
         setOwnSupervisorId("");
+        setDriverName("");
+        setVehicleNo("");
+        setContactNo("");
+
+        // payload is the sender (OUT) transfer id: show its invoice
+        if (response.data.payload) {
+          fetchAndShowPdf(response.data.payload);
+        }
       } else {
         notify.error(response.data.message || "Unable to transfer stock");
       }
@@ -811,6 +925,49 @@ const ShopTransfer = ({ ownSupervisorOnly = false }) => {
               )}
             </>
           )}
+
+          <div className={styles.selectGroup}>
+            <label className={styles.inputLabel}>
+              <User size={16} />
+              Driver Name:
+            </label>
+            <input
+              type="text"
+              className={styles.selectInput}
+              placeholder="Enter driver name"
+              value={driverName}
+              onChange={(e) => setDriverName(e.target.value)}
+            />
+          </div>
+
+          <div className={styles.selectGroup}>
+            <label className={styles.inputLabel}>
+              <Car size={16} />
+              Vehicle No:
+            </label>
+            <input
+              type="text"
+              className={styles.selectInput}
+              placeholder="Enter vehicle number"
+              value={vehicleNo}
+              onChange={(e) => setVehicleNo(e.target.value)}
+            />
+          </div>
+
+          <div className={styles.selectGroup}>
+            <label className={styles.inputLabel}>
+              <Phone size={16} />
+              Contact No:
+            </label>
+            <input
+              type="text"
+              className={styles.selectInput}
+              placeholder="Enter 10-digit contact number"
+              value={contactNo}
+              onChange={handleContactNoInput}
+              maxLength={10}
+            />
+          </div>
 
           {canSendToSupervisor && !ownSupervisorOnly && (
             <label className={styles.inputLabel} style={{ gap: 8, cursor: 'pointer', whiteSpace: 'nowrap', flex: '0 0 auto' }}>
@@ -1054,6 +1211,48 @@ const ShopTransfer = ({ ownSupervisorOnly = false }) => {
           </button>
         </div>
       </div>
+
+      {showPdfModal && (
+        <div className={styles.modalOverlay} onClick={handleClosePdfModal}>
+          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h2 className={styles.modalTitle}>Transfer Invoice</h2>
+              <button
+                className={styles.closeButton}
+                onClick={handleClosePdfModal}
+                title="Close"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className={styles.modalBody}>
+              <iframe
+                id="pdfIframe"
+                src={pdfUrl}
+                className={styles.pdfIframe}
+                title="Transfer Invoice PDF"
+              />
+            </div>
+
+            <div className={styles.modalFooter}>
+              <button
+                className={styles.printButton}
+                onClick={handlePrintPdf}
+              >
+                Print Invoice
+              </button>
+              <button
+                className={styles.downloadButton}
+                onClick={handleDownloadPdf}
+              >
+                Download Invoice
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

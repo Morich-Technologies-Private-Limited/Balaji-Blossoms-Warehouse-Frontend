@@ -3,7 +3,7 @@ import styles from './LoginForm.module.css';
 import logo from "../../assets/logo.png";
 import { loginApi, devModeLogin } from '../../api/loginApi';
 import { supervisorLoginApi } from '../../supervisor/supervisorPortalApi';
-import { useNavigate } from 'react-router-dom';
+import { useSafeNavigate } from '../../useSafeNavigate';
 import { useStores } from '../../context/StoreContext';
 import { notify } from '../utils/feedback';
 
@@ -17,7 +17,7 @@ const LoginForm = () => {
   const [isSupervisorLogin, setIsSupervisorLogin] = useState(false);
 
   const { loadStores } = useStores();
-  const navigate = useNavigate();
+  const navigate = useSafeNavigate();
 
   // Check if dev mode is enabled
   const isDevMode = import.meta.env.VITE_DEV_MODE === 'true';
@@ -373,7 +373,7 @@ const LoginForm = () => {
                           isSupervisorLogin
                             ? 'bi-phone'
                             : 'bi-person'
-                        }`}
+                        } ${styles.inputIcon}`}
                       ></i>
 
                       <input
@@ -382,7 +382,7 @@ const LoginForm = () => {
                             ? 'tel'
                             : 'text'
                         }
-                        className="form-control"
+                        className={`form-control ${styles.inputField}`}
                         placeholder={
                           isSupervisorLogin
                             ? '10 digit mobile number'
@@ -424,7 +424,7 @@ const LoginForm = () => {
 
                     <div className={styles.inputWrapper}>
 
-                      <i className="bi bi-lock"></i>
+                      <i className={`bi bi-lock ${styles.inputIcon}`}></i>
 
                       <input
                         type={
@@ -432,7 +432,7 @@ const LoginForm = () => {
                             ? 'text'
                             : 'password'
                         }
-                        className="form-control"
+                        className={`form-control ${styles.inputField}`}
                         placeholder="Enter your password"
                         value={password}
                         onChange={(e) =>
@@ -496,7 +496,10 @@ const LoginForm = () => {
                     <a
                       href="#"
                       className={`small ${styles.linkPrimary}`}
-                      onClick={(e) => e.preventDefault()}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        navigate('/forgot-password');
+                      }}
                     >
                       Forgot password?
                     </a>

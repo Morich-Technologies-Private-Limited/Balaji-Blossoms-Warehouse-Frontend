@@ -1,5 +1,4 @@
 /* Branding Side */
-
 .brandingSide {
   background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
   position: relative;
@@ -124,63 +123,88 @@
   border: 1px solid #e9ecef;
 }
 
-/* Input Wrapper */
+/* Input Wrapper - FIXED */
 .inputWrapper {
   position: relative;
   display: flex;
   align-items: center;
+  width: 100%;
 }
 
-.inputWrapper i {
+/* Input Icon (envelope/lock) */
+.inputIcon {
   position: absolute;
   left: 1rem;
   color: #6c757d;
-  font-size: 1rem;
-  z-index: 1;
+  z-index: 2;
   pointer-events: none;
+  font-size: 1rem;
 }
 
-.inputWrapper input {
+/* Input Field */
+.inputField {
   width: 100%;
-  padding: 0.875rem 1rem 0.875rem 3rem;
-  border: 1.5px solid #e9ecef;
-  border-radius: 10px;
-  font-size: 0.95rem;
+  padding: 0.75rem 3rem 0.75rem 2.75rem !important;
+  border: 1px solid #ced4da;
+  border-radius: 8px;
+  font-size: 1rem;
   transition: all 0.2s ease;
-  background-color: #f8f9fa;
 }
 
-.inputWrapper input:focus {
-  outline: none;
+.inputField:focus {
   border-color: #2196F3;
-  background-color: #fff;
-  box-shadow: 0 0 0 4px rgba(33, 150, 243, 0.08);
+  box-shadow: 0 0 0 4px rgba(33, 150, 243, 0.1);
+  outline: none;
 }
 
-.inputWrapper input::placeholder {
-  color: #adb5bd;
+.inputField:disabled {
+  background-color: #f8f9fa;
+  cursor: not-allowed;
 }
 
-
-/* Password Toggle */
+/* Toggle Password Button - FIXED */
 .togglePassword {
   position: absolute;
-  right: 1rem;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
   background: none;
   border: none;
   color: #6c757d;
   cursor: pointer;
   padding: 0.5rem;
-  transition: color 0.2s ease;
-  z-index: 2;
+  transition: all 0.2s ease;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 4px;
 }
 
 .togglePassword:hover {
   color: #2196F3;
+  background-color: rgba(33, 150, 243, 0.1);
 }
 
 .togglePassword:focus {
-  outline: none;
+  outline: 2px solid #2196F3;
+  outline-offset: 2px;
+}
+
+.togglePassword:active {
+  background-color: rgba(33, 150, 243, 0.2);
+}
+
+.togglePassword:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.togglePassword i {
+  font-size: 1.1rem;
+  pointer-events: none;
 }
 
 /* Primary Button */
@@ -194,22 +218,28 @@
   box-shadow: 0 4px 10px rgba(33, 150, 243, 0.2);
 }
 
-.btnPrimary:hover {
+.btnPrimary:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(33, 150, 243, 0.35);
   color: white;
 }
 
-.btnPrimary:active {
+.btnPrimary:active:not(:disabled) {
   transform: translateY(0);
   box-shadow: 0 2px 8px rgba(33, 150, 243, 0.25);
 }
 
-
+.btnPrimary:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
 
 /* Links */
 .linkPrimary {
   color: #2196F3;
+  background-color: white;
+  border: none;
   text-decoration: none;
   font-weight: 600;
   transition: color 0.2s ease;
@@ -263,12 +293,47 @@
     font-size: 1.35rem;
   }
   
-  .socialBtn span {
-    display: none;
-  }
-  
   .btnPrimary {
     font-size: 0.95rem;
+  }
+
+  /* Adjust input padding for mobile */
+  .inputField {
+    padding: 0.65rem 2.75rem 0.65rem 2.5rem !important;
+    font-size: 0.95rem;
+  }
+
+  .inputIcon {
+    left: 0.85rem;
+    font-size: 0.95rem;
+  }
+
+  .togglePassword {
+    right: 0.5rem;
+    width: 1.75rem;
+    height: 1.75rem;
+    padding: 0.35rem;
+  }
+
+  .togglePassword i {
+    font-size: 1rem;
+  }
+}
+
+/* Extra small devices */
+@media (max-width: 375px) {
+  .inputField {
+    padding: 0.6rem 2.5rem 0.6rem 2.25rem !important;
+    font-size: 0.9rem;
+  }
+
+  .inputIcon {
+    left: 0.75rem;
+    font-size: 0.9rem;
+  }
+
+  .togglePassword {
+    right: 0.4rem;
   }
 }
 
@@ -291,5 +356,13 @@
 
 button:focus-visible,
 input:focus-visible {
-  outline: none;
+  outline: 2px solid #2196F3;
+  outline-offset: 2px;
+}
+
+/* Loading state */
+.btnPrimary .spinner-border {
+  width: 1rem;
+  height: 1rem;
+  border-width: 2px;
 }

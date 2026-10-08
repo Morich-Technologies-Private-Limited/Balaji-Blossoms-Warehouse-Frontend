@@ -8,8 +8,6 @@
   overflow: hidden;
 }
 
-
-
 .container {
   flex: 1;
   display: flex;
@@ -43,7 +41,6 @@
 }
 
 /* Controls Section */
-/* Controls Section */
 .controlsSection {
   flex-shrink: 0;
   margin-bottom: 20px;
@@ -69,7 +66,6 @@
   flex: 1;
   min-width: 125%;
 }
-
 
 .searchIcon {
   position: absolute;
@@ -157,8 +153,6 @@
   border: 2px solid #2563eb;
   height: 46px;
   box-sizing: border-box;
-  min-width: 200px;
-  
 }
 
 .storeIcon {
@@ -205,7 +199,6 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  min-width: fit-content;
 }
 
 .exportBtn:hover {
@@ -414,14 +407,16 @@
   background: #1d4ed8;
 }
 
-/* Table Container */
+/* Table Container - FIXED */
 .tableContainer {
   flex: 1;
   background: white;
   border-radius: 8px;
   margin-left: 20px;
+  margin-right: 20px; /* Added right margin */
   margin-bottom: 20px;
   overflow: hidden;
+  display: flex;
   flex-direction: column;
   min-height: 0;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -431,7 +426,7 @@
   width: 100%;
   border-collapse: collapse;
   display: block;
-  overflow: auto;
+  overflow-x: auto; /* Allow horizontal scroll if needed */
   height: 100%;
 }
 
@@ -443,7 +438,13 @@
   z-index: 10;
   display: table;
   width: 100%;
+  table-layout: fixed;
+}
 
+.table tbody {
+  display: block;
+  overflow-y: auto;
+  width: 100%;
 }
 
 .table tbody tr {
@@ -459,6 +460,57 @@
   font-size: 13px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+
+/* Specific column widths to prevent cutting */
+.table th:nth-child(1), /* Checkbox */
+.table td:nth-child(1) {
+  width: 50px;
+  min-width: 50px;
+}
+
+
+.table th:nth-child(2), /* Transfer ID */
+.table td:nth-child(2) {
+  width: 130px;
+  min-width: 130px;
+}
+
+.table th:nth-child(3), /* Type */
+.table td:nth-child(3) {
+  width: 90px;
+  min-width: 90px;
+}
+
+.table th:nth-child(4), /* Date & Time */
+.table td:nth-child(4) {
+  width: 200px;
+  min-width: 200px;
+}
+
+.table th:nth-child(5), /* Sender */
+.table td:nth-child(5) {
+  width: 200px;
+  min-width: 180px;
+}
+
+.table th:nth-child(6), /* Receiver */
+.table td:nth-child(6) {
+  width: 180px;
+  min-width: 180px;
+}
+
+.table th:nth-child(7), /* Items */
+.table td:nth-child(7) {
+  width: 100px;
+  min-width: 100px;
+}
+
+.table th:nth-child(8), /* Actions - MOST IMPORTANT FIX */
+.table td:nth-child(8) {
+  width: 220px;
+  min-width: 220px;
+  padding-right: 16px; /* Extra padding on right */
 }
 
 .checkboxCol {
@@ -562,6 +614,9 @@
   font-weight: 600;
   color: #1e3a5f;
   margin-bottom: 2px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
 }
 
 .userContact {
@@ -760,6 +815,376 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
+/* Action buttons container - FIXED */
+.actionButtons {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+}
+
+/* Download button */
+.downloadBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.downloadBtn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.downloadBtn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.downloadBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: linear-gradient(135deg, #999 0%, #777 100%);
+}
+
+/* Delete button styles for Admin */
+.deleteBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.deleteBtn:hover:not(:disabled) {
+  background-color: #c82333;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+}
+
+.deleteBtn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.deleteBtn:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Request Delete button styles for regular users */
+.requestDeleteBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background-color: #ff9800;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.requestDeleteBtn:hover:not(:disabled) {
+  background-color: #f57c00;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(255, 152, 0, 0.3);
+}
+
+.requestDeleteBtn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.requestDeleteBtn:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.actionBtnText,
+.deleteBtnText {
+  display: inline;
+}
+
+/* Delete Modal Styles */
+.deleteModalContent {
+  background: white;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 520px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  animation: deleteModalSlideIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  overflow: hidden;
+}
+
+@keyframes deleteModalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.deleteModalHeader {
+  padding: 28px 32px 20px;
+  text-align: center;
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  border-bottom: 3px solid #dc2626;
+}
+
+.deleteIconWrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  background: white;
+  border-radius: 50%;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
+  }
+  50% {
+    box-shadow: 0 4px 20px rgba(220, 38, 38, 0.4);
+  }
+}
+
+.deleteIconWrapper svg {
+  color: #dc2626;
+}
+
+.deleteModalHeader h3 {
+  margin: 0 0 8px;
+  font-size: 22px;
+  font-weight: 700;
+  color: #991b1b;
+}
+
+.deleteModalSubtitle {
+  margin: 0;
+  font-size: 14px;
+  color: #7f1d1d;
+  line-height: 1.5;
+}
+
+.deleteModalBody {
+  padding: 28px 32px;
+  background: white;
+}
+
+.transferIdDisplay {
+  background: #f9fafb;
+  padding: 14px 18px;
+  border-radius: 10px;
+  margin-bottom: 24px;
+  border: 2px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.transferIdLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.transferIdValue {
+  font-family: 'Courier New', monospace;
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e3a5f;
+  background: white;
+  padding: 4px 12px;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+}
+
+.deleteFormGroup {
+  margin: 0;
+}
+
+.deleteFormGroup label {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.required {
+  color: #dc2626;
+  margin-left: 2px;
+}
+
+.deleteReasonTextarea {
+  width: 100%;
+  padding: 14px 16px;
+  border: 2px solid #d1d5db;
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: white;
+  color: black;
+  resize: vertical;
+  min-height: 100px;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+.deleteReasonTextarea:focus {
+  outline: none;
+  border-color: #dc2626;
+  box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.1);
+}
+
+.deleteReasonTextarea::placeholder {
+  color: #9ca3af;
+}
+
+.charCount {
+  text-align: right;
+  margin-top: 8px;
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.deleteModalFooter {
+  display: flex;
+  gap: 12px;
+  padding: 20px 32px 28px;
+  background: #f9fafb;
+  border-top: 1px solid #e5e7eb;
+}
+
+.deleteCancelBtn {
+  flex: 1;
+  padding: 12px 24px;
+  border: 2px solid #d1d5db;
+  border-radius: 10px;
+  background: white;
+  color: #374151;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.deleteCancelBtn:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+  transform: translateY(-1px);
+}
+
+.deleteCancelBtn:active {
+  transform: translateY(0);
+}
+
+.deleteConfirmBtn {
+  flex: 1;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 6px rgba(220, 38, 38, 0.2);
+}
+
+.deleteConfirmBtn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(220, 38, 38, 0.3);
+}
+
+.deleteConfirmBtn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.deleteConfirmBtn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  opacity: 0.5;
+  box-shadow: none;
+}
+
+.requestConfirmBtn {
+  flex: 1;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 6px rgba(255, 152, 0, 0.2);
+}
+
+.requestConfirmBtn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #f57c00 0%, #e65100 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(255, 152, 0, 0.3);
+}
+
+.requestConfirmBtn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.requestConfirmBtn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  opacity: 0.5;
+  box-shadow: none;
+}
+
 /* Mobile Responsive */
 .hideOnMobile {
   display: table-cell;
@@ -783,6 +1208,24 @@
     font-size: 11px;
     color: #6b7280;
     margin-top: 2px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
+  }
+
+
+    .showOnMobileTable {
+    display: block;
+    font-size: 11px;
+    color: white;
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 2px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
   }
 
   .mobileDateTime {
@@ -820,6 +1263,7 @@
   }
 
   .storeSelectWrapper {
+    width: 100%;
     max-width: 100%;
   }
 
@@ -853,21 +1297,41 @@
 
   .table th,
   .table td {
-    padding: 12px 8px;
-    font-size: 13px;
+    padding: 10px 6px;
+    font-size: 12px;
+  }
+
+  /* Remove fixed widths on mobile */
+  .table th,
+  .table td {
+    width: auto !important;
+    min-width: auto !important;
   }
 
   .userInfo {
     flex-direction: row;
     gap: 6px;
+    align-items: flex-start;
+    max-width: 100%;
+  }
+
+  .userInfo > div {
+    flex: 1;
+    min-width: 0;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
   }
 
   .userName {
-    font-size: 13px;
+    font-size: 12px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
+    line-height: 1.3;
   }
 
   .userContact {
-    font-size: 11px;
+    font-size: 10px;
   }
 
   .expandedContent {
@@ -904,6 +1368,79 @@
 
   .tableContainer {
     margin-left: 0;
+    margin-right: 0;
+  }
+
+  /* Action buttons stacked vertically on mobile */
+  .actionButtons {
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+  }
+
+  .downloadBtn,
+  .deleteBtn,
+  .requestDeleteBtn {
+    width: 100%;
+    justify-content: center;
+    font-size: 11px;
+    padding: 8px 10px;
+  }
+
+  .actionBtnText,
+  .deleteBtnText {
+    display: inline;
+  }
+
+  /* Delete modal mobile */
+  .deleteModalContent {
+    max-width: 95%;
+    margin: 0 10px;
+  }
+
+  .deleteModalHeader {
+    padding: 24px 20px 16px;
+  }
+
+  .deleteIconWrapper {
+    width: 56px;
+    height: 56px;
+    margin-bottom: 12px;
+  }
+
+  .deleteModalHeader h3 {
+    font-size: 20px;
+  }
+
+  .deleteModalSubtitle {
+    font-size: 13px;
+  }
+
+  .deleteModalBody {
+    padding: 20px;
+  }
+
+  .transferIdDisplay {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 12px 16px;
+  }
+
+  .transferIdValue {
+    width: 100%;
+    text-align: center;
+  }
+
+  .deleteModalFooter {
+    padding: 16px 20px 24px;
+    flex-direction: column;
+  }
+
+  .deleteCancelBtn,
+  .deleteConfirmBtn,
+  .requestConfirmBtn {
+    width: 100%;
   }
 }
 
@@ -919,8 +1456,8 @@
 
   .table th,
   .table td {
-    padding: 10px 6px;
-    font-size: 12px;
+    padding: 8px 4px;
+    font-size: 11px;
   }
 
   .badge {
@@ -930,7 +1467,7 @@
 
   .expandCol,
   .checkboxCol {
-    width: 40px;
+    width: 35px;
   }
 
   .modalHeader {
@@ -950,5 +1487,38 @@
   .applyBtn {
     width: 100%;
   }
+
+  .userName {
+    font-size: 11px;
+  }
+
+  .userContact {
+    font-size: 9px;
+  }
+
+  .actionButtons {
+    gap: 4px;
+  }
+
+  .downloadBtn,
+  .deleteBtn,
+  .requestDeleteBtn {
+    font-size: 10px;
+    padding: 6px 8px;
+  }
+
+  .actionBtnText,
+  .deleteBtnText {
+    font-size: 10px;
+  }
 }
 
+@media (min-width: 769px) {
+  .deleteBtnText {
+    display: inline;
+  }
+  
+  .actionBtnText {
+    display: inline;
+  }
+}

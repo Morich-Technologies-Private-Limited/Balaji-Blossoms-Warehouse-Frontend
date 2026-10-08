@@ -1,33 +1,87 @@
-/* CreateStore.module.css */
 .container {
-  min-height: 100vh;
-  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  background: #f0f2f5;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  min-height: 90vh;
+}
+
+.header {
+  color: white;
+  position: sticky;
+  justify-content: center;
+  justify-items: center;
+  background: #0f4776;
+  padding: 0.875rem 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+.headerContent {
+  margin: 0 auto;
+}
+
+.headerTitle {
+  color: white;
+  font-size: 1.35rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.mainContent {
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 1rem;
 }
 
-.formCard {
-  background: white;
-  border-radius: 16px;
-  padding: 2.5rem;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-  max-width: 500px;
+.contentWrapper {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  max-width: 1400px;
   width: 100%;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  min-height: 600px;
+}
+
+.formSection {
+  padding: 2.5rem;
+  background: white;
+  overflow-y: auto;
+}
+
+.formHeader {
+  margin-bottom: 2rem;
 }
 
 .title {
-  text-align: center;
-  color: #1f2937;
-  margin-bottom: 2rem;
+  color: #1877f2;
+  margin: 0 0 0.5rem 0;
   font-size: 1.75rem;
-  font-weight: 600;
+  font-weight: 700;
+}
+
+.subtitle {
+  color: #65676b;
+  margin: 0;
+  font-size: 0.9rem;
 }
 
 .form {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 0.5rem;
+}
+
+.inputRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
 }
 
 .inputGroup {
@@ -38,122 +92,356 @@
 
 .label {
   font-weight: 500;
-  color: #374151;
-  font-size: 0.875rem;
+  color: #1c1e21;
+  font-size: 0.9rem;
+  display: block;
+}
+
+.required {
+  color: #ef4444;
+  font-weight: 700;
 }
 
 .input,
 .textarea,
 .select {
-  padding: 0.75rem 1rem;
-  border: 2px solid #e5e7eb;
-  border-radius: 8px;
-  font-size: 1rem;
+  padding: 0.75rem;
+  border: 1px solid #dddfe2;
+  width: 100%;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   transition: all 0.2s ease;
-  background: #f9fafb;
+  background: white;
+  color: #1c1e21;
 }
 
 .input:focus,
 .textarea:focus,
 .select:focus {
   outline: none;
-  border-color: #667eea;
-  background: white;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #1877f2;
+  box-shadow: 0 0 0 2px rgba(24, 119, 242, 0.1);
 }
 
 .textarea {
   resize: vertical;
   min-height: 80px;
+  max-height: 120px;
+  line-height: 1.5;
 }
 
-.input.error,
-.textarea.error,
-.select.error {
-  border-color: #ef4444;
-  background: #fef2f2;
+.inputError {
+  border-color: #ef4444 !important;
+  background: #fef2f2 !important;
+}
+
+.inputError:focus {
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.1) !important;
 }
 
 .errorText {
   color: #ef4444;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   font-weight: 500;
+  margin-top: -0.25rem;
 }
 
+.selectWrapper {
+  position: relative;
+}
+
+.select {
+  appearance: none;
+  cursor: pointer;
+  padding-right: 2.5rem;
+}
+
+.selectIcon {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: #65676b;
+}
+
+.select option {
+  padding: 0.5rem;
+  background: white;
+  color: #1c1e21;
+}
+
+.buttonGroup {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.resetButton,
 .submitButton {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 1rem 2rem;
+  flex: 1;
+  padding: 0.875rem 1.5rem;
   border: none;
-  border-radius: 8px;
-  font-size: 1rem;
+  border-radius: 6px;
+  font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
-  margin-top: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.resetButton {
+  background: #e4e6eb;
+  color: #050505;
+}
+
+.resetButton:hover:not(:disabled) {
+  background: #d8dadf;
+}
+
+.submitButton {
+  background: #1877f2;
+  color: white;
 }
 
 .submitButton:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 10px 15px -3px rgba(102, 126, 234, 0.4);
+  background: #166fe5;
 }
 
-.submitButton:disabled {
-  opacity: 0.7;
+.submitButton:disabled,
+.resetButton:disabled {
+  opacity: 0.6;
   cursor: not-allowed;
-  transform: none;
 }
 
 .submitButton.loading {
   position: relative;
 }
 
-.submitButton.loading::after {
-  content: '';
-  position: absolute;
+.buttonSpinner {
   width: 16px;
   height: 16px;
-  margin: auto;
-  border: 2px solid transparent;
-  border-top-color: currentColor;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
   border-radius: 50%;
-  animation: spin 1s linear infinite;
-  right: 1rem;
-  top: 0;
-  bottom: 0;
+  animation: spin 0.8s linear infinite;
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .successMessage {
-  background: #d1fae5;
-  color: #065f46;
-  padding: 1rem;
-  border-radius: 8px;
-  border: 1px solid #a7f3d0;
-  text-align: center;
+  background: #d1f4e0;
+  color: #00632b;
+  padding: 0.875rem 1rem;
+  border-radius: 6px;
+  border: 1px solid #9dd9bb;
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
   font-weight: 500;
+  font-size: 0.9rem;
+  animation: slideIn 0.3s ease-out;
 }
 
 .errorMessage {
-  background: #fef2f2;
-  color: #dc2626;
-  padding: 1rem;
-  border-radius: 8px;
-  border: 1px solid #fecaca;
-  text-align: center;
+  background: #ffebe9;
+  color: #c92a2a;
+  padding: 0.875rem 1rem;
+  border-radius: 6px;
+  border: 1px solid #f5c2c7;
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
   font-weight: 500;
+  font-size: 0.9rem;
+  animation: slideIn 0.3s ease-out;
 }
 
-@media (max-width: 640px) {
-  .container {
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Info Panel Styles */
+.infoPanel {
+  background: linear-gradient(180deg, #1877f2 0%, #0c63d4 100%);
+  padding: 2.5rem;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.infoPanelContent {
+  max-width: 500px;
+  width: 100%;
+}
+
+.iconWrapper {
+  width: 80px;
+  height: 80px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.infoPanelTitle {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0 0 1rem 0;
+  color: white;
+}
+
+.infoPanelText {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.95);
+  margin: 0 0 2rem 0;
+}
+
+.infoPanelBox {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 1.75rem;
+  margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.infoPanelBox svg {
+  opacity: 0.6;
+  margin-bottom: 1rem;
+}
+
+.infoPanelBoxText {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+}
+
+.infoPanelFeatures {
+  margin-top: 2rem;
+}
+
+.featuresTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 1rem 0;
+  color: white;
+}
+
+.featuresList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.featuresList li {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.featuresList li svg {
+  flex-shrink: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .contentWrapper {
+    grid-template-columns: 1fr;
+  }
+
+  .infoPanel {
+    display: none;
+  }
+
+  .formSection {
+    padding: 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    padding: 0.75rem 1rem;
+  }
+
+  .headerTitle {
+    font-size: 1.2rem;
+  }
+
+  .mainContent {
     padding: 1rem;
   }
-  
-  .formCard {
-    padding: 2rem 1.5rem;
+
+  .formSection {
+    padding: 1.5rem;
+  }
+
+  .inputRow {
+    grid-template-columns: 1fr;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .buttonGroup {
+    flex-direction: column;
+  }
+
+  .resetButton,
+  .submitButton {
+    width: 100%;
+  }
+}
+
+@media (max-width: 576px) {
+  .mainContent {
+    padding: 0.75rem;
+  }
+
+  .formSection {
+    padding: 1.25rem;
+  }
+
+  .title {
+    font-size: 1.35rem;
+  }
+
+  .subtitle {
+    font-size: 0.85rem;
+  }
+
+  .input,
+  .textarea,
+  .select {
+    font-size: 0.875rem;
+    padding: 0.7rem;
   }
 }

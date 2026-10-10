@@ -64,13 +64,13 @@ const AddProduct = () => {
     }
   }, [highlightedIndex]);
 
-  // SOLID: KG/G, LIQUID: L/ML, NOS / BUNDLE / PACKET / BAG: only their own count unit (same rules as backend)
+  // SOLID: KG/G, LIQUID: L/ML, NOS / BUNDLE / PACKET / BOX: only their own count unit (same rules as backend)
   const getValidUnits = (selectedCategory) => CATEGORY_UNITS[selectedCategory] || [];
 
   // NOS products: only one packing, always size 1
   const isCountProduct = (product) => !!product && hasSinglePacking(product.category);
 
-  // BUNDLE / PACKET / BAG products: any packing size (25 PACKET = 25 pieces in a packet), unit is always their own
+  // BUNDLE / PACKET / BOX products: any packing size (25 PACKET = 25 pieces in a packet), unit is always their own
   const newPackingRow = (product) => {
     if (isCountProduct(product)) return { packingSize: '1', packingUnit: product.category };
     if (product && isCountUnit(product.category)) return { packingSize: '', packingUnit: product.category };

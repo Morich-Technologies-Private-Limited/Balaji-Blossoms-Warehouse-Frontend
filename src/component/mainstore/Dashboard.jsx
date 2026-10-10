@@ -123,7 +123,7 @@ const Dashboard = () => {
   };
 
   const getDisplayUnit = (packingList) => {
-    // count based products (NOS / BUNDLE / PACKET / BAG) are totalled in their own unit, never converted
+    // count based products (NOS / BUNDLE / PACKET / BOX) are totalled in their own unit, never converted
     const countUnit = packingList.map(p => p.packingUnit).find(isCountUnit);
     if (countUnit) {
       return { primary: countUnit, secondary: null };

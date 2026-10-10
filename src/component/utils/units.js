@@ -6,18 +6,18 @@ export const UNIT_LABEL = {
   NOS: 'NOS',
   BUNDLE: 'BUNDLE',
   PACKET: 'PACKET',
-  BAG: 'BAG',
+  BOX: 'BOX',
 };
 
 const WEIGHT_UNITS = ['KILOGRAM', 'GRAM'];
 const VOLUME_UNITS = ['LITER', 'MILLILITER'];
 
-// Count units: sold by count (1.5 NOS, 2 BUNDLE, 2.5 PACKET, 2.5 BAG), never converted to another unit
-export const COUNT_UNITS = ['NOS', 'BUNDLE', 'PACKET', 'BAG'];
+// Count units: sold by count (1.5 NOS, 2 BUNDLE, 2.5 PACKET, 2.5 BOX), never converted to another unit
+export const COUNT_UNITS = ['NOS', 'BUNDLE', 'PACKET', 'BOX'];
 export const isCountUnit = (unit) => COUNT_UNITS.includes(unit);
 
 // NOS: only one packing, always size 1.
-// BUNDLE / PACKET / BAG: several packings allowed. Packing size = pieces in one packet (25 PACKET = 25 pens).
+// BUNDLE / PACKET / BOX: several packings allowed. Packing size = pieces in one packet (25 PACKET = 25 pens).
 export const SINGLE_PACKING_UNITS = ['NOS'];
 export const hasSinglePacking = (unit) => SINGLE_PACKING_UNITS.includes(unit);
 
@@ -50,7 +50,7 @@ export const CATEGORY_OPTIONS = [
   { value: 'NOS', label: 'NOS (Numbers)' },
   { value: 'BUNDLE', label: 'Bundle' },
   { value: 'PACKET', label: 'Packet' },
-  { value: 'BAG', label: 'Bag' },
+  { value: 'BOX', label: 'Box' },
 ];
 
 export const CATEGORY_UNITS = {
@@ -59,7 +59,7 @@ export const CATEGORY_UNITS = {
   NOS: ['NOS'],
   BUNDLE: ['BUNDLE'],
   PACKET: ['PACKET'],
-  BAG: ['BAG'],
+  BOX: ['BOX'],
 };
 
 // Units a quantity can be entered in for a product / packing
@@ -72,7 +72,7 @@ export const unitsFor = (category, currentUnit) => {
 };
 
 // What one packing is called: bags (solid), bottles (liquid), or the count unit itself (packets, bundles ...)
-const PACK_NAMES = { NOS: 'Nos', BUNDLE: 'Bundles', PACKET: 'Packets', BAG: 'Bags' };
+const PACK_NAMES = { NOS: 'Nos', BUNDLE: 'Bundles', PACKET: 'Packets', BOX: 'Boxes' };
 export const packName = (packingUnit) => {
   if (isCountUnit(packingUnit)) return PACK_NAMES[packingUnit];
   return VOLUME_UNITS.includes(packingUnit) ? 'Bottles' : 'Bags';

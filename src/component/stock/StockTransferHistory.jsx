@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ChevronDown, ChevronUp, Search, Package, Calendar, User, Settings, X, Store } from 'lucide-react';
+import { ChevronDown, ChevronUp, Search, Package, Calendar, User, Settings, X, Store, Trash2, Download } from 'lucide-react';
 import styles from './StockTransferHistory.module.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { findTranfserHistoryStore } from '../../api/findTranfserHistoryStore';
@@ -8,6 +8,10 @@ import { useStores } from '../../context/StoreContext';
 import { formatDate } from '../utils/date';
 import { notify } from '../utils/feedback';
 import { round3 } from '../utils/units';
+import { deleteStockTransfer } from '../../api/deleteStockTransfer';
+import { downloadTransferPdf } from '../../api/downloadTransferPdf';
+import { showMessagePopUp } from '../modal/MessagePopUp';
+import { exportTransferHistory } from '../../api/exportTransferHistory';
 
 const StockTransferHistory = () => {
   const [transferHistory, setTransferHistory] = useState([]);
@@ -18,6 +22,11 @@ const StockTransferHistory = () => {
   const [loading, setLoading] = useState(true);
   const [selectedTransfers, setSelectedTransfers] = useState(new Set());
   const [showFilterModal, setShowFilterModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteReason, setDeleteReason] = useState('');
+  const [selectedTransferId, setSelectedTransferId] = useState(null);
+  const [isAdminDelete, setIsAdminDelete] = useState(false);
+  const [downloadingTransfer, setDownloadingTransfer] = useState(null);
 
   const[allStores,setAllStores]=useState([]);
   const[selectedStore,setSelectedStore]=useState(null);
@@ -46,17 +55,13 @@ const StockTransferHistory = () => {
 
 
 
-  
-  useEffect(() => {
-    if (!selectedStore) return;
-
     const fetchTransferHistory = async () => {
       try {
+         if (!selectedStore) return;
         setLoading(true);
         setTransferHistory([]);
         setFilteredHistory([]);
         setStores([]);
-
         
         const response = await findTranfserHistoryStore(selectedStore.storeId);
 
@@ -101,68 +106,77 @@ const StockTransferHistory = () => {
       }
     };
 
+
+  
+  useEffect(() => {
     fetchTransferHistory();
   }, [selectedStore]);
 
   // Filter logic
   useEffect(() => {
-    let filtered = transferHistory;
+  let filtered = transferHistory;
 
-    // Filter by search term
-    if (searchTerm) {
-      filtered = filtered.filter(item =>
-        item.transferId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.senderDetails.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.senderDetails.contactNumber?.includes(searchTerm) ||
-        item.receiverDetails.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.receiverDetails.contactNumber?.includes(searchTerm) ||
-        item.senderDetails.storeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.receiverDetails.storeName.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
+  // Filter by search term
+  if (searchTerm) {
+    const term = searchTerm.toLowerCase();
+    filtered = filtered.filter(item =>
+      item.transferId.toLowerCase().includes(term) ||
+      item.senderDetails.name.toLowerCase().includes(term) ||
+      item.senderDetails.contactNumber?.includes(searchTerm) ||
+      item.receiverDetails.name.toLowerCase().includes(term) ||
+      item.receiverDetails.contactNumber?.includes(searchTerm) ||
+      item.senderDetails.storeName.toLowerCase().includes(term) ||
+      item.receiverDetails.storeName.toLowerCase().includes(term)
+    );
+  }
 
-    // Filter by date range
-    if (dateFrom) {
-      filtered = filtered.filter(item => {
-        const transferDate = new Date(item.transferDate);
-        const fromDate = new Date(dateFrom);
-        return transferDate >= fromDate;
-      });
-    }
+  // ✅ Inclusive date range filter
+  if (dateFrom && dateTo) {
+    const fromDate = new Date(dateFrom);
+    fromDate.setHours(0, 0, 0, 0);
 
-    if (dateTo) {
-      filtered = filtered.filter(item => {
-        const transferDate = new Date(item.transferDate);
-        const toDate = new Date(dateTo);
-        return transferDate <= toDate;
-      });
-    }
+    const toDate = new Date(dateTo);
+    toDate.setHours(23, 59, 59, 999);
 
-    // Filter by sender store
-    if (senderStore !== 'all') {
-      const storeIdNum = parseInt(senderStore);
-      filtered = filtered.filter(item =>
-        item.senderDetails.storeId === storeIdNum
-      );
-    }
+    filtered = filtered.filter(item => {
+      const transferDate = new Date(item.transferDate);
+      return transferDate >= fromDate && transferDate <= toDate;
+    });
+  }
 
-    // Filter by receiver store
-    if (receiverStore !== 'all') {
-      const storeIdNum = parseInt(receiverStore);
-      filtered = filtered.filter(item =>
-        item.receiverDetails.storeId === storeIdNum
-      );
-    }
+  // Sender store filter
+  if (senderStore !== 'all') {
+    const storeIdNum = parseInt(senderStore);
+    filtered = filtered.filter(
+      item => item.senderDetails.storeId === storeIdNum
+    );
+  }
 
-    // Filter by transfer type
-    if (transferType !== 'all') {
-      filtered = filtered.filter(item =>
-        item.transferType === transferType
-      );
-    }
+  // Receiver store filter
+  if (receiverStore !== 'all') {
+    const storeIdNum = parseInt(receiverStore);
+    filtered = filtered.filter(
+      item => item.receiverDetails.storeId === storeIdNum
+    );
+  }
 
-    setFilteredHistory(filtered);
-  }, [searchTerm, dateFrom, dateTo, senderStore, receiverStore, transferType, transferHistory]);
+  // Transfer type filter
+  if (transferType !== 'all') {
+    filtered = filtered.filter(
+      item => item.transferType === transferType
+    );
+  }
+
+  setFilteredHistory(filtered);
+}, [
+  searchTerm,
+  dateFrom,
+  dateTo,
+  senderStore,
+  receiverStore,
+  transferType,
+  transferHistory
+]);
 
 
   const formatPackingUnit = (unit) => {
@@ -179,6 +193,100 @@ const StockTransferHistory = () => {
       return unit;
   }
 };
+
+const isWithinOneHour = (transferDate) => {
+  try {
+    const transferDateTime = new Date(transferDate); // ISO → correct UTC handling
+    const now = new Date();
+
+    const diffInMs = now.getTime() - transferDateTime.getTime();
+    const diffInHours = diffInMs / (1000 * 60 * 60);
+
+    return diffInHours >= 0 && diffInHours <= 1;
+  } catch (error) {
+    console.error("Error calculating time difference:", error);
+    return false;
+  }
+};
+
+  const handleDownloadPdf = async (transferId) => {
+    try {
+      setDownloadingTransfer(transferId);
+      
+      const response = await downloadTransferPdf(transferId);
+      
+      // Create a blob from the response
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      
+      // Create a temporary URL for the blob
+      const url = window.URL.createObjectURL(blob);
+      
+      // Create a temporary anchor element and trigger download
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Transfer_${transferId}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      
+      // Cleanup
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+      showMessagePopUp("ERROR", error.message || 'Failed to download PDF', []);
+    } finally {
+      setDownloadingTransfer(null);
+    }
+  };
+
+
+  const handleDeleteAdmin = (transferId) => {
+    setSelectedTransferId(transferId);
+    setIsAdminDelete(true);
+    setShowDeleteModal(true);
+  };
+
+  const handleDelete = (transferId) => {
+    setSelectedTransferId(transferId);
+    setIsAdminDelete(false);
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteReason || deleteReason.trim() === '') {
+      alert('Please enter a reason for deletion');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      
+      const response = await deleteStockTransfer(selectedTransferId, deleteReason.trim());
+      
+      if (response.data.status === 'SUCCESS') {
+       
+        showMessagePopUp('SUCCESS', isAdminDelete ? 'Transfer deleted successfully' : 'Delete request submitted successfully', []);  
+        setShowDeleteModal(false);
+        setDeleteReason('');
+        setSelectedTransferId(null);
+        fetchTransferHistory();
+      } else {
+        showMessagePopUp(response.data.status || "FAILED", response.data.message || (isAdminDelete ? 'Failed to delete transfer' : 'Failed to submit delete request'), response.data.errorList || []);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      showMessagePopUp("ERROR", error.message || (isAdminDelete ? 'Failed to delete transfer' : 'Failed to submit delete request'), []);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteModal(false);
+    setDeleteReason('');
+    setSelectedTransferId(null);
+  };
 
 
   const toggleRow = (transferId) => {
@@ -220,12 +328,61 @@ const StockTransferHistory = () => {
   };
 
 
-  const handleExport = () => {
-    const selectedIds = Array.from(selectedTransfers);
-    console.log('Selected Transfer IDs for export:', selectedIds);
-    notify.success(`Selected ${selectedIds.length} transfers for export: ${selectedIds.join(', ')}`, 'Export');
-  };
 
+    const handleExport = async () => {
+  
+       const selectedIds = Array.from(selectedTransfers);
+  
+      if (!selectedStore) {
+        showMessagePopUp("ERROR", "Please select a store", []);
+        return;
+      }
+  
+      try {
+        const response = await exportTransferHistory(selectedStore,selectedIds);
+  
+        if (response.status === 200) {
+          // Create a blob from the response data
+          const blob = new Blob([response.data], {
+            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+          });
+  
+          // Create a download link
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          
+          // Get filename from Content-Disposition header or use default
+          const contentDisposition = response.headers['content-disposition'];
+          let filename = 'inventory.xlsx';
+          
+          if (contentDisposition) {
+            const filenameMatch = contentDisposition.match(/filename="?(.+)"?/i);
+            if (filenameMatch && filenameMatch[1]) {
+              filename = filenameMatch[1];
+            }
+          }
+          
+          link.setAttribute('download', filename);
+          document.body.appendChild(link);
+          link.click();
+          
+          // Cleanup
+          link.remove();
+          window.URL.revokeObjectURL(url);
+        } else if (response.status === 204) {
+          showMessagePopUp("INFO", "No inventory data available to export", []);
+        } else {
+          showMessagePopUp("ERROR", response.data?.message || "Failed to export inventory", []);
+        }
+      } catch (err) {
+        console.error("Export error:", err);
+        showMessagePopUp("ERROR", err.message || "Error exporting inventory", []);
+      } finally {
+  
+      }
+    };
+  
   const clearFilters = () => {
     setDateFrom('');
     setDateTo('');
@@ -301,11 +458,11 @@ const StockTransferHistory = () => {
 
 
       {selectedTransfers.size > 0 && (
-  <button className={styles.exportBtn} onClick={handleExport}>
+    <button className={styles.exportBtn} onClick={handleExport}>
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
       <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zM6 20V4h7v5h5v11H6zm2-6h8v2H8v-2zm0-3h8v2H8v-2zm0-3h5v2H8V8z"/>
     </svg>
-    Export Selected ({selectedTransfers.size})
+    Export 
   </button>
 )}
           </div>
@@ -329,17 +486,26 @@ const StockTransferHistory = () => {
                       onChange={handleSelectAll}
                     />
                   </th>
-                  <th className={styles.expandCol}></th>
-                  <th>Transfer ID</th>
+            
+
+                  <th>
+                    <span className={styles.showOnMobileTable}>TID</span>
+                    <span className={styles.hideOnMobile}>Transfer ID</span>
+                  </th>
+
                   <th>Type</th>
                   <th className={styles.hideOnMobile}>Date & Time</th>
                   <th>Sender</th>
                   <th>Receiver</th>
                   <th className={styles.hideOnMobile}>Items</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredHistory.map((transfer) => (
+                {filteredHistory.map((transfer) => {
+                  const canDelete = isWithinOneHour(transfer.transferDate);
+                  
+                  return (
                   <React.Fragment key={transfer.transferId}>
                     <tr className={styles.parentRow}>
                       <td className={styles.checkboxCol}>
@@ -350,19 +516,18 @@ const StockTransferHistory = () => {
                           onChange={() => handleCheckboxChange(transfer.transferId)}
                           onClick={(e) => e.stopPropagation()}
                         />
-                      </td>
-                      <td className={styles.expandCol}>
                         <button
-                          className={styles.expandBtn}
+                          className={`${styles.expandBtn} ${styles.mobileExpandBtn}`}
                           onClick={() => toggleRow(transfer.transferId)}
                         >
                           {expandedRows.has(transfer.transferId) ? (
-                            <ChevronUp size={18} />
+                            <ChevronUp size={16} />
                           ) : (
-                            <ChevronDown size={18} />
+                            <ChevronDown size={16} />
                           )}
                         </button>
                       </td>
+                    
                       <td>
                         <span className={styles.transferId}>{transfer.transferId}</span>
                       </td>
@@ -383,10 +548,7 @@ const StockTransferHistory = () => {
                           <User size={14} />
                           <div>
                             <div className={styles.userName}>{transfer.senderDetails.name}</div>
-                            <div className={styles.userContact}>{transfer.senderDetails.contactNumber || 'N/A'}</div>
-                            <div className={styles.showOnMobile}>
-                              {transfer.senderDetails.storeName}
-                            </div>
+                            <div className={styles.userContact}>{transfer.senderDetails.storeName}</div>
                           </div>
                         </div>
                       </td>
@@ -395,10 +557,7 @@ const StockTransferHistory = () => {
                           <User size={14} />
                           <div>
                             <div className={styles.userName}>{transfer.receiverDetails.name}</div>
-                            <div className={styles.userContact}>{transfer.receiverDetails.contactNumber || 'N/A'}</div>
-                            <div className={styles.showOnMobile}>
-                              {transfer.receiverDetails.storeName}
-                            </div>
+                            <div className={styles.userContact}>{transfer.receiverDetails.storeName}</div>
                           </div>
                         </div>
                       </td>
@@ -407,11 +566,57 @@ const StockTransferHistory = () => {
                           {transfer.stockDetails.length} item(s)
                         </span>
                       </td>
+                      <td>
+                        <div className={styles.actionButtons}>
+                          <button
+                            className={styles.downloadBtn}
+                            onClick={() => handleDownloadPdf(transfer.transferId)}
+                            disabled={downloadingTransfer === transfer.transferId}
+                            title="Download Invoice PDF"
+                          >
+                            <Download size={16} />
+                            
+                            <div className={styles.hideOnMobile}>
+                              <span className={styles.actionBtnText}>
+                                {downloadingTransfer === transfer.transferId ? 'Downloading...' : 'PDF'}
+                              </span>
+                            </div>
+
+                           
+                          </button>
+                          
+                          {role === "ADMIN" ? (
+                            <button
+                              className={styles.deleteBtn}
+                              onClick={() => handleDeleteAdmin(transfer.transferId)}
+                              disabled={!canDelete}
+                              title={!canDelete ? "Delete only available within 1 hour of transfer" : "Delete Bill"}
+                            >
+                              <Trash2 size={16} />
+                            <div className={styles.hideOnMobile}>
+                              <span className={styles.deleteBtnText}>Delete</span>
+                            </div>
+                            </button>
+                          ) : (
+                            <button
+                              className={styles.requestDeleteBtn}
+                              onClick={() => handleDelete(transfer.transferId)}
+                              disabled={!canDelete}
+                              title={!canDelete ? "Delete request only available within 1 hour of transfer" : "Request Delete"}
+                            >
+                               <div className={styles.hideOnMobile}>
+                              <Trash2 size={16} />
+                              <span className={styles.deleteBtnText}>Request</span>
+                              </div>
+                            </button>
+                          )}
+                        </div>
+                      </td>
                     </tr>
 
                     {expandedRows.has(transfer.transferId) && (
                       <tr className={styles.childRow}>
-                        <td colSpan="8">
+                        <td colSpan="9">
                           <div className={styles.expandedContent}>
                             <div className={styles.showOnMobile}>
                               <div className={styles.mobileDateTime}>
@@ -455,8 +660,15 @@ const StockTransferHistory = () => {
                                     {transfer.senderDetails.storeName}
                                   </p>
                                 )}
-                              </div>
 
+                                {transfer.senderDetails?.storeType && (
+                                  <p>
+                                    <strong>Store Type:</strong>{" "}
+                                    {transfer.senderDetails.storeType}
+                                  </p>
+                                )}
+
+                              </div>
                               {/* Receiver Details */}
                               <div className={styles.detailCard}>
                                 <h4>Receiver Details</h4>
@@ -484,13 +696,22 @@ const StockTransferHistory = () => {
                                     <strong>Role:</strong> {transfer.receiverDetails.role}
                                   </p>
                                 )}
-
+                                
                                 {transfer.receiverDetails?.storeName && (
                                   <p>
                                     <strong>Store/Nursery/Company:</strong>{" "}
                                     {transfer.receiverDetails.storeName}
                                   </p>
                                 )}
+
+
+                                {transfer.receiverDetails?.storeType && (
+                                  <p>
+                                     <strong>Store Type:</strong>{" "}
+                                    {transfer.receiverDetails.storeType}
+                                  </p>
+                                )}
+
                               </div>
                           </div>
 
@@ -559,7 +780,7 @@ const StockTransferHistory = () => {
                       </tr>
                     )}
                   </React.Fragment>
-                ))}
+                )})}
               </tbody>
             </table>
           </div>
@@ -652,8 +873,73 @@ const StockTransferHistory = () => {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className={styles.modalOverlay} onClick={handleCancelDelete}>
+          <div className={styles.deleteModalContent} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.deleteModalHeader}>
+              <div className={styles.deleteIconWrapper}>
+                <Trash2 size={24} />
+              </div>
+              <h3>{isAdminDelete ? 'Delete Transfer' : 'Request Delete Transfer'}</h3>
+              <p className={styles.deleteModalSubtitle}>
+                {isAdminDelete 
+                  ? 'This action cannot be undone. Please provide a reason for deleting this transfer.'
+                  : 'Please provide a reason for requesting deletion of this transfer.'}
+              </p>
+            </div>
+
+            <div className={styles.deleteModalBody}>
+              <div className={styles.transferIdDisplay}>
+                <span className={styles.transferIdLabel}>Transfer ID:</span>
+                <span className={styles.transferIdValue}>{selectedTransferId}</span>
+              </div>
+
+              <div className={styles.deleteFormGroup}>
+                <label htmlFor="deleteReason">
+                  Reason for {isAdminDelete ? 'Deletion' : 'Delete Request'} <span className={styles.required}>*</span>
+                </label>
+                <textarea
+                  id="deleteReason"
+                  value={deleteReason}
+                  onChange={(e) => setDeleteReason(e.target.value)}
+                  placeholder="Enter the reason here..."
+                  className={styles.deleteReasonTextarea}
+                  rows="4"
+                  maxLength="500"
+                  autoFocus
+                />
+                <div className={styles.charCount}>
+                  {deleteReason.length}/500 characters
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.deleteModalFooter}>
+              <button 
+                className={styles.deleteCancelBtn} 
+                onClick={handleCancelDelete}
+                type="button"
+              >
+                Cancel
+              </button>
+              <button 
+                className={isAdminDelete ? styles.deleteConfirmBtn : styles.requestConfirmBtn}
+                onClick={handleConfirmDelete}
+                disabled={!deleteReason.trim()}
+                type="button"
+              >
+                <Trash2 size={18} />
+                {isAdminDelete ? 'Delete Transfer' : 'Submit Request'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
+
 };
 
 export default StockTransferHistory;

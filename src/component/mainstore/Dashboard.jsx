@@ -123,7 +123,7 @@ const Dashboard = () => {
   };
 
   const getDisplayUnit = (packingList) => {
-    // count based products (NOS / BUNDLE / PACKET) are totalled in their own unit, never converted
+    // count based products (NOS / BUNDLE / PACKET / BOX) are totalled in their own unit, never converted
     const countUnit = packingList.map(p => p.packingUnit).find(isCountUnit);
     if (countUnit) {
       return { primary: countUnit, secondary: null };
@@ -160,9 +160,6 @@ const Dashboard = () => {
   const getPackageLabel = (unit) => {
     if (unit === "LITER" || unit === "MILLILITER") {
       return "Bottles";
-    }
-    if (isCountUnit(unit)) {
-      return "Packs";
     }
     return "Bags";
   };
@@ -346,7 +343,10 @@ const Dashboard = () => {
                                     {packing.packingSize} {getUnitLabel(packing.packingUnit)}
                                   </span>
                                   <span className={styles.packingQuantity}>
-                                    {packageCount} {packageLabel} ({round3(packingTotal)} {getUnitLabel(packing.packingUnit)})
+                                    {/* count unit stock already is the number of packets: no separate bags figure */}
+                                    {isCountUnit(packing.packingUnit)
+                                      ? `${round3(packingTotal)} ${getUnitLabel(packing.packingUnit)}`
+                                      : `${packageCount} ${packageLabel} (${round3(packingTotal)} ${getUnitLabel(packing.packingUnit)})`}
                                   </span>
                                 </div>
                                 <div className={styles.miniBar}>

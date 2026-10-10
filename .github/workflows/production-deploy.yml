@@ -1,0 +1,71 @@
+name: Production Deployment Action
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Select the branch to deploy'
+        required: true
+        default: 'main'
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+        with:
+          # Use manual input branch if triggered manually, otherwise default to the branch that triggered the workflow
+          ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.branch || github.ref_name }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.19.6
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build Vite frontend (PRODUCTION)
+        run: npm run build -- --mode production
+        env:                      
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
+          VITE_DEV_MODE: ${{ secrets.VITE_DEV_MODE }}
+          VITE_BASE_PATH: /smss
+
+      - name: Remove old frontend files (PROD)
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            sudo rm -rf /var/www/smss/*
+
+      - name: Upload new PROD build files
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: "dist/."
+          target: /var/www/smss/
+
+      - name: Move dist content to root (PROD)
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            mv /var/www/smss/dist/* /var/www/smss/
+            rm -rf /var/www/smss/dist

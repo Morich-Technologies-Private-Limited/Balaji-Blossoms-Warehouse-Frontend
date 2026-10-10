@@ -9,7 +9,7 @@ import {
   deleteProductExpiry,
   fetchExpiryPackingAvailability,
 } from '../../api/productExpiryApi';
-import { UNIT_LABEL, unitsFor, formatQuantity, convertUnit, round3, containerLabel } from '../utils/units';
+import { UNIT_LABEL, unitsFor, formatQuantity, convertUnit, round3, containerLabel, isCountUnit, packsToStock, stockToPacks, packName } from '../utils/units';
 import { formatDate } from '../utils/date';
 import { getSessionData } from '../utils/getSessionData';
 import { useStores } from '../../context/StoreContext';
@@ -106,6 +106,7 @@ const ProductExpiry = () => {
     setForm(prev => ({
       ...prev,
       packingId: packing ? packing.packingId : '',
+      // count units are noted in packets (their stock unit); KG / L start as bags / bottles
       inputType: 'bags',
       quantity: '',
       quantityUnit: packing ? packing.packingUnit : '',
@@ -135,7 +136,7 @@ const ProductExpiry = () => {
   const noteQuantity = (() => {
     if (form.quantity === '' || !selectedPacking) return null;
     return isBags
-      ? round3(parseFloat(form.quantity) * parseFloat(selectedPacking.packingSize))
+      ? round3(packsToStock(form.quantity, selectedPacking.packingUnit, selectedPacking.packingSize))
       : round3(form.quantity);
   })();
 
@@ -151,7 +152,7 @@ const ProductExpiry = () => {
 
   const maxBags = maxAllowed === null || !selectedPacking
     ? null
-    : Math.floor((maxAllowed / parseFloat(selectedPacking.packingSize)) * 100) / 100;
+    : Math.floor(stockToPacks(maxAllowed, selectedPacking.packingUnit, selectedPacking.packingSize) * 100) / 100;
 
   const handleQuantityChange = (value) => {
     const wholeOnly = !isBags && SMALL_UNITS.includes(form.quantityUnit);
@@ -159,7 +160,7 @@ const ProductExpiry = () => {
     if (value !== '' && !pattern.test(value)) return;
 
     if (value !== '' && maxAllowed !== null) {
-      const entered = isBags ? round3(parseFloat(value) * parseFloat(selectedPacking.packingSize)) : round3(value);
+      const entered = isBags ? round3(packsToStock(value, selectedPacking.packingUnit, selectedPacking.packingSize)) : round3(value);
       if (entered > maxAllowed) {
         notify.warning(isBags
           ? `Only ${maxBags} ${container} (${formatQuantity(maxAllowed, noteUnit)}) available for this packing`
@@ -351,8 +352,9 @@ const ProductExpiry = () => {
               onChange={(e) => handleInputTypeChange(e.target.value)}
               disabled={!form.packingId}
             >
-              <option value="bags">Bags/Bottles</option>
-              <option value="quantity">Direct Quantity</option>
+              {/* count units: packets only (2.5 packets); KG / L: bags / bottles or a direct quantity */}
+              <option value="bags">{isCountUnit(selectedPacking?.packingUnit) ? packName(selectedPacking.packingUnit) : 'Bags/Bottles'}</option>
+              {!isCountUnit(selectedPacking?.packingUnit) && <option value="quantity">Direct Quantity</option>}
             </select>
           </div>
 

@@ -9,7 +9,7 @@ import {
   fetchMyTransferHistory,
   returnToStore,
 } from './supervisorPortalApi';
-import { UNIT_LABEL, unitsFor, formatQuantity, convertUnit, round3 } from '../component/utils/units';
+import { UNIT_LABEL, unitsFor, formatQuantity, convertUnit, round3, isCountUnit, hasLoosePieces, stockToPacks, piecesToStock, packName, PIECES_LABEL } from '../component/utils/units';
 import { formatDate } from '../component/utils/date';
 import { notify, confirmAction } from '../component/utils/feedback';
 
@@ -20,6 +20,8 @@ const HISTORY_TABS = [
 
 // Extra "unit" in the quantity dropdown: count of bags / bottles (x packing size)
 const PACK = 'PACK';
+// Extra "unit" for count units: loose pieces (/ packing size), e.g. 20 pens of a 25 packet = 0.8 PACKET
+const PIECES = 'PIECES';
 const SMALL_UNITS = ['GRAM', 'MILLILITER'];
 const packLabel = (packingUnit) => (['LITER', 'MILLILITER'].includes(packingUnit) ? 'Bottles' : 'Bags');
 
@@ -238,13 +240,27 @@ const UseStockModal = ({ item, mode, onClose, onDone }) => {
   const [remark, setRemark] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  const units = [...unitsFor(null, item.packingUnit), PACK];
-  const unitLabel = (u) => (u === PACK ? packLabel(item.packingUnit) : UNIT_LABEL[u]);
+  // KG / L: any compatible unit, or bags / bottles (x packing size).
+  // Count units: packets directly (2.5 packets), or loose pieces when a packet holds more than one.
+  const isCount = isCountUnit(item.packingUnit);
+  const loosePieces = hasLoosePieces(item.packingUnit, item.packingSize);
+  const units = isCount
+    ? [item.packingUnit, ...(loosePieces ? [PIECES] : [])]
+    : [...unitsFor(null, item.packingUnit), PACK];
+  const unitLabel = (u) => {
+    if (u === PACK) return packLabel(item.packingUnit);
+    if (u === PIECES) return PIECES_LABEL;
+    return isCount && loosePieces ? packName(u) : UNIT_LABEL[u];
+  };
   const wholeOnly = SMALL_UNITS.includes(unit);
 
   // entered value in the packing unit
   const quantity = value === '' ? 0 : round3(
-    unit === PACK ? parseFloat(value) * parseFloat(item.packingSize) : convertUnit(value, unit, item.packingUnit)
+    unit === PACK
+      ? parseFloat(value) * parseFloat(item.packingSize)
+      : unit === PIECES
+        ? piecesToStock(value, item.packingSize)
+        : convertUnit(value, unit, item.packingUnit)
   );
   const overStock = quantity > (item.availableQuantity || 0);
 
@@ -257,7 +273,13 @@ const UseStockModal = ({ item, mode, onClose, onDone }) => {
   const buildEntry = () => {
     const metadata = unit === PACK
       ? { transferType: 'bags', transferUnit: item.packingUnit, weight: `${quantity.toFixed(2)} ${item.packingUnit}`, unit: String(Number(value).toFixed(2)) }
-      : { transferType: 'weight', transferUnit: unit, weight: `${Number(value).toFixed(2)} ${unit}`, unit: String((quantity / item.packingSize).toFixed(2)) };
+      : {
+          transferType: 'weight',
+          transferUnit: unit === PIECES ? item.packingUnit : unit,
+          weight: `${Number(value).toFixed(2)} ${unit === PIECES ? PIECES_LABEL : unit}`,
+          // equivalent bags / bottles / packets
+          unit: String(stockToPacks(quantity, item.packingUnit, item.packingSize).toFixed(2)),
+        };
     return { supervisorInventoryId: item.supervisorInventoryId, quantity, metadata };
   };
 

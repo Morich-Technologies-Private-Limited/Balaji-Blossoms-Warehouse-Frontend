@@ -9,6 +9,7 @@ const Register = () => {
     userId: '',
     name: '',
     emailId: '',
+    contactNumber: '',
     password: '',
     confirmPassword: '',
     storeId: '',
@@ -84,6 +85,14 @@ const Register = () => {
       newErrors.emailId = 'Please enter a valid email address';
     }
 
+    // Contact number validation: required and exactly 10 digits
+    const contactNumberRegex = /^\d{10}$/;
+    if (!formData.contactNumber.trim()) {
+      newErrors.contactNumber = 'Contact number is required';
+    } else if (!contactNumberRegex.test(formData.contactNumber)) {
+      newErrors.contactNumber = 'Contact number must be exactly 10 digits';
+    }
+
     if (!formData.password) {
       newErrors.password = 'Password is required';
     } else if (formData.password.length < 8) {
@@ -146,6 +155,7 @@ const Register = () => {
         userId: formData.userId,
         name: formData.name,
         emailId: formData.emailId,
+        contactNumber: formData.contactNumber,
         password: formData.password,
         storeId: parseInt(formData.storeId),
         role: formData.role
@@ -163,6 +173,7 @@ const Register = () => {
             userId: "",
             name: "",
             emailId: "",
+            contactNumber: "",
             password: "",
             confirmPassword: "",
             storeId: "",
@@ -256,6 +267,21 @@ const Register = () => {
                             data-testid="input-email"
                           />
                           {errors.emailId && <div className={styles.errorMessage}>{errors.emailId}</div>}
+                        </div>
+
+                        <div className="col-12">
+                          <label className={`form-label ${styles.inputLabel}`}>Contact Number</label>
+                          <input
+                            type="tel"
+                            className={`form-control ${styles.inputField} ${errors.contactNumber ? styles.inputFieldError : ''}`}
+                            name="contactNumber"
+                            value={formData.contactNumber}
+                            onChange={handleChange}
+                            placeholder="Enter 10-digit contact number"
+                            maxLength={10}
+                            data-testid="input-contact-number"
+                          />
+                          {errors.contactNumber && <div className={styles.errorMessage}>{errors.contactNumber}</div>}
                         </div>
 
                         <div className="col-md-6">

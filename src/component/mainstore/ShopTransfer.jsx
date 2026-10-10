@@ -1,17 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Package, Trash2, Send, Building2, User, UserCheck } from 'lucide-react';
+import { Search, Package, Trash2, Send, Building2, User, UserCheck, Phone, Car } from 'lucide-react';
 import styles from './ShopTransfer.module.css';
 import { fetchStoresWithUserApi } from '../../api/findStoreAndEmployee';
 import { findProducts } from '../../api/findProducts';
 import { findProductsPacking } from '../../api/findProductsPacking';
 import { sendProductToStore } from '../../api/sendProductToStore';
+import { downloadTransferPdf } from '../../api/downloadTransferPdf';
 import { fetchProductExpiry } from '../../api/productExpiryApi';
 import { fetchSupervisorsByStore, sendMainStoreToSupervisor } from '../../api/supervisorApi';
 import { getSessionData } from '../utils/getSessionData';
 import ExpirySelect from '../stock/ExpirySelect';
 import { isExpiringSoon, daysLeft, expiryLabel, expiryText } from '../utils/expiry';
 import { notify, confirmAction } from '../utils/feedback';
-import { round3, formatQuantity } from '../utils/units';
+import { round3, formatQuantity, isCountUnit, hasLoosePieces, packsToStock, stockToPacks, piecesToStock, packName, containerLabel, PIECES_LABEL } from '../utils/units';
 
 // ownSupervisorOnly: sub store Out Entry, stock can only go to the store's own supervisors
 const ShopTransfer = ({ ownSupervisorOnly = false }) => {
@@ -71,6 +72,17 @@ const ShopTransfer = ({ ownSupervisorOnly = false }) => {
   // blocks a second submit while a transfer request is running
   const submittingRef = useRef(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Driver / vehicle details printed on the invoice
+  const [driverName, setDriverName] = useState('');
+  const [vehicleNo, setVehicleNo] = useState('');
+  const [contactNo, setContactNo] = useState('');
+
+  // Invoice (challan) preview shown after a successful transfer
+  const [transferId, setTransferId] = useState('');
+  const [showPdfModal, setShowPdfModal] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState('');
+  const [pdfBlob, setPdfBlob] = useState(null);
 
   const loadStores = async () => {
     try {
@@ -146,6 +158,12 @@ const ShopTransfer = ({ ownSupervisorOnly = false }) => {
     return value;
   };
 
+  // Stock (in KG / L / count unit) shown in the unit the user is typing in
+  const convertToInputUnit = (quantity, defaultUnit, inputUnit) => {
+    const smallOfDefault = (defaultUnit === 'KILOGRAM' && inputUnit === 'GRAM') || (defaultUnit === 'LITER' && inputUnit === 'MILLILITER');
+    return smallOfDefault ? quantity * 1000 : quantity;
+  };
+
   // Get available input units based on default unit
   const getAvailableUnits = (defaultUnit) => {
     if (defaultUnit === 'KILOGRAM') {
@@ -160,15 +178,33 @@ const ShopTransfer = ({ ownSupervisorOnly = false }) => {
   // Calculate quantity based on input type (bags or direct quantity)
   const calculateQuantity = (item) => {
     if (item.inputType === 'bags') {
-      // Calculate from bags
+      // bags x packing size (KG / L); packets of a count unit are the stock quantity itself
       if (!item.noOfBags || !item.packingSize) return 0;
-      return parseFloat(item.noOfBags) * parseFloat(item.packingSize);
+      return round3(packsToStock(item.noOfBags, item.packingUnit, item.packingSize));
     } else {
-      // Direct quantity input - convert to default unit
       if (!item.directQuantity) return 0;
-      return convertToDefaultUnit(item.directQuantity, item.inputUnit, item.defaultUnit);
+      return directToStock(item, item.directQuantity, item.inputUnit);
     }
   };
+
+  // Direct quantity -> stock quantity.
+  // Count units: loose pieces / packing size (20 pens of a 25 packet = 0.8 PACKET). KG / L: unit conversion.
+  const directToStock = (item, value, inputUnit) => {
+    if (isCountUnit(item.packingUnit)) {
+      return round3(piecesToStock(value, item.packingSize));
+    }
+    return convertToDefaultUnit(value, inputUnit, item.defaultUnit);
+  };
+
+  // Stock that can still be sent, in what the user is typing (pieces for count units)
+  const maxDirect = (item) => (isCountUnit(item.packingUnit)
+    ? round3(item.availableQuantity * parseFloat(item.packingSize))
+    : round3(convertToInputUnit(item.availableQuantity, item.defaultUnit, item.inputUnit)));
+
+  const directUnitLabel = (item, unit) => (hasLoosePieces(item.packingUnit, item.packingSize) ? PIECES_LABEL : getUnitDisplay(unit));
+
+  // a count unit with packing size 1 (NOS) has nothing to split: one way of entering only
+  const singleInputType = (packingUnit, packingSize) => isCountUnit(packingUnit) && !hasLoosePieces(packingUnit, packingSize);
 
   // Validate numeric input based on unit and input type
   const handleNumericInput = (e, item = null, field = null) => {
@@ -195,6 +231,15 @@ const ShopTransfer = ({ ownSupervisorOnly = false }) => {
       return value;
     }
     return e.target.value.slice(0, -1);
+  };
+
+  // Validate contact number (10 digits)
+  const handleContactNoInput = (e) => {
+    const value = e.target.value;
+    // Allow only digits and limit to 10 characters
+    if (value === '' || /^\d{0,10}$/.test(value)) {
+      setContactNo(value);
+    }
   };
 
   useEffect(() => {
@@ -401,6 +446,9 @@ const ShopTransfer = ({ ownSupervisorOnly = false }) => {
           updated.packingUnit = packing.packingUnit;
           updated.defaultUnit = packing.packingUnit;
           updated.inputUnit = packing.packingUnit; // Default input unit same as packing unit
+          if (singleInputType(packing.packingUnit, packing.packingSize)) {
+            updated.inputType = 'quantity';
+          }
           updated.availableQuantity = inventory.availableQuantity;
           updated.maxBags = maxBags;
           updated.noOfBags = '';
@@ -410,6 +458,9 @@ const ShopTransfer = ({ ownSupervisorOnly = false }) => {
       }
 
       if (field === 'inputType') {
+        if (singleInputType(item.packingUnit, item.packingSize)) {
+          updated.inputType = 'quantity';
+        }
         // Reset input values when switching type
         updated.noOfBags = '';
         updated.directQuantity = '';
@@ -421,10 +472,10 @@ const ShopTransfer = ({ ownSupervisorOnly = false }) => {
         const numValue = parseFloat(value) || 0;
         
         // Calculate equivalent bags from available quantity
-        const maxBagsFromQuantity = updated.availableQuantity / parseFloat(updated.packingSize);
+        const maxBagsFromQuantity = stockToPacks(updated.availableQuantity, updated.packingUnit, updated.packingSize);
         
         if (numValue > maxBagsFromQuantity) {
-          notify.warning(`Maximum ${maxBagsFromQuantity.toFixed(2)} bags available`);
+          notify.warning(`Maximum ${maxBagsFromQuantity.toFixed(2)} ${containerLabel(updated.packingUnit)} available`);
           return item;
         }
         
@@ -437,11 +488,11 @@ const ShopTransfer = ({ ownSupervisorOnly = false }) => {
         updated.directQuantity = value;
         
         // Calculate quantity in default unit
-        const quantityInDefaultUnit = convertToDefaultUnit(numValue, updated.inputUnit, updated.defaultUnit);
+        const quantityInDefaultUnit = directToStock(updated, numValue, updated.inputUnit);
         
         // Check if exceeds available
         if (quantityInDefaultUnit > updated.availableQuantity) {
-          notify.warning(`Maximum available: ${round3(updated.availableQuantity)} ${getUnitDisplay(updated.defaultUnit)}`);
+          notify.warning(`Maximum available: ${maxDirect(updated)} ${directUnitLabel(updated, updated.inputUnit)}`);
           return item;
         }
         
@@ -459,11 +510,7 @@ const ShopTransfer = ({ ownSupervisorOnly = false }) => {
           updated.quantity = 0;
         } else if (updated.directQuantity) {
           // Recalculate quantity with new unit
-          const quantityInDefaultUnit = convertToDefaultUnit(
-            parseFloat(updated.directQuantity), 
-            value, 
-            updated.defaultUnit
-          );
+          const quantityInDefaultUnit = directToStock(updated, parseFloat(updated.directQuantity), value);
           
           if (quantityInDefaultUnit > updated.availableQuantity) {
             notify.warning(`Maximum available: ${round3(updated.availableQuantity)} ${getUnitDisplay(updated.defaultUnit)}`);
@@ -491,6 +538,71 @@ const ShopTransfer = ({ ownSupervisorOnly = false }) => {
     }
   };
 
+  const handleClosePdfModal = () => {
+    setShowPdfModal(false);
+
+    // Cleanup blob URL to prevent memory leak
+    if (pdfUrl) {
+      window.URL.revokeObjectURL(pdfUrl);
+    }
+
+    setPdfUrl('');
+    setPdfBlob(null);
+    setTransferId('');
+  };
+
+  const handlePrintPdf = () => {
+    const iframe = document.getElementById('pdfIframe');
+    if (iframe && iframe.contentWindow) {
+      iframe.contentWindow.focus();
+      iframe.contentWindow.print();
+    }
+  };
+
+  const handleDownloadPdf = () => {
+    if (!pdfBlob) return;
+
+    try {
+      // Create download link from already fetched blob
+      const url = window.URL.createObjectURL(pdfBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Invoice-${transferId}.pdf`;
+
+      document.body.appendChild(link);
+      link.click();
+
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Failed to download PDF:', error);
+      notify.error("Failed to download invoice. Please try again.");
+    }
+  };
+
+  // Fetch PDF after successful transfer
+  const fetchAndShowPdf = async (newTransferId) => {
+    try {
+      const response = await downloadTransferPdf(newTransferId);
+
+      // the api returns an error object (not a blob) when the invoice could not be loaded
+      if (response.status !== 200 || !(response.data instanceof Blob)) {
+        throw new Error(response.data?.message || 'Invoice not available');
+      }
+
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+
+      // Store blob for later download, URL for iframe viewing
+      setPdfBlob(blob);
+      setPdfUrl(window.URL.createObjectURL(blob));
+      setTransferId(newTransferId);
+      setShowPdfModal(true);
+    } catch (error) {
+      console.error('Failed to load PDF:', error);
+      notify.error(error.message || 'Failed to load invoice preview. Please try again.');
+    }
+  };
+
   const handleSubmit = async () => {
     // ignore double clicks: a second request would deduct the stock twice
     if (submittingRef.current) return;
@@ -513,6 +625,23 @@ const ShopTransfer = ({ ownSupervisorOnly = false }) => {
           notify.warning("Please select a user");
           return;
         }
+
+        // transfer to another store goes by vehicle: driver details are required
+        if (!driverName.trim()) {
+          notify.warning("Please enter driver name");
+          return;
+        }
+
+        if (!vehicleNo.trim()) {
+          notify.warning("Please enter vehicle number");
+          return;
+        }
+      }
+
+      // optional for a supervisor hand over, but must be complete when entered
+      if ((!sendToOwnSupervisor || contactNo) && contactNo.length !== 10) {
+        notify.warning("Contact number must be 10 digits");
+        return;
       }
 
       if (transferItems.length === 0) {
@@ -552,14 +681,17 @@ const ShopTransfer = ({ ownSupervisorOnly = false }) => {
         receiverStoreId: Number(selectedStore),
         userId: selectedUser,
         userName: selectedUserObj?.name || "",
+        driverName: driverName.trim(),
+        vehicleNo: vehicleNo.trim(),
+        contactNo: contactNo,
         stockList: transferItems.map(item => {
           // Build transfer metadata
           let transferMetadata;
           
           if (item.inputType === 'bags') {
             // For bags transfer
-            // unitTransferred = total weight / packing size = number of bags
-            const numberOfBags = item.quantity / parseFloat(item.packingSize);
+            // number of bags / bottles (quantity / packing size), or packets of a count unit (the quantity itself)
+            const numberOfBags = stockToPacks(item.quantity, item.packingUnit, item.packingSize);
             
             transferMetadata = {
               transferType: 'bags',
@@ -569,13 +701,13 @@ const ShopTransfer = ({ ownSupervisorOnly = false }) => {
             };
           } else {
             // For weight/quantity transfer
-            // unitTransferred = total weight / packing size = equivalent bags
-            const equivalentBags = item.quantity / parseFloat(item.packingSize);
+            // equivalent bags / bottles / packets
+            const equivalentBags = stockToPacks(item.quantity, item.packingUnit, item.packingSize);
             
             transferMetadata = {
               transferType: 'weight',
               transferUnit: item.inputUnit, // User selected unit (KILOGRAM, GRAM, LITER, MILLILITER)
-              weight: `${Number(item.directQuantity).toFixed(2)} ${item.inputUnit}`,
+              weight: `${Number(item.directQuantity).toFixed(2)} ${hasLoosePieces(item.packingUnit, item.packingSize) ? PIECES_LABEL : item.inputUnit}`,
               unit: String(equivalentBags.toFixed(2)) // Equivalent bags rounded to 2 decimals
             };
           }
@@ -618,6 +750,14 @@ const ShopTransfer = ({ ownSupervisorOnly = false }) => {
         setSupervisors([]);
         setSelectedSupervisorId("");
         setOwnSupervisorId("");
+        setDriverName("");
+        setVehicleNo("");
+        setContactNo("");
+
+        // payload is the sender (OUT) transfer id: show its invoice
+        if (response.data.payload) {
+          fetchAndShowPdf(response.data.payload);
+        }
       } else {
         notify.error(response.data.message || "Unable to transfer stock");
       }
@@ -786,6 +926,49 @@ const ShopTransfer = ({ ownSupervisorOnly = false }) => {
             </>
           )}
 
+          <div className={styles.selectGroup}>
+            <label className={styles.inputLabel}>
+              <User size={16} />
+              Driver Name:
+            </label>
+            <input
+              type="text"
+              className={styles.selectInput}
+              placeholder="Enter driver name"
+              value={driverName}
+              onChange={(e) => setDriverName(e.target.value)}
+            />
+          </div>
+
+          <div className={styles.selectGroup}>
+            <label className={styles.inputLabel}>
+              <Car size={16} />
+              Vehicle No:
+            </label>
+            <input
+              type="text"
+              className={styles.selectInput}
+              placeholder="Enter vehicle number"
+              value={vehicleNo}
+              onChange={(e) => setVehicleNo(e.target.value)}
+            />
+          </div>
+
+          <div className={styles.selectGroup}>
+            <label className={styles.inputLabel}>
+              <Phone size={16} />
+              Contact No:
+            </label>
+            <input
+              type="text"
+              className={styles.selectInput}
+              placeholder="Enter 10-digit contact number"
+              value={contactNo}
+              onChange={handleContactNoInput}
+              maxLength={10}
+            />
+          </div>
+
           {canSendToSupervisor && !ownSupervisorOnly && (
             <label className={styles.inputLabel} style={{ gap: 8, cursor: 'pointer', whiteSpace: 'nowrap', flex: '0 0 auto' }}>
               <input
@@ -863,8 +1046,12 @@ const ShopTransfer = ({ ownSupervisorOnly = false }) => {
                         onChange={(e) => updateItem(item.id, 'inputType', e.target.value)}
                         disabled={!item.packingId}
                       >
-                        <option value="bags">Bags/Bottles</option>
-                        <option value="quantity">Direct Quantity</option>
+                        {!singleInputType(item.packingUnit, item.packingSize) && (
+                          <option value="bags">{isCountUnit(item.packingUnit) ? packName(item.packingUnit) : 'Bags/Bottles'}</option>
+                        )}
+                        <option value="quantity">
+                          {hasLoosePieces(item.packingUnit, item.packingSize) ? `Direct Quantity (${PIECES_LABEL.toLowerCase()})` : 'Direct Quantity'}
+                        </option>
                       </select>
                     </td>
 
@@ -884,7 +1071,7 @@ const ShopTransfer = ({ ownSupervisorOnly = false }) => {
                           />
                           {item.packingId && (
                             <small style={{display: 'block', fontSize: '0.75rem', color: '#666', marginTop: '2px'}}>
-                              Max: {(item.availableQuantity / parseFloat(item.packingSize)).toFixed(2)} bags
+                              Max: {stockToPacks(item.availableQuantity, item.packingUnit, item.packingSize).toFixed(2)} {containerLabel(item.packingUnit)}
                             </small>
                           )}
                         </div>
@@ -912,11 +1099,17 @@ const ShopTransfer = ({ ownSupervisorOnly = false }) => {
                             >
                               {item.defaultUnit && getAvailableUnits(item.defaultUnit).map(unit => (
                                 <option key={unit} value={unit}>
-                                  {getUnitDisplay(unit)}
+                                  {directUnitLabel(item, unit)}
                                 </option>
                               ))}
                             </select>
                           </div>
+                          {item.packingId && (
+                            <small style={{fontSize: '0.75rem', color: '#666'}}>
+                              Max: {maxDirect(item)} {directUnitLabel(item, item.inputUnit)}
+                              {hasLoosePieces(item.packingUnit, item.packingSize) && ` · ${item.packingSize} ${PIECES_LABEL.toLowerCase()} = 1 ${getUnitDisplay(item.packingUnit)}`}
+                            </small>
+                          )}
                           {item.packingId && isSmallerUnit(item.inputUnit) && (
                             <small style={{fontSize: '0.7rem', color: '#ff6b00'}}>
                               Only whole numbers allowed
@@ -1018,6 +1211,48 @@ const ShopTransfer = ({ ownSupervisorOnly = false }) => {
           </button>
         </div>
       </div>
+
+      {showPdfModal && (
+        <div className={styles.modalOverlay} onClick={handleClosePdfModal}>
+          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h2 className={styles.modalTitle}>Transfer Invoice</h2>
+              <button
+                className={styles.closeButton}
+                onClick={handleClosePdfModal}
+                title="Close"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className={styles.modalBody}>
+              <iframe
+                id="pdfIframe"
+                src={pdfUrl}
+                className={styles.pdfIframe}
+                title="Transfer Invoice PDF"
+              />
+            </div>
+
+            <div className={styles.modalFooter}>
+              <button
+                className={styles.printButton}
+                onClick={handlePrintPdf}
+              >
+                Print Invoice
+              </button>
+              <button
+                className={styles.downloadButton}
+                onClick={handleDownloadPdf}
+              >
+                Download Invoice
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

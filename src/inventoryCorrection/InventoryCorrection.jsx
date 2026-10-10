@@ -4,7 +4,7 @@ import styles from './InventoryCorrection.module.css';
 import { fetchCorrectionStatus, applyInventoryCorrections, fetchCorrectionLogs } from './inventoryCorrectionApi';
 import { fetchInventoryItems } from '../api/storeInventoryApi';
 import { getSessionData } from '../component/utils/getSessionData';
-import { UNIT_LABEL, formatQuantity, unitsFor, convertUnit, round3, containerLabel } from '../component/utils/units';
+import { UNIT_LABEL, formatQuantity, unitsFor, convertUnit, round3, containerLabel, isCountUnit, hasLoosePieces, packsToStock, stockToPacks, piecesToStock, packName, PIECES_LABEL } from '../component/utils/units';
 import { formatDateTime } from '../component/utils/date';
 import { notify, confirmAction } from '../component/utils/feedback';
 import CorrectionHistoryTable from './CorrectionHistoryTable';
@@ -16,15 +16,22 @@ const toRows = (items) => items
 
 const SMALL_UNITS = ['GRAM', 'MILLILITER'];
 
-// Correct qty can be entered as bags/bottles (x packing size) or as a direct quantity in any compatible unit
-const emptyInput = (row) => ({ type: 'bags', value: '', unit: row.packingUnit });
+// Correct qty can be entered as bags/bottles (x packing size) or as a direct quantity in any compatible unit.
+// Count units: packets directly, or loose pieces (/ packing size). A count unit of size 1 (NOS) has one way only.
+const singleInputType = (row) => isCountUnit(row.packingUnit) && !hasLoosePieces(row.packingUnit, row.packingSize);
+const emptyInput = (row) => ({ type: singleInputType(row) ? 'quantity' : 'bags', value: '', unit: row.packingUnit });
 
 // New stock in the packing unit, or null when nothing is entered
 const toPackingQuantity = (row, input) => {
   if (!input || input.value === '') return null;
-  const quantity = input.type === 'bags'
-    ? parseFloat(input.value) * parseFloat(row.packingSize)
-    : convertUnit(input.value, input.unit, row.packingUnit);
+  let quantity;
+  if (input.type === 'bags') {
+    quantity = packsToStock(input.value, row.packingUnit, row.packingSize);
+  } else if (isCountUnit(row.packingUnit)) {
+    quantity = piecesToStock(input.value, row.packingSize); // 20 pens of a 25 packet = 0.8 PACKET
+  } else {
+    quantity = convertUnit(input.value, input.unit, row.packingUnit);
+  }
   return round3(quantity);
 };
 
@@ -192,7 +199,8 @@ const InventoryCorrection = () => {
                       const newQuantity = newQuantityOf(row);
                       const changed = newQuantity !== null && newQuantity !== Number(row.availableQuantity);
                       const container = containerLabel(row.packingUnit);
-                      const currentCount = Number((row.availableQuantity / parseFloat(row.packingSize)).toFixed(2));
+                      const currentCount = Number(stockToPacks(row.availableQuantity, row.packingUnit, row.packingSize).toFixed(2));
+                      const loosePieces = hasLoosePieces(row.packingUnit, row.packingSize);
                       return (
                         <tr key={row.inventoryId} className={changed ? styles.changedRow : ''}>
                           <td>{row.productId}</td>
@@ -200,7 +208,7 @@ const InventoryCorrection = () => {
                           <td>{row.packingSize} {UNIT_LABEL[row.packingUnit]}</td>
                           <td>
                             {formatQuantity(row.availableQuantity, row.packingUnit)}
-                            <small className={styles.subText}>{currentCount} {container}</small>
+                            {!isCountUnit(row.packingUnit) && <small className={styles.subText}>{currentCount} {container}</small>}
                           </td>
                           <td>
                             <select
@@ -209,15 +217,19 @@ const InventoryCorrection = () => {
                               disabled={!enabled}
                               onChange={(e) => updateInput(row, 'type', e.target.value)}
                             >
-                              <option value="bags">Bags/Bottles</option>
-                              <option value="quantity">Direct Quantity</option>
+                              {!singleInputType(row) && (
+                                <option value="bags">{isCountUnit(row.packingUnit) ? packName(row.packingUnit) : 'Bags/Bottles'}</option>
+                              )}
+                              <option value="quantity">{loosePieces ? `Direct Quantity (${PIECES_LABEL.toLowerCase()})` : 'Direct Quantity'}</option>
                             </select>
                           </td>
                           <td>
                             <div className={styles.qtyCell}>
                               <input
                                 className={styles.input}
-                                placeholder={input.type === 'bags' ? String(currentCount) : String(convertUnit(row.availableQuantity, row.packingUnit, input.unit))}
+                                placeholder={input.type === 'bags'
+                                  ? String(currentCount)
+                                  : String(loosePieces ? round3(row.availableQuantity * row.packingSize) : convertUnit(row.availableQuantity, row.packingUnit, input.unit))}
                                 value={input.value}
                                 disabled={!enabled}
                                 onChange={(e) => handleValueChange(row, input, e.target.value)}
@@ -232,12 +244,12 @@ const InventoryCorrection = () => {
                                   onChange={(e) => updateInput(row, 'unit', e.target.value)}
                                 >
                                   {unitsFor(null, row.packingUnit).map(unit => (
-                                    <option key={unit} value={unit}>{UNIT_LABEL[unit]}</option>
+                                    <option key={unit} value={unit}>{loosePieces ? PIECES_LABEL : UNIT_LABEL[unit]}</option>
                                   ))}
                                 </select>
                               )}
                             </div>
-                            {newQuantity !== null && (input.type === 'bags' || input.unit !== row.packingUnit) && (
+                            {newQuantity !== null && (Number(input.value) !== newQuantity || input.unit !== row.packingUnit) && (
                               <small className={styles.subText}>= {formatQuantity(newQuantity, row.packingUnit)}</small>
                             )}
                           </td>

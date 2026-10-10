@@ -4,9 +4,10 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { useStores } from "../../context/StoreContext";
 import { getSessionData } from '../utils/getSessionData';
 import { fetchStoreProducts, fetchInventoryItems, groupItemsByProduct, INVENTORY_BATCH_SIZE } from '../../api/storeInventoryApi';
+import { exportStoreInventory } from '../../api/exportStoreInventory';
 import { notify } from '../utils/feedback';
-import { round3 } from '../utils/units';
-
+import { showMessagePopUp } from '../modal/MessagePopUp';
+import { round3, isCountUnit } from '../utils/units';
 
 const InventoryView = () => {
   const {stores} = useStores();
@@ -25,6 +26,8 @@ const InventoryView = () => {
   const [quantityProgress, setQuantityProgress] = useState(null);
   const requestIdRef = useRef(0); // ignore results of an older store / refresh
 
+  const [isExporting, setIsExporting] = useState(false);
+  
   const initRef = useRef(false);
   const sessionDataRef = useRef(null);
   const hasCalledApiRef = useRef(false);
@@ -110,6 +113,60 @@ const InventoryView = () => {
     }
 
     if (isCurrent()) setQuantityProgress(null);
+  };
+
+  const handleExportToExcel = async () => {
+    if (!selectedStore) {
+      showMessagePopUp("ERROR", "Please select a store", []);
+      return;
+    }
+
+    try {
+      setIsExporting(true);
+      const response = await exportStoreInventory(selectedStore);
+
+      if (response.status === 200) {
+        // Create a blob from the response data
+        const blob = new Blob([response.data], {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        });
+
+        // Create a download link
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        
+        // Get filename from Content-Disposition header or use default
+        const contentDisposition = response.headers['content-disposition'];
+        let filename = 'inventory.xlsx';
+        
+        if (contentDisposition) {
+          const filenameMatch = contentDisposition.match(/filename="?(.+)"?/i);
+          if (filenameMatch && filenameMatch[1]) {
+            filename = filenameMatch[1];
+          }
+        }
+        
+        link.setAttribute('download', filename);
+        document.body.appendChild(link);
+        link.click();
+        
+        // Cleanup
+        link.remove();
+        window.URL.revokeObjectURL(url);
+        
+        showMessagePopUp("SUCCESS", "Inventory exported successfully", []);
+      } else if (response.status === 204) {
+        showMessagePopUp("INFO", "No inventory data available to export", []);
+      } else {
+        showMessagePopUp("ERROR", response.data?.message || "Failed to export inventory", []);
+      }
+    } catch (err) {
+      console.error("Export error:", err);
+      showMessagePopUp("ERROR", err.message || "Error exporting inventory", []);
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   const handleStoreChange = (e) => {
@@ -250,6 +307,28 @@ const InventoryView = () => {
               <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
             </svg>
             <span>Refresh</span>
+          </button>
+
+          <button 
+            className={styles.exportButton}
+            onClick={handleExportToExcel}
+            disabled={isExporting || !selectedStore || products.length === 0}
+            title="Export to Excel"
+          >
+            <svg 
+              className={isExporting ? styles.spinning : ''} 
+              width="20" 
+              height="20" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="2"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            <span>{isExporting ? 'Exporting...' : 'Export'}</span>
           </button>
 
           <button 
@@ -468,7 +547,8 @@ const InventoryView = () => {
                             )}
                             <td className={styles.regularCell}>{round3(inventory.availableQuantity)} {getShortUnit(inventory.packingUnit)}</td>
                             <td className={styles.regularCell}>
-                              {calculateBags(inventory.availableQuantity, packing.packingSize)}
+                              {/* count unit stock already is the number of packets (never divided by the packing size) */}
+                              {isCountUnit(packing.packingUnit) ? round3(inventory.availableQuantity) : calculateBags(inventory.availableQuantity, packing.packingSize)}
                             </td>
                           </tr>
                         ));

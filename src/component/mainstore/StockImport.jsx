@@ -5,7 +5,8 @@ import { findProducts } from '../../api/findProducts';
 import { findProductsPacking } from '../../api/findProductsPacking';
 import { importProduct } from '../../api/importProduct';
 import { notify, confirmAction } from '../utils/feedback';
-import { round3 } from '../utils/units';
+import { round3, isCountUnit, hasLoosePieces, packsToStock, stockToPacks, piecesToStock, packName, PIECES_LABEL } from '../utils/units';
+import { showMessagePopUp } from '../modal/MessagePopUp';
 
 const StockImport = () => {
   const [searchKey, setSearchKey] = useState('');
@@ -74,13 +75,28 @@ const StockImport = () => {
   // Calculate quantity based on input type (bags or direct quantity)
   const calculateQuantity = (item) => {
     if (item.inputType === 'bags') {
+      // bags x packing size (KG / L); packets of a count unit are the stock quantity itself
       if (!item.noOfBags || !item.packingSize) return 0;
-      return parseFloat(item.noOfBags) * parseFloat(item.packingSize);
+      return round3(packsToStock(item.noOfBags, item.packingUnit, item.packingSize));
     } else {
       if (!item.directQuantity) return 0;
-      return convertToDefaultUnit(item.directQuantity, item.inputUnit, item.defaultUnit);
+      return directToStock(item, item.directQuantity, item.inputUnit);
     }
   };
+
+  // Direct quantity -> stock quantity.
+  // Count units: loose pieces / packing size (20 pens of a 25 packet = 0.8 PACKET). KG / L: unit conversion.
+  const directToStock = (item, value, inputUnit) => {
+    if (isCountUnit(item.packingUnit)) {
+      return round3(piecesToStock(value, item.packingSize));
+    }
+    return convertToDefaultUnit(value, inputUnit, item.defaultUnit);
+  };
+
+  const directUnitLabel = (item, unit) => (hasLoosePieces(item.packingUnit, item.packingSize) ? PIECES_LABEL : getUnitDisplay(unit));
+
+  // a count unit with packing size 1 (NOS) has nothing to split: one way of entering only
+  const singleInputType = (packingUnit, packingSize) => isCountUnit(packingUnit) && !hasLoosePieces(packingUnit, packingSize);
 
   // Validate numeric input
   const handleNumericInput = (e) => {
@@ -238,6 +254,9 @@ const StockImport = () => {
           updated.packingUnit = packing.packingUnit;
           updated.defaultUnit = packing.packingUnit;
           updated.inputUnit = packing.packingUnit;
+          if (singleInputType(packing.packingUnit, packing.packingSize)) {
+            updated.inputType = 'quantity';
+          }
           updated.noOfBags = '';
           updated.directQuantity = '';
           updated.quantity = 0;
@@ -245,14 +264,22 @@ const StockImport = () => {
       }
 
       if (field === 'inputType') {
+        if (singleInputType(item.packingUnit, item.packingSize)) {
+          updated.inputType = 'quantity';
+        }
         updated.noOfBags = '';
         updated.directQuantity = '';
         updated.quantity = 0;
       }
 
       if (field === 'noOfBags') {
-        const intValue = value === '' ? '' : Math.floor(parseFloat(value) || 0);
-        updated.noOfBags = intValue === 0 ? '' : intValue.toString();
+        if (isCountUnit(updated.packingUnit)) {
+          // packets can be a fraction (2.5 packets)
+          updated.noOfBags = /^\d*\.?\d{0,3}$/.test(value) ? value : item.noOfBags;
+        } else {
+          const intValue = value === '' ? '' : Math.floor(parseFloat(value) || 0);
+          updated.noOfBags = intValue === 0 ? '' : intValue.toString();
+        }
         updated.quantity = calculateQuantity(updated);
       }
 
@@ -260,18 +287,14 @@ const StockImport = () => {
         const numValue = parseFloat(value) || 0;
         updated.directQuantity = value;
         
-        const quantityInDefaultUnit = convertToDefaultUnit(numValue, updated.inputUnit, updated.defaultUnit);
+        const quantityInDefaultUnit = directToStock(updated, numValue, updated.inputUnit);
         updated.quantity = quantityInDefaultUnit;
       }
 
       if (field === 'inputUnit') {
         updated.inputUnit = value;
         if (updated.directQuantity) {
-          const quantityInDefaultUnit = convertToDefaultUnit(
-            parseFloat(updated.directQuantity), 
-            value, 
-            updated.defaultUnit
-          );
+          const quantityInDefaultUnit = directToStock(updated, parseFloat(updated.directQuantity), value);
           updated.quantity = quantityInDefaultUnit;
         }
       }
@@ -294,43 +317,51 @@ const StockImport = () => {
 
   const handleSubmit = async () => {
     try {
-      // Validation
+      
+      var isValidationError = false;
+      var errorList = []; // Change to array
+
       if (!senderCompanyName.trim()) {
-        notify.warning("Please enter sender company name");
-        return;
+        errorList.push("Please enter sender company name.");
+        isValidationError = true;
       }
 
       if (!senderName.trim()) {
-        notify.warning("Please enter sender name");
-        return;
+        errorList.push("Please enter sender name.");
+        isValidationError = true;
       }
 
       if (!email.trim()) {
-        notify.warning("Please enter email");
-        return;
+        errorList.push("Please enter email address.");
+        isValidationError = true;
       }
 
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
-        notify.warning("Please enter a valid email address");
-        return;
+        errorList.push("Please enter a valid email address.");
+        isValidationError = true;
       }
 
       if (!contact.trim()) {
-        notify.warning("Please enter contact number");
-        return;
+        errorList.push("Please enter contact number.");
+        isValidationError = true;
       }
 
       if (!receiverName.trim()) {
-        notify.warning("Please enter receiver name");
-        return;
+        errorList.push("Please enter receiver name.");
+        isValidationError = true;
       }
 
       if (importItems.length === 0) {
-        notify.warning("Please add at least one item to import");
-        return;
+        errorList.push("No items added to import.");
+        isValidationError = true;
       }
 
+      if (isValidationError) {
+        showMessagePopUp("FAILED", "Validation Error", errorList);
+        return;
+      }
+  
       const invalidItems = importItems.filter(item =>
         !item.packingId ||
         !item.quantity ||
@@ -356,7 +387,7 @@ const StockImport = () => {
           if (item.inputType === 'bags') {
             // For bags import
             // unitTransferred = total weight / packing size = number of bags
-            const numberOfBags = item.quantity / parseFloat(item.packingSize);
+            const numberOfBags = stockToPacks(item.quantity, item.packingUnit, item.packingSize);
             
             transferMetadata = {
               transferType: 'bags',
@@ -367,12 +398,12 @@ const StockImport = () => {
           } else {
             // For weight/quantity import
             // unitTransferred = total weight / packing size = equivalent bags
-            const equivalentBags = item.quantity / parseFloat(item.packingSize);
+            const equivalentBags = stockToPacks(item.quantity, item.packingUnit, item.packingSize);
             
             transferMetadata = {
               transferType: 'weight',
               transferUnit: item.inputUnit, // User selected unit (KILOGRAM, GRAM, LITER, MILLILITER)
-              weight: `${Number(item.directQuantity).toFixed(2)} ${item.inputUnit}`,
+              weight: `${Number(item.directQuantity).toFixed(2)} ${hasLoosePieces(item.packingUnit, item.packingSize) ? PIECES_LABEL : item.inputUnit}`,
               unit: String(equivalentBags.toFixed(2)) // Equivalent bags rounded to 2 decimals
             };
           }
@@ -601,8 +632,12 @@ const StockImport = () => {
                         onChange={(e) => updateItem(item.id, 'inputType', e.target.value)}
                         disabled={!item.packingId}
                       >
-                        <option value="bags">Bags/Bottles</option>
-                        <option value="quantity">Direct Quantity</option>
+                        {!singleInputType(item.packingUnit, item.packingSize) && (
+                          <option value="bags">{isCountUnit(item.packingUnit) ? packName(item.packingUnit) : 'Bags/Bottles'}</option>
+                        )}
+                        <option value="quantity">
+                          {hasLoosePieces(item.packingUnit, item.packingSize) ? `Direct Quantity (${PIECES_LABEL.toLowerCase()})` : 'Direct Quantity'}
+                        </option>
                       </select>
                     </td>
 
@@ -640,11 +675,11 @@ const StockImport = () => {
                             value={item.inputUnit}
                             onChange={(e) => updateItem(item.id, 'inputUnit', e.target.value)}
                             disabled={!item.packingId}
-                            style={{flex: '0 0 60px', fontSize: '0.85rem'}}
+                            style={{flex: '0 0 70px', fontSize: '0.85rem'}}
                           >
                             {item.defaultUnit && getAvailableUnits(item.defaultUnit).map(unit => (
                               <option key={unit} value={unit}>
-                                {getUnitDisplay(unit)}
+                                {directUnitLabel(item, unit)}
                               </option>
                             ))}
                           </select>

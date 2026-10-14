@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import styles from './LoginForm.module.css';
 import logo from "../../assets/logo.png";
-import { loginApi, devModeLogin } from '../../api/loginApi';
+import { loginApi } from '../../api/loginApi';
 import { supervisorLoginApi } from '../../supervisor/supervisorPortalApi';
 import { useSafeNavigate } from '../../useSafeNavigate';
 import { useStores } from '../../context/StoreContext';
@@ -13,14 +13,10 @@ const LoginForm = () => {
   const [remember, setRemember] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedRole, setSelectedRole] = useState('');
   const [isSupervisorLogin, setIsSupervisorLogin] = useState(false);
 
   const { loadStores } = useStores();
   const navigate = useSafeNavigate();
-
-  // Check if dev mode is enabled
-  const isDevMode = import.meta.env.VITE_DEV_MODE === 'true';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -60,31 +56,6 @@ const LoginForm = () => {
 
       notify.error(
         'An error occurred during login',
-        'Login failed'
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleDevModeLogin = (role) => {
-    setIsLoading(true);
-    setSelectedRole(role);
-
-    try {
-      const result = devModeLogin(role);
-
-      notify.success(
-        `Dev Mode: Logged in as ${role}`,
-        'Login successful'
-      );
-
-      navigate(result.navLink);
-    } catch (error) {
-      console.error('Dev mode login error:', error);
-
-      notify.error(
-        'Dev mode login failed',
         'Login failed'
       );
     } finally {
@@ -161,156 +132,17 @@ const LoginForm = () => {
               className={`${styles.formCard} bg-white p-4 p-md-5 rounded-4 shadow-sm`}
             >
 
-              {/* Dev Mode Badge */}
-              {isDevMode && (
-                <div className="alert alert-warning py-2 px-3 mb-3 small d-flex align-items-center">
-                  <i className="bi bi-code-slash me-2"></i>
-                  <strong>Dev Mode Active</strong>
-                </div>
-              )}
-
-
               <div className="mb-4">
                 <h2 className="h3 fw-bold text-dark mb-2">
                   Welcome Back
                 </h2>
 
                 <p className="text-muted mb-0">
-                  {isDevMode
-                    ? 'Select a role to login'
-                    : 'Sign in to your account'}
+                  Sign in to your account
                 </p>
               </div>
 
 
-              {isDevMode ? (
-
-                // ================= DEV MODE =================
-                <div>
-                  <label className="form-label text-secondary small fw-semibold mb-3">
-                    Select Role
-                  </label>
-
-                  <div className="d-grid gap-2">
-
-                    {/* ADMIN */}
-                    <button
-                      type="button"
-                      className={`btn ${
-                        selectedRole === 'ADMIN'
-                          ? styles.btnPrimary
-                          : 'btn-outline-secondary'
-                      } py-3 text-start`}
-                      onClick={() => handleDevModeLogin('ADMIN')}
-                      disabled={isLoading}
-                    >
-                      <i className="bi bi-shield-check me-2"></i>
-
-                      <strong>Admin</strong>
-
-                      <small className="d-block text-muted mt-1">
-                        Full system access
-                      </small>
-                    </button>
-
-
-                    {/* MAIN STORE MANAGER */}
-                    <button
-                      type="button"
-                      className={`btn ${
-                        selectedRole === 'MAIN_STORE_MANAGER'
-                          ? styles.btnPrimary
-                          : 'btn-outline-secondary'
-                      } py-3 text-start`}
-                      onClick={() =>
-                        handleDevModeLogin('MAIN_STORE_MANAGER')
-                      }
-                      disabled={isLoading}
-                    >
-                      <i className="bi bi-shop me-2"></i>
-
-                      <strong>Main Store Manager</strong>
-
-                      <small className="d-block text-muted mt-1">
-                        Manage main store operations
-                      </small>
-                    </button>
-
-
-                    {/* SUB STORE MANAGER */}
-                    <button
-                      type="button"
-                      className={`btn ${
-                        selectedRole === 'SUB_STORE_MANAGER'
-                          ? styles.btnPrimary
-                          : 'btn-outline-secondary'
-                      } py-3 text-start`}
-                      onClick={() =>
-                        handleDevModeLogin('SUB_STORE_MANAGER')
-                      }
-                      disabled={isLoading}
-                    >
-                      <i className="bi bi-building me-2"></i>
-
-                      <strong>Sub Store Manager</strong>
-
-                      <small className="d-block text-muted mt-1">
-                        Manage sub store
-                      </small>
-                    </button>
-
-
-                    {/* SUB STORE SUPERVISOR */}
-                    <button
-                      type="button"
-                      className={`btn ${
-                        selectedRole === 'SUB_STORE_SUPERVISOR'
-                          ? styles.btnPrimary
-                          : 'btn-outline-secondary'
-                      } py-3 text-start`}
-                      onClick={() =>
-                        handleDevModeLogin('SUB_STORE_SUPERVISOR')
-                      }
-                      disabled={isLoading}
-                    >
-                      <i className="bi bi-person-badge me-2"></i>
-
-                      <strong>Sub Store Supervisor</strong>
-
-                      <small className="d-block text-muted mt-1">
-                        Supervise sales operations
-                      </small>
-                    </button>
-
-
-                    {/* SHOP MANAGER */}
-                    <button
-                      type="button"
-                      className={`btn ${
-                        selectedRole === 'SHOP_MANAGER'
-                          ? styles.btnPrimary
-                          : 'btn-outline-secondary'
-                      } py-3 text-start`}
-                      onClick={() =>
-                        handleDevModeLogin('SHOP_MANAGER')
-                      }
-                      disabled={isLoading}
-                    >
-                      <i className="bi bi-basket me-2"></i>
-
-                      <strong>Shop Manager</strong>
-
-                      <small className="d-block text-muted mt-1">
-                        Manage shop operations
-                      </small>
-                    </button>
-
-                  </div>
-                </div>
-
-              ) : (
-
-                // ================= PRODUCTION LOGIN =================
                 <form onSubmit={handleSubmit}>
 
                   {/* Staff and Supervisor have separate login flows */}
@@ -532,7 +364,6 @@ const LoginForm = () => {
                   </button>
 
                 </form>
-              )}
 
             </div>
           </div>
